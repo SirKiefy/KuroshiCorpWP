@@ -44,12 +44,15 @@
         #password-submit:hover { background-color: var(--dark-primary); }
         #password-error { height: 1.5rem; }
 
-        #logon-content { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        #logon-content { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         #logon-text-container { z-index: 10; background: rgba(10,10,10,0.7); backdrop-filter: blur(4px); padding: 2rem; border-radius: 0.5rem; border: 1px solid var(--light-grey); }
         .logon-line { margin-bottom: 0.5rem; }
         .logon-line.typing::after { content: '_'; animation: blink 1s step-end infinite; }
         @keyframes blink { 50% { opacity: 0; } }
         
+        #scanline { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary-color); box-shadow: 0 0 10px var(--primary-color); opacity: 0.7; animation: scan 4s linear infinite; z-index: 15; }
+        @keyframes scan { 0% { top: -10px; } 100% { top: 100%; } }
+
         #hexagon-grid { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
         .hexagon { fill: var(--dark-grey); stroke: var(--light-grey); stroke-width: 1; transition: fill 0.2s ease-out, stroke 0.2s ease-out; }
         .hexagon.active { fill: var(--dark-primary); stroke: var(--primary-color); transition-duration: 0.1s; }
@@ -132,12 +135,24 @@
         .hud-element { position: absolute; background-color: rgba(10, 10, 10, 0.8); backdrop-filter: blur(5px); border: 1px solid var(--light-grey); padding: 1rem; border-radius: 0.25rem; opacity: 0; transform: translateY(20px); transition: opacity 0.5s, transform 0.5s; }
         #dashboard-globe { cursor: grab; }
         #dashboard-globe:active { cursor: grabbing; }
+        #dashboard-map { background-image: url('https://i.imgur.com/FwrFLYh.jpeg'); background-size: cover; background-position: center; display: none; }
         #kuroshi-logo { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 200px; opacity: 0.7; animation: pulse 4s infinite ease-in-out; }
         @keyframes pulse { 0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); } 50% { opacity: 0.9; transform: translateX(-50%) scale(1.05); } }
         .top-banner { top: 1rem; left: 1rem; right: 1rem; width: auto; overflow: hidden; white-space: nowrap; }
         .top-banner-text { display: inline-block; animation: ticker-scroll 30s linear infinite; padding-left: 100%; }
         @keyframes ticker-scroll { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
         
+        #globe-controls { left: 1rem; bottom: 1rem; }
+        .control-toggle { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+        .toggle-switch { width: 40px; height: 20px; background: var(--medium-grey); border-radius: 10px; position: relative; cursor: pointer; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: var(--text-color); border-radius: 50%; transition: transform 0.2s; }
+        .toggle-checkbox:checked + .toggle-switch::after { transform: translateX(20px); }
+        .toggle-checkbox:checked + .toggle-switch { background: var(--primary-color); }
+
+        #war-plan-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; }
+        .war-plan-line { stroke: var(--accent-color); stroke-width: 2; stroke-dasharray: 5; animation: dash-flow 1s linear infinite; }
+        @keyframes dash-flow { to { stroke-dashoffset: -10; } }
+
         /* --- DB LAYOUT (ARMORY/INTEL/CODEX) --- */
         .db-grid { display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem; height: 100%; }
         .db-list-container { background-color: rgba(var(--rgb-primary-color), 0.05); border: 1px solid var(--light-grey); padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; }
@@ -161,6 +176,8 @@
         .strength-overwhelming { color: #ef4444; font-weight: bold; } .strength-superior { color: #f97316; } .strength-equal { color: #eab308; } .strength-weaker { color: #84cc16; } .strength-obsolete { color: #a1a1aa; } .strength-unknown { color: #6b7280; }
         .search-input { background: var(--medium-grey); border: 1px solid var(--light-grey); padding: 0.5rem; width: 100%; margin-bottom: 1rem; }
         .search-input:focus { outline: none; border-color: var(--accent-color); }
+        .armory-category > .db-list-item { background-color: var(--medium-grey); }
+        .armory-subcategory { padding-left: 1rem; }
         
         /* --- SETTINGS --- */
         .widget { background-color: rgba(var(--rgb-primary-color), 0.05); padding: 1.5rem; border: 1px solid var(--light-grey); }
@@ -186,6 +203,7 @@
     <!-- Logon Screen -->
     <div id="logon-screen" class="screen hidden">
         <div id="logon-content">
+            <div id="scanline"></div>
             <svg id="hexagon-grid"></svg>
             <div id="logon-text-container"></div>
         </div>
@@ -224,12 +242,23 @@
                 <!-- Dashboard Content -->
                 <div id="dashboard-content" class="tab-content active">
                     <div id="dashboard-globe" class="absolute inset-0 z-10"></div>
+                    <div id="dashboard-map" class="absolute inset-0 z-10"></div>
+                    <svg id="war-plan-overlay"></svg>
                     <div class="relative z-20 pointer-events-none">
                         <div class="hud-element top-banner">
                             <span class="top-banner-text">SYSTEM STATUS: NOMINAL ++ THREATCON: GREEN ++ ALL CHANNELS SECURE ++ OPERATOR ONLINE ++ </span>
                         </div>
                         <div class="hud-element absolute top-20 right-4 p-4 text-right pointer-events-auto"><h2 class="font-orbitron text-primary">CLEARANCE</h2><p id="clearance-level-display" class="text-3xl text-success"></p></div>
                         
+                        <div id="globe-controls" class="hud-element pointer-events-auto">
+                            <div class="control-toggle"><label for="globe-view-toggle" class="mr-4">2D View</label><input type="checkbox" id="globe-view-toggle" class="toggle-checkbox hidden"><label for="globe-view-toggle" class="toggle-switch"></label></div>
+                            <div class="control-toggle"><label for="heightmap-toggle" class="mr-4">Height Map</label><input type="checkbox" id="heightmap-toggle" class="toggle-checkbox hidden"><label for="heightmap-toggle" class="toggle-switch"></label></div>
+                            <div class="control-toggle"><label for="waypoints-toggle" class="mr-4">Waypoints</label><input type="checkbox" id="waypoints-toggle" class="toggle-checkbox hidden" checked><label for="waypoints-toggle" class="toggle-switch"></label></div>
+                            <div class="control-toggle"><label for="plans-toggle" class="mr-4">Show Plans</label><input type="checkbox" id="plans-toggle" class="toggle-checkbox hidden"><label for="plans-toggle" class="toggle-switch"></label></div>
+                            <div class="control-toggle"><label for="rotate-toggle" class="mr-4">Auto-Rotate</label><input type="checkbox" id="rotate-toggle" class="toggle-checkbox hidden" checked><label for="rotate-toggle" class="toggle-switch"></label></div>
+                            <button id="clear-waypoints-btn" class="w-full mt-2 bg-red-800 hover:bg-red-700 text-xs p-1 rounded">Clear Waypoints</button>
+                        </div>
+
                         <div class="hud-element absolute bottom-4 right-4 w-96 h-48 pointer-events-auto flex flex-col">
                             <h2 class="widget-title font-orbitron">COMMAND INPUT</h2>
                             <div id="terminal-log" class="flex-grow overflow-y-auto"></div>
@@ -281,6 +310,10 @@
             const sleep = ms => new Promise(res => setTimeout(res, ms));
             const CORRECT_PASSWORD = "I9j4vEW><2p£5vQGQDtVs";
             let charts = {};
+            let waypoints = [];
+            let waypointObjects = [];
+            let textures = {};
+            let isGlobeRotating = true;
             
             // --- DATA ---
             const intelData = {
@@ -295,8 +328,8 @@
 
             const armoryData = {
                 'analysis': { name: 'System Analysis', type: 'Data' },
-                'naval': { name: 'Naval Assets', type: 'Category' },
-                'air': { name: 'Aircraft', type: 'Category' },
+                'naval': { name: 'Naval Assets', type: 'Category', subcategories: { 'ships': 'Ships', 'structures': 'Structures' } },
+                'air': { name: 'Aircraft', type: 'Category', subcategories: { 'fighters': 'Fighters', 'bombers': 'Bombers' } },
                 'ground': { name: 'Ground Vehicles', type: 'Category' }
             };
 
@@ -347,19 +380,23 @@
                 const typeWriter = (element, text, speed) => {
                     return new Promise(resolve => {
                         let i = 0;
-                        element.innerHTML = "";
-                        element.classList.add('typing');
-                        function type() {
+                        const glitchChars = '!@#$%^&*()_+-=[]{}|;:",.<>?/`~';
+                        const typeInterval = setInterval(() => {
                             if (i < text.length) {
-                                element.innerHTML += text.charAt(i);
+                                let char = text.charAt(i);
+                                if (Math.random() < 0.1) {
+                                    element.innerHTML = element.innerHTML.slice(0, -1) + glitchChars.charAt(Math.floor(Math.random() * glitchChars.length));
+                                } else {
+                                     element.innerHTML = element.innerHTML.slice(0, -1) + char;
+                                }
+                                element.innerHTML += '_';
                                 i++;
-                                setTimeout(type, speed);
                             } else {
-                                element.classList.remove('typing');
+                                clearInterval(typeInterval);
+                                element.innerHTML = element.innerHTML.slice(0, -1);
                                 resolve();
                             }
-                        }
-                        type();
+                        }, speed);
                     });
                 };
                 
@@ -465,6 +502,8 @@
                 document.getElementById('clearance-level-display').textContent = `LEVEL ${clearanceLevel}`;
                 
                 const container = document.getElementById('dashboard-globe');
+                const mapContainer = document.getElementById('dashboard-map');
+                const warPlanOverlay = document.getElementById('war-plan-overlay');
                 dashboardScene = new THREE.Scene();
                 dashboardCamera = new THREE.PerspectiveCamera(75, (window.innerWidth - 80) / window.innerHeight, 0.1, 1000);
                 dashboardRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -472,11 +511,11 @@
                 container.appendChild(dashboardRenderer.domElement);
 
                 const textureLoader = new THREE.TextureLoader();
+                textures.map = textureLoader.load('https://i.imgur.com/FwrFLYh.jpeg');
+                textures.heightMap = textureLoader.load('https://i.imgur.com/w5H23UT.jpeg');
+
                 const sphereGeometry = new THREE.SphereGeometry(2.5, 64, 64);
-                const sphereMaterial = new THREE.MeshPhongMaterial({ 
-                    map: textureLoader.load('https://i.imgur.com/FwrFLYh.jpeg'), 
-                    bumpScale: 0.05,
-                });
+                const sphereMaterial = new THREE.MeshPhongMaterial({ map: textures.map, bumpScale: 0.05 });
                 dashboardGlobe = new THREE.Mesh(sphereGeometry, sphereMaterial);
                 dashboardScene.add(dashboardGlobe);
                 
@@ -488,8 +527,8 @@
                 dashboardCamera.position.z = 5;
 
                 let isDragging = false, previousMousePosition = { x: 0, y: 0 };
-                container.addEventListener('mousedown', e => { isDragging = true; previousMousePosition = { x: e.clientX, y: e.clientY }; });
-                container.addEventListener('mouseup', () => { isDragging = false; });
+                container.addEventListener('mousedown', e => { isDragging = true; isGlobeRotating = false; previousMousePosition = { x: e.clientX, y: e.clientY }; });
+                container.addEventListener('mouseup', () => { isDragging = false; setTimeout(() => { if(document.getElementById('rotate-toggle').checked) isGlobeRotating = true; }, 2000); });
                 container.addEventListener('mousemove', e => {
                     if (!isDragging) return;
                     const deltaMove = { x: e.clientX - previousMousePosition.x, y: e.clientY - previousMousePosition.y };
@@ -498,7 +537,64 @@
                     previousMousePosition = { x: e.clientX, y: e.clientY };
                 });
                 
-                const animate = () => { requestAnimationFrame(animate); dashboardGlobe.rotation.y += 0.0005; dashboardRenderer.render(dashboardScene, dashboardCamera); };
+                container.addEventListener('contextmenu', (event) => {
+                    event.preventDefault();
+                    const rect = dashboardRenderer.domElement.getBoundingClientRect();
+                    const mouse = new THREE.Vector2(
+                        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+                        -((event.clientY - rect.top) / rect.height) * 2 + 1
+                    );
+                    const raycaster = new THREE.Raycaster();
+                    raycaster.setFromCamera(mouse, dashboardCamera);
+                    const intersects = raycaster.intersectObject(dashboardGlobe);
+                    if (intersects.length > 0) {
+                        const worldPoint = intersects[0].point;
+                        const localPoint = dashboardGlobe.worldToLocal(worldPoint.clone());
+                        waypoints.push(localPoint);
+                        renderWaypoints();
+                    }
+                });
+
+                document.getElementById('globe-view-toggle').addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        container.style.display = 'none';
+                        mapContainer.style.display = 'block';
+                    } else {
+                        container.style.display = 'block';
+                        mapContainer.style.display = 'none';
+                    }
+                });
+
+                document.getElementById('heightmap-toggle').addEventListener('change', (e) => {
+                    dashboardGlobe.material.map = e.target.checked ? textures.heightMap : textures.map;
+                    dashboardGlobe.material.needsUpdate = true;
+                });
+
+                document.getElementById('waypoints-toggle').addEventListener('change', (e) => {
+                    waypointObjects.forEach(obj => obj.visible = e.target.checked);
+                });
+                
+                document.getElementById('plans-toggle').addEventListener('change', (e) => {
+                    warPlanOverlay.style.display = e.target.checked ? 'block' : 'none';
+                });
+                
+                document.getElementById('rotate-toggle').addEventListener('change', (e) => {
+                    isGlobeRotating = e.target.checked;
+                });
+
+                document.getElementById('clear-waypoints-btn').addEventListener('click', () => {
+                    waypoints = [];
+                    renderWaypoints();
+                });
+                
+                const animate = () => {
+                    requestAnimationFrame(animate);
+                    if(isGlobeRotating) dashboardGlobe.rotation.y += 0.0005;
+                    dashboardRenderer.render(dashboardScene, dashboardCamera);
+                    if (document.getElementById('plans-toggle').checked) {
+                        drawWarPlans();
+                    }
+                };
                 animate();
                 window.addEventListener('resize', () => {
                     const newWidth = window.innerWidth - 80;
@@ -544,6 +640,56 @@
                         terminalInput.value = '';
                     }
                 });
+            }
+
+            function renderWaypoints() {
+                waypointObjects.forEach(obj => dashboardGlobe.remove(obj));
+                waypointObjects = [];
+                waypoints.forEach(pos => {
+                    const markerGeometry = new THREE.ConeGeometry(0.05, 0.15, 8);
+                    const markerMaterial = new THREE.MeshBasicMaterial({ 
+                        color: 0xff0000, 
+                        transparent: true, 
+                        opacity: 0.8 
+                    });
+                    const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+                    marker.position.copy(pos);
+                    marker.lookAt(new THREE.Vector3(0, 0, 0));
+                    marker.rotateX(Math.PI / 2);
+                    dashboardGlobe.add(marker);
+                    waypointObjects.push(marker);
+                });
+                drawWarPlans();
+            }
+
+            function toScreenPosition(vec3, camera) {
+                const vector = new THREE.Vector3();
+                dashboardGlobe.localToWorld(vector.copy(vec3));
+                const widthHalf = (window.innerWidth - 80) / 2;
+                const heightHalf = window.innerHeight / 2;
+                vector.project(camera);
+                return {
+                    x: (vector.x * widthHalf) + widthHalf,
+                    y: -(vector.y * heightHalf) + heightHalf
+                };
+            }
+
+            function drawWarPlans() {
+                const overlay = document.getElementById('war-plan-overlay');
+                overlay.innerHTML = '';
+                if (waypoints.length < 2) return;
+
+                for (let i = 0; i < waypoints.length - 1; i++) {
+                    const startPoint = toScreenPosition(waypoints[i], dashboardCamera);
+                    const endPoint = toScreenPosition(waypoints[i + 1], dashboardCamera);
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', startPoint.x);
+                    line.setAttribute('y1', startPoint.y);
+                    line.setAttribute('x2', endPoint.x);
+                    line.setAttribute('y2', endPoint.y);
+                    line.setAttribute('class', 'war-plan-line');
+                    overlay.appendChild(line);
+                }
             }
 
             // --- ARMORY, INTEL, CODEX ---
@@ -734,10 +880,14 @@
             function updateClock() {
                 const clockDisplay = document.getElementById('clock-display');
                 if (!clockDisplay) return;
-                setInterval(() => {
-                    const now = new Date();
-                    const timeString = now.toLocaleTimeString('en-GB', { timeZone: 'UTC', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    clockDisplay.textContent = `TIME: ${timeString} UTC`;
+                const intervalId = setInterval(() => {
+                    if(document.getElementById('clock-display')) {
+                        const now = new Date();
+                        const timeString = now.toLocaleTimeString('en-GB', { timeZone: 'UTC', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        document.getElementById('clock-display').textContent = `TIME: ${timeString} UTC`;
+                    } else {
+                        clearInterval(intervalId);
+                    }
                 }, 1000);
             }
         });
