@@ -50,27 +50,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Firebase Setup ---
     async function getFirebaseConfig() {
+        // For the collaborative environment, the config is injected globally.
         if (typeof __firebase_config !== 'undefined' && __firebase_config) {
             console.log("Using injected Firebase config.");
             return JSON.parse(__firebase_config);
         }
-        try {
-            console.log("Attempting to fetch firebase-config.json...");
-            const response = await fetch('./firebase-config.json');
-            console.log("Fetch response status:", response.status);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch config. Status: ${response.status} ${response.statusText}`);
+        
+        // For GitHub Pages, the config is read from a placeholder in the HTML.
+        console.log("Attempting to read embedded Firebase config from HTML...");
+        const configElement = document.getElementById('firebase-config-data');
+        if (configElement && configElement.textContent.trim() !== '/*FIREBASE_CONFIG_PLACEHOLDER*/') {
+            try {
+                const config = JSON.parse(configElement.textContent);
+                console.log("Successfully parsed embedded config.");
+                return config;
+            } catch (error) {
+                console.error("Failed to parse embedded config JSON:", error, "Content:", configElement.textContent);
+                throw new Error("Embedded Firebase configuration is not valid JSON.");
             }
-            const configText = await response.text();
-            console.log("Received config text:", configText);
-            if (!configText) {
-                throw new Error("firebase-config.json is empty.");
-            }
-            return JSON.parse(configText);
-        } catch (error) {
-            console.error("Error fetching or parsing firebase-config.json:", error);
-            throw new Error("Firebase configuration could not be loaded from firebase-config.json.");
         }
+        
+        throw new Error("Firebase configuration could not be found.");
     }
 
     async function initializeFirebase() {
