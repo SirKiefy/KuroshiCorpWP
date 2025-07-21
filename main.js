@@ -1,10 +1,15 @@
+// Import necessary Firebase functions. This is a modern approach for web development.
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, onSnapshot, query, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
 document.addEventListener('DOMContentLoaded', function () {
     // --- Application State ---
     const state = {
         clearanceLevel: 7,
         correctPassword: "I9j4vEW><2p£5vQGQDtVs",
         charts: {},
-        waypoints: [],
+        waypoints: new Map(), // Use a Map to easily track waypoints by their ID
         textures: {},
         isGlobeRotating: true,
         audioCtx: null,
@@ -18,10 +23,16 @@ document.addEventListener('DOMContentLoaded', function () {
             camera: null,
             scene: null,
             waypointObjects: new THREE.Group()
+        },
+        firebase: {
+            db: null,
+            auth: null,
+            userId: null,
+            unsubscribeWaypoints: null // To store the listener cleanup function
         }
     };
 
-    // --- Data ---
+    // --- Data (Remains the same) ---
     const intelData = {
         'fssa': { name: 'FSSA (Federated Sovereign State of Armkava)', threat: 'Hostile', location: 'Unknown', hostility: 'Active', ground_strength: 'Equal', air_strength: 'Weaker', naval_strength: 'Equal', report: 'A hostile state actor.', hierarchy: { Leader: 'Day (valcry97)', Members: ['jake from statefarm (thisscreenisnuts)'] }, assets: ['Standard military hardware.'] },
         'bss': { name: 'BSS (Black Sea Syndicate)', threat: 'Neutral', location: 'Black Sea', hostility: 'Opportunistic', ground_strength: 'Weaker', air_strength: 'Obsolete', naval_strength: 'Superior', report: 'A neutral syndicate operating in the Black Sea region.', hierarchy: { Leader: 'Quasitedjr.TTV', Members: ['Bizmark7 (Admin)', 'dloglo1980', 'Snowwolf (snowwolf1512)'] }, assets: ['Naval assets, smuggling routes.'] },
@@ -36,6 +47,51 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Utility Functions ---
     const sleep = ms => new Promise(res => setTimeout(res, ms));
+
+    // --- Firebase Setup ---
+    async function initializeFirebase() {
+        // IMPORTANT: Replace this with your actual Firebase configuration object
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            state.firebase.db = getFirestore(app);
+            state.firebase.auth = getAuth(app);
+            console.log("Firebase initialized successfully.");
+            await signIn();
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            // Display a user-friendly error message on the screen
+            const logonText = document.getElementById('logon-text-container') || document.body;
+            logonText.innerHTML = `<p class="text-error">FATAL ERROR: Could not connect to strategic database. Please check Firebase configuration.</p>`;
+        }
+    }
+
+    async function signIn() {
+        return new Promise((resolve) => {
+            onAuthStateChanged(state.firebase.auth, user => {
+                if (user) {
+                    // User is signed in.
+                    state.firebase.userId = user.uid;
+                    console.log("Authenticated with user ID:", state.firebase.userId);
+                    document.getElementById('user-id-display').textContent = `ID: ${user.uid.substring(0, 8)}...`;
+                    resolve(user);
+                } else {
+                    // User is signed out. Sign in anonymously.
+                    signInAnonymously(state.firebase.auth).catch(error => {
+                        console.error("Anonymous sign-in failed:", error);
+                    });
+                }
+            });
+        });
+    }
 
     // --- Audio ---
     function playSound(type) {
@@ -77,6 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const textContainer = document.getElementById('logon-text-container');
         
         initLogonAnimation();
+        await initializeFirebase(); // Initialize and sign in to Firebase
 
         const typeLine = async (text, color = 'text-white', speed = 25) => {
             const p = document.createElement('p');
@@ -119,6 +176,7 @@ document.addEventListener('DOMContentLoaded', function () {
             "CALIBRATING POWER CORE STABILITY...",
             "VERIFYING NEURAL INTERFACE SYNC...",
             "ESTABLISHING TACHYON UPLINK...",
+            "CONNECTING TO STRATEGIC DATABASE...",
             "DECOMPRESSING TACTICAL OVERLAYS...",
             "LOADING COGNITIVE MODELS...",
             "CHECKING SYSTEM INTEGRITY..."
@@ -232,24 +290,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             document.getElementById(`${tabId}-content`).classList.add('active');
         });
-
-        const passwordForm = document.getElementById('password-form');
-        passwordForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (!state.audioCtx) {
-                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            const passwordInput = document.getElementById('password-input');
-            if (passwordInput.value === state.correctPassword) {
-                document.getElementById('password-screen').classList.add('hidden');
-                runLogonSequence();
-            } else {
-                const passwordError = document.getElementById('password-error');
-                passwordError.textContent = "ACCESS DENIED";
-                passwordInput.value = "";
-                setTimeout(() => passwordError.textContent = "\u00A0", 2000);
-            }
-        });
     }
 
     function buildTabContent(tabId) {
@@ -276,6 +316,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setupGlobe();
         setupDashboardControls();
         setupTerminal();
+        listenForWaypoints(); // Start listening for real-time updates
     }
 
     function setupGlobe() {
@@ -356,8 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const intersects = raycaster.intersectObject(state.three.globe);
             if (intersects.length > 0) {
                 const localPoint = state.three.globe.worldToLocal(intersects[0].point.clone());
-                state.waypoints.push({ id: `WP-${Date.now()}`, position: localPoint, timestamp: new Date().toUTCString() });
-                renderWaypoints();
+                addWaypointToFirestore(localPoint);
             }
         });
 
@@ -379,9 +419,9 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('plans-toggle').addEventListener('change', (e) => { document.getElementById('war-plan-overlay').style.display = e.target.checked ? 'block' : 'none'; });
         document.getElementById('rotate-toggle').addEventListener('change', (e) => { state.isGlobeRotating = e.target.checked; });
         document.getElementById('clear-waypoints-btn').addEventListener('click', () => {
-            state.waypoints = [];
-            renderWaypoints();
-            document.getElementById('waypoint-info-widget').classList.add('hidden');
+            state.waypoints.forEach(wp => {
+                deleteWaypointFromFirestore(wp.id);
+            });
         });
     }
     
@@ -426,7 +466,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderWaypoints() {
         while(state.three.waypointObjects.children.length > 0){ state.three.waypointObjects.remove(state.three.waypointObjects.children[0]); }
         state.waypoints.forEach(wp => {
-            const marker = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.15, 8), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+            const color = wp.owner === state.firebase.userId ? 0xff0000 : 0x00ff00; // Red for own, green for others
+            const marker = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.15, 8), new THREE.MeshBasicMaterial({ color }));
             marker.position.copy(wp.position);
             marker.lookAt(new THREE.Vector3(0, 0, 0));
             marker.rotateX(Math.PI / 2);
@@ -439,8 +480,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function showWaypointInfo(waypointData) {
         const panel = document.getElementById('waypoint-info-widget');
         const content = document.getElementById('waypoint-info-content');
-        const { id, timestamp, position } = waypointData;
-        content.innerHTML = `<p><strong>ID:</strong> <span class="text-accent">${id}</span></p><p><strong>Timestamp:</strong> ${timestamp}</p><p><strong>Coordinates (Local):</strong></p><ul class="list-disc pl-5 text-sm"><li>X: ${position.x.toFixed(4)}</li><li>Y: ${position.y.toFixed(4)}</li><li>Z: ${position.z.toFixed(4)}</li></ul>`;
+        const { id, timestamp, position, owner } = waypointData;
+        content.innerHTML = `<p><strong>ID:</strong> <span class="text-accent">${id.substring(0,8)}...</span></p><p><strong>Timestamp:</strong> ${timestamp}</p><p><strong>Set by:</strong> <span class="text-accent">${owner === state.firebase.userId ? 'SELF' : `OP-${owner.substring(0,8)}...`}</span></p><p><strong>Coordinates:</strong></p><ul class="list-disc pl-5 text-sm"><li>X: ${position.x.toFixed(4)}</li><li>Y: ${position.y.toFixed(4)}</li><li>Z: ${position.z.toFixed(4)}</li></ul>`;
         panel.classList.remove('hidden');
     }
 
@@ -457,15 +498,58 @@ document.addEventListener('DOMContentLoaded', function () {
     function drawWarPlans() {
         const overlay = document.getElementById('war-plan-overlay');
         overlay.innerHTML = '';
-        if (state.waypoints.length < 2) return;
+        if (state.waypoints.size < 2) return;
         let pathData = "";
-        for (let i = 0; i < state.waypoints.length; i++) {
-            const point = toScreenPosition(state.waypoints[i].position, state.three.camera);
+        let i = 0;
+        state.waypoints.forEach(wp => {
+            const point = toScreenPosition(wp.position, state.three.camera);
             pathData += `${i === 0 ? 'M' : 'L'} ${point.x} ${point.y} `;
-        }
+            i++;
+        });
         overlay.innerHTML = `<path d="${pathData}" stroke="var(--accent-color)" stroke-width="2" fill="none" stroke-dasharray="5, 5" />`;
     }
     
+    // --- Firestore Waypoint Functions ---
+    async function addWaypointToFirestore(localPosition) {
+        try {
+            const docRef = await addDoc(collection(state.firebase.db, "shared-waypoints"), {
+                position: { x: localPosition.x, y: localPosition.y, z: localPosition.z },
+                timestamp: new Date().toUTCString(),
+                owner: state.firebase.userId
+            });
+            console.log("Waypoint added with ID: ", docRef.id);
+        } catch (e) {
+            console.error("Error adding waypoint: ", e);
+        }
+    }
+    
+    async function deleteWaypointFromFirestore(docId) {
+        try {
+            await deleteDoc(doc(state.firebase.db, "shared-waypoints", docId));
+            console.log("Waypoint deleted: ", docId);
+        } catch (e) {
+            console.error("Error deleting waypoint: ", e);
+        }
+    }
+
+    function listenForWaypoints() {
+        const q = query(collection(state.firebase.db, "shared-waypoints"));
+        state.firebase.unsubscribeWaypoints = onSnapshot(q, (querySnapshot) => {
+            const newWaypoints = new Map();
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                newWaypoints.set(doc.id, {
+                    id: doc.id,
+                    position: new THREE.Vector3(data.position.x, data.position.y, data.position.z),
+                    timestamp: data.timestamp,
+                    owner: data.owner
+                });
+            });
+            state.waypoints = newWaypoints;
+            renderWaypoints();
+        });
+    }
+
     // --- Database Tabs (Armory, Intel, Codex) ---
     function setupSearchableList(inputId, listId, data, displayFunction) {
         const searchInput = document.getElementById(inputId);
@@ -624,5 +708,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Start Application ---
-    initializeMainUI();
+    const passwordForm = document.getElementById('password-form');
+    passwordForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!state.audioCtx) {
+            state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const passwordInput = document.getElementById('password-input');
+        if (passwordInput.value === state.correctPassword) {
+            document.getElementById('password-screen').classList.add('hidden');
+            runLogonSequence();
+        } else {
+            const passwordError = document.getElementById('password-error');
+            passwordError.textContent = "ACCESS DENIED";
+            passwordInput.value = "";
+            setTimeout(() => passwordError.textContent = "\u00A0", 2000);
+        }
+    });
 });
