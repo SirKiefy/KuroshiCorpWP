@@ -55,15 +55,21 @@ document.addEventListener('DOMContentLoaded', function () {
             return JSON.parse(__firebase_config);
         }
         try {
-            console.log("Fetching firebase-config.json...");
+            console.log("Attempting to fetch firebase-config.json...");
             const response = await fetch('./firebase-config.json');
+            console.log("Fetch response status:", response.status);
             if (!response.ok) {
-                throw new Error('firebase-config.json not found or invalid.');
+                throw new Error(`Failed to fetch config. Status: ${response.status} ${response.statusText}`);
             }
-            return await response.json();
+            const configText = await response.text();
+            console.log("Received config text:", configText);
+            if (!configText) {
+                throw new Error("firebase-config.json is empty.");
+            }
+            return JSON.parse(configText);
         } catch (error) {
-            console.error(error);
-            throw new Error("Firebase configuration is not available in any known location.");
+            console.error("Error fetching or parsing firebase-config.json:", error);
+            throw new Error("Firebase configuration could not be loaded from firebase-config.json.");
         }
     }
 
@@ -78,18 +84,17 @@ document.addEventListener('DOMContentLoaded', function () {
             return new Promise((resolve, reject) => {
                 const unsubscribe = onAuthStateChanged(state.firebase.auth, (user) => {
                     if (user) {
-                        unsubscribe(); // Stop listening to auth changes
+                        unsubscribe(); 
                         state.firebase.userId = user.uid;
                         console.log("Authenticated with user ID:", state.firebase.userId);
                         const userIdDisplay = document.getElementById('user-id-display');
                         if (userIdDisplay) {
                             userIdDisplay.textContent = `ID: ${user.uid.substring(0, 8)}...`;
                         }
-                        resolve(user); // Resolve the promise to continue the logon sequence
+                        resolve(user);
                     }
                 });
 
-                // Trigger the sign-in process
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     signInWithCustomToken(state.firebase.auth, __initial_auth_token).catch(err => {
                         console.error("Custom token sign-in failed, falling back to anonymous", err);
