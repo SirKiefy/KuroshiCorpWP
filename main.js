@@ -1,6 +1,6 @@
 // Import necessary Firebase functions. This is a modern approach for web development.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, doc, addDoc, onSnapshot, query, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -50,47 +50,51 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Firebase Setup ---
     async function initializeFirebase() {
-        // IMPORTANT: Replace this with your actual Firebase configuration object
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
         try {
+            // Use environment variables provided by the platform, which are injected at runtime.
+            if (typeof __firebase_config === 'undefined') {
+                throw new Error("Firebase configuration is not available.");
+            }
+            const firebaseConfig = JSON.parse(__firebase_config);
             const app = initializeApp(firebaseConfig);
             state.firebase.db = getFirestore(app);
             state.firebase.auth = getAuth(app);
             console.log("Firebase initialized successfully.");
-            await signIn();
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            // Display a user-friendly error message on the screen
-            const logonText = document.getElementById('logon-text-container') || document.body;
-            logonText.innerHTML = `<p class="text-error">FATAL ERROR: Could not connect to strategic database. Please check Firebase configuration.</p>`;
-        }
-    }
 
-    async function signIn() {
-        return new Promise((resolve) => {
-            onAuthStateChanged(state.firebase.auth, user => {
-                if (user) {
-                    // User is signed in.
-                    state.firebase.userId = user.uid;
-                    console.log("Authenticated with user ID:", state.firebase.userId);
-                    document.getElementById('user-id-display').textContent = `ID: ${user.uid.substring(0, 8)}...`;
-                    resolve(user);
-                } else {
-                    // User is signed out. Sign in anonymously.
-                    signInAnonymously(state.firebase.auth).catch(error => {
-                        console.error("Anonymous sign-in failed:", error);
+            // This Promise will resolve once the user is authenticated.
+            return new Promise((resolve) => {
+                // This listener fires whenever the auth state changes.
+                onAuthStateChanged(state.firebase.auth, (user) => {
+                    if (user) {
+                        // User is signed in.
+                        state.firebase.userId = user.uid;
+                        console.log("Authenticated with user ID:", state.firebase.userId);
+                        const userIdDisplay = document.getElementById('user-id-display');
+                        if (userIdDisplay) {
+                            userIdDisplay.textContent = `ID: ${user.uid.substring(0, 8)}...`;
+                        }
+                        resolve(user); // Resolve the promise to continue the logon sequence
+                    }
+                });
+
+                // Now, trigger the sign-in process.
+                // Use the provided auth token if it exists, otherwise sign in anonymously.
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    signInWithCustomToken(state.firebase.auth, __initial_auth_token).catch(err => {
+                        console.error("Custom token sign-in failed, falling back to anonymous", err);
+                        signInAnonymously(state.firebase.auth); // Fallback
                     });
+                } else {
+                    signInAnonymously(state.firebase.auth);
                 }
             });
-        });
+
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            const logonText = document.getElementById('logon-text-container') || document.body;
+            logonText.innerHTML = `<p class="text-error">FATAL ERROR: Could not connect to strategic database. Please check Firebase configuration.</p>`;
+            throw error; // This will stop the logon sequence.
+        }
     }
 
     // --- Audio ---
