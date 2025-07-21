@@ -14,7 +14,7 @@ permissions:
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# Allow only one concurrent deployment, cancelling in-progress runs
 concurrency:
   group: "pages"
   cancel-in-progress: true
@@ -27,16 +27,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      # This is the new, critical step that creates the config file
-      - name: Create Firebase Config File
-        run: echo '${{ secrets.FIREBASE_CONFIG }}' > firebase-config.json
+      # This step now directly injects the config into index.html
+      - name: Inject Firebase Config
+        run: |
+          # The 'g' flag ensures all occurrences are replaced if needed
+          # The '&' in the replacement string is escaped with a backslash
+          sed -i "s|/\*FIREBASE_CONFIG_PLACEHOLDER\*/|${{ secrets.FIREBASE_CONFIG }}|g" index.html
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # This tells GitHub to upload all files in the root directory (index.html, style.css, main.js, and the new firebase-config.json)
+          # We no longer need a separate config file, just the modified index.html and other assets
           path: '.' 
           
   # Deployment job
