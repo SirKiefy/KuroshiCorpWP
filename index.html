@@ -13,14 +13,34 @@
     
     <style>
         :root {
-            --primary-color: #B71C1C; --rgb-primary-color: 183, 28, 28;
-            --dark-primary: #8B0000;
-            --accent-color: #FF5722; --rgb-accent-color: 255, 87, 34;
-            --dark-grey: #0A0A0A; --medium-grey: #1A1A1A; --light-grey: #2F2F2F;
-            --text-color: #E0E0E0; --success-color: #4CAF50; --warning-color: #FFC107; --error-color: #D32F2F;
+            /* Updated Colour Scheme */
+            --primary-color: #9cd4c4;      /* Minty Greenish Blue */
+            --rgb-primary-color: 156, 212, 196;
+            --dark-primary: #7aabb8;       /* Darker Mint */
+            --accent-color: #d9d9d9;       /* Light Grey Highlight */
+            --rgb-accent-color: 217, 217, 217;
+            --dark-grey: #0e0e0f;          /* Dark Grey Primary BG */
+            --medium-grey: #1c1c1e;        /* Lighter Grey for elements */
+            --light-grey: #3a3a3c;         /* Border colour */
+            --text-color: #d9d9d9;         /* Main text colour */
+            --success-color: #4CAF50; 
+            --warning-color: #FFC107; 
+            --error-color: #D32F2F;
         }
-        /* --- Theme Overrides --- */
-        body.theme-helios { --primary-color: #B71C1C; --rgb-primary-color: 183, 28, 28; --dark-primary: #8B0000; --accent-color: #FF5722; --rgb-accent-color: 255, 87, 34; }
+        
+        /* --- Theme Overrides (using the new palette) --- */
+        body.theme-helios {
+            --primary-color: #9cd4c4;
+            --rgb-primary-color: 156, 212, 196;
+            --dark-primary: #7aabb8;
+            --accent-color: #d9d9d9;
+            --rgb-accent-color: 217, 217, 217;
+            --dark-grey: #0e0e0f;
+            --medium-grey: #1c1c1e;
+            --light-grey: #3a3a3c;
+            --text-color: #d9d9d9;
+        }
+        /* Keeping other themes for demonstration */
         body.theme-cobalt { --primary-color: #1976D2; --rgb-primary-color: 25, 118, 210; --dark-primary: #0D47A1; --accent-color: #29B6F6; --rgb-accent-color: 41, 182, 246; }
         body.theme-hunter { --primary-color: #2E7D32; --rgb-primary-color: 46, 125, 50; --dark-primary: #1B5E20; --accent-color: #66BB6A; --rgb-accent-color: 102, 187, 106; }
         body.theme-amber { --primary-color: #FFA000; --rgb-primary-color: 255, 160, 0; --dark-primary: #FF6F00; --accent-color: #FFCA28; --rgb-accent-color: 255, 202, 40; }
@@ -39,23 +59,28 @@
         .text-success { color: var(--success-color); }
         .text-warning { color: var(--warning-color); }
         .text-error { color: var(--error-color); }
-        .glow { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+        
+        @keyframes subtle-pulse {
+            0%, 100% { box-shadow: 0 0 6px rgba(var(--rgb-primary-color), 0.7); text-shadow: 0 0 6px rgba(var(--rgb-primary-color), 0.7); }
+            50% { box-shadow: 0 0 14px rgba(var(--rgb-primary-color), 0.9); text-shadow: 0 0 10px rgba(var(--rgb-primary-color), 0.9); }
+        }
+        .glow { animation: subtle-pulse 4s infinite ease-in-out; }
 
         /* --- SCREENS (Password, Logon) --- */
         .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--dark-grey); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
         .screen.hidden { opacity: 0; pointer-events: none; }
         
         #password-form { width: 80%; max-width: 400px; text-align: center; }
-        #password-input { background-color: var(--medium-grey); border: 1px solid var(--light-grey); color: var(--text-color); width: 100%; padding: 0.75rem; text-align: center; font-size: 1.25rem; }
-        #password-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 10px var(--primary-color); }
-        #password-submit { background-color: var(--primary-color); color: var(--text-color); padding: 0.75rem 1.5rem; border: none; cursor: pointer; transition: background-color 0.2s; }
+        #password-input, #username-input { background-color: var(--medium-grey); border: 1px solid var(--light-grey); color: var(--text-color); width: 100%; padding: 0.75rem; text-align: center; font-size: 1.25rem; margin-bottom: 1rem; }
+        #password-input:focus, #username-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 10px var(--primary-color); }
+        #password-submit { background-color: var(--primary-color); color: var(--dark-grey); font-weight: bold; padding: 0.75rem 1.5rem; border: none; cursor: pointer; transition: background-color 0.2s; }
         #password-submit:hover { background-color: var(--dark-primary); }
         #password-error { height: 1.5rem; }
 
         #logon-content { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         #logon-text-container { 
             z-index: 10; 
-            background: rgba(10,10,10,0.7); 
+            background: rgba(14,14,15,0.7); 
             backdrop-filter: blur(4px); 
             padding: 2rem; 
             border: 1px solid var(--light-grey); 
@@ -68,7 +93,7 @@
         @keyframes blink { 50% { opacity: 0; } }
         
         #logon-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        .logon-extra { position: absolute; z-index: 12; opacity: 0.6; transition: opacity 0.5s ease-out; background: rgba(10,10,10,0.5); backdrop-filter: blur(2px); border: 1px solid var(--light-grey); }
+        .logon-extra { position: absolute; z-index: 12; opacity: 0.6; transition: opacity 0.5s ease-out; background: rgba(14,14,15,0.5); backdrop-filter: blur(2px); border: 1px solid var(--light-grey); }
         .logon-extra.hidden { opacity: 0; }
         #logon-jargon { top: 2rem; left: 2rem; width: 300px; height: 150px; font-size: 0.7rem; overflow: hidden; padding: 0.5rem; }
         .logon-graph { bottom: 2rem; right: 2rem; width: 250px; height: 120px; padding: 0.5rem;}
@@ -77,7 +102,7 @@
         #main-interface.hidden { display: none; }
         #main-grid { display: grid; grid-template-columns: 80px 1fr; height: 100vh; }
         #main-nav { 
-            background-color: rgba(10, 10, 10, 0.7); 
+            background-color: rgba(14, 14, 15, 0.7); 
             backdrop-filter: blur(8px);
             border-right: 1px solid var(--light-grey);
             z-index: 50; 
@@ -95,41 +120,27 @@
             justify-content: center; 
             padding: 1rem; 
             cursor: pointer; 
-            transition: color 0.2s;
+            transition: color 0.2s, background-color 0.2s;
             position: relative;
             color: var(--text-color);
             overflow: hidden;
         }
+        .nav-item.disabled {
+            color: var(--medium-grey);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .nav-item.disabled > * {
+             color: var(--medium-grey);
+        }
+
         #main-nav:hover .nav-item { justify-content: flex-start; }
         
-        .nav-item::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, rgba(var(--rgb-accent-color), 0.2), transparent);
-            transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            z-index: 1;
-        }
-        .nav-item:hover::after { left: 0; }
-        .nav-item:hover { color: var(--accent-color); }
+        .nav-item:hover { color: var(--primary-color); background-color: rgba(var(--rgb-primary-color), 0.1); }
         .nav-item > * { z-index: 2; }
 
-        .nav-item.active { color: var(--primary-color); background-color: rgba(var(--rgb-primary-color), 0.1); }
-        .nav-item.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 15%;
-            height: 70%;
-            width: 4px;
-            background-color: var(--primary-color);
-            box-shadow: 0 0 12px var(--primary-color);
-            border-radius: 0 4px 4px 0;
-            z-index: 3;
-        }
+        .nav-item.active { color: var(--dark-grey); background-color: var(--primary-color); animation: subtle-pulse 4s infinite ease-in-out; }
+        .nav-item.active svg { color: var(--dark-grey); }
 
         .nav-text { 
             opacity: 0; 
@@ -141,7 +152,7 @@
         #main-nav:hover .nav-text { opacity: 1; visibility: visible; transition-delay: 0.1s; }
         #nav-footer { margin-top: auto; border-top: 1px solid var(--light-grey); }
 
-        #content-area { overflow: hidden; position: relative; }
+        #content-area { overflow: hidden; position: relative; background-color: var(--dark-grey); }
         #content-area::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(var(--light-grey) 1px, transparent 1px), linear-gradient(to right, var(--light-grey) 1px, transparent 1px); background-size: 50px 50px; opacity: 0.05; pointer-events: none; z-index: 0;}
         .tab-content { display: none; height: 100%; }
         .tab-content.active { display: grid; } /* Use grid for active tabs */
@@ -152,7 +163,7 @@
         #dashboard-sidebar {
             grid-column: 2 / 3;
             width: 350px;
-            background-color: rgba(10, 10, 10, 0.7);
+            background-color: rgba(14, 14, 15, 0.7);
             backdrop-filter: blur(8px);
             border-left: 1px solid var(--light-grey);
             padding: 1rem;
@@ -190,74 +201,138 @@
             color: var(--text-color);
             z-index: 100;
         }
-        #sidebar-toggle:hover { background-color: var(--primary-color); }
-        .sidebar-widget { background-color: rgba(var(--rgb-primary-color), 0.05); border: 1px solid var(--light-grey); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px; }
+        #sidebar-toggle:hover { background-color: var(--primary-color); color: var(--dark-grey); }
+        .sidebar-widget { background-color: var(--medium-grey); border: 1px solid var(--light-grey); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px; }
         .sidebar-widget h2 { font-family: 'Orbitron', sans-serif; color: var(--primary-color); border-bottom: 1px solid var(--light-grey); padding-bottom: 0.5rem; margin-bottom: 1rem; }
         
-        .hud-element { position: absolute; background-color: rgba(10, 10, 10, 0.8); backdrop-filter: blur(5px); border: 1px solid var(--light-grey); padding: 1rem; border-radius: 0.25rem; opacity: 0; transform: translateY(20px); transition: opacity 0.5s, transform 0.5s; }
+        .hud-element { position: absolute; background-color: rgba(14, 14, 15, 0.8); backdrop-filter: blur(5px); border: 1px solid var(--light-grey); padding: 1rem; border-radius: 0.25rem; }
         #dashboard-globe { cursor: grab; position: absolute; inset: 0; z-index: 10; }
         #dashboard-globe:active { cursor: grabbing; }
         #dashboard-map { background-image: url('https://i.imgur.com/3wyfTqX.jpeg'); background-size: cover; background-position: center; display: none; position: absolute; inset: 0; z-index: 10; }
         #kuroshi-logo { position: absolute; bottom: 1rem; left: 1rem; width: 100px; opacity: 0.7; animation: pulse 4s infinite ease-in-out; }
         @keyframes pulse { 0%, 100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.05); } }
-        .top-banner { top: 1rem; left: 1rem; right: 1rem; width: auto; overflow: hidden; white-space: nowrap; }
+        
+        .top-banner { 
+            top: 1rem; left: 1rem; right: 1rem; width: auto; overflow: hidden; white-space: nowrap; 
+            background: linear-gradient(90deg, rgba(var(--rgb-primary-color), 0.1), rgba(var(--rgb-primary-color), 0));
+            border-left: 3px solid var(--primary-color);
+        }
         .top-banner-text { display: inline-block; animation: ticker-scroll 30s linear infinite; padding-left: 100%; }
+        .top-banner-text span { margin: 0 1.5rem; }
+        .top-banner-text .text-success { text-shadow: 0 0 5px var(--success-color); }
+        .top-banner-text .text-warning { text-shadow: 0 0 5px var(--warning-color); }
+        .top-banner-text .text-error { text-shadow: 0 0 5px var(--error-color); }
         @keyframes ticker-scroll { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
         
         .control-toggle { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-        .toggle-switch { width: 40px; height: 20px; background: var(--medium-grey); border-radius: 10px; position: relative; cursor: pointer; }
+        .toggle-switch { width: 40px; height: 20px; background: var(--light-grey); border-radius: 10px; position: relative; cursor: pointer; }
         .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: var(--text-color); border-radius: 50%; transition: transform 0.2s; }
         .toggle-checkbox:checked + .toggle-switch::after { transform: translateX(20px); }
         .toggle-checkbox:checked + .toggle-switch { background: var(--primary-color); }
         
-        /* --- DB LAYOUT (ARMORY/INTEL/CODEX/PLANS) --- */
-        #armory-content, #intel-content, #codex-content, #plans-content { padding: 1.5rem; grid-template-columns: 350px 1fr; gap: 1.5rem; }
-        .db-list-container { background-color: rgba(var(--rgb-primary-color), 0.05); border: 1px solid var(--light-grey); padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; }
-        .db-list { flex-grow: 1; overflow-y: auto; }
-        .db-content { background-color: rgba(var(--rgb-primary-color), 0.05); border: 1px solid var(--light-grey); padding: 1.5rem; overflow-y: auto; position: relative; }
-        .db-list-item { cursor: pointer; padding: 0.75rem; border-left: 4px solid transparent; transition: all 0.2s ease; }
-        .db-list-item:hover { background-color: var(--light-grey); border-left-color: var(--accent-color); }
-        .db-list-item.active { background-color: var(--dark-grey); border-left-color: var(--primary-color); }
+        /* --- DB LAYOUT (Armoury/Intel/Codex/Plans) --- */
+        #armoury-content, #intel-content, #codex-content, #plans-content { padding: 1.5rem; grid-template-columns: 350px 1fr; gap: 1.5rem; }
+        .db-list-container { background-color: var(--medium-grey); border: 1px solid var(--light-grey); padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; }
+        .db-content { background-color: var(--medium-grey); border: 1px solid var(--light-grey); padding: 1.5rem; overflow-y: auto; position: relative; }
+        .db-list-item { cursor: pointer; padding: 0.75rem; border-left: 4px solid transparent; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; }
+        .db-list-item:hover { background-color: var(--light-grey); border-left-color: var(--primary-color); }
+        .db-list-item.active { background-color: var(--dark-grey); border-left-color: var(--primary-color); color: var(--primary-color); }
         .db-tabs { border-bottom: 1px solid var(--light-grey); margin-bottom: 1rem; }
         .db-tab { display: inline-block; padding: 0.5rem 1rem; cursor: pointer; border-bottom: 2px solid transparent; }
         .db-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
         .db-tab-pane { display: none; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .db-tab-pane.active { display: block; }
-        .spec-table { width: 100%; border-collapse: collapse; }
-        .spec-table th { text-align: left; padding: 0.5rem; border-bottom: 2px solid var(--light-grey); color: var(--accent-color); }
-        .spec-table td { padding: 0.5rem; border-bottom: 1px solid var(--light-grey); }
-        .spec-table td:first-child { font-weight: bold; }
+        .spec-table { width: 100%; border-collapse: collapse; background-color: var(--dark-grey); border-radius: 4px; overflow: hidden; }
+        .spec-table th { text-align: left; padding: 0.75rem; border-bottom: 2px solid var(--light-grey); color: var(--primary-color); }
+        .spec-table td { padding: 0.75rem; border-bottom: 1px solid var(--light-grey); }
+        .spec-table tr:last-child td { border-bottom: none; }
+        .spec-table td:first-child { font-weight: bold; color: var(--accent-color); width: 40%; }
         .codex-content h3, .plan-content h3 { font-family: 'Orbitron', sans-serif; color: var(--primary-color); font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.5rem; }
         .codex-content ul { list-style-type: disc; padding-left: 1.5rem; }
         .strength-overwhelming { color: #ef4444; font-weight: bold; } .strength-superior { color: #f97316; } .strength-equal { color: #eab308; } .strength-weaker { color: #84cc16; } .strength-obsolete { color: #a1a1aa; } .strength-unknown { color: #6b7280; }
-        .search-input, .form-input { background: var(--medium-grey); border: 1px solid var(--light-grey); padding: 0.5rem; width: 100%; margin-bottom: 1rem; }
-        .search-input:focus, .form-input:focus { outline: none; border-color: var(--accent-color); }
+        .search-input, .form-input { background: var(--dark-grey); border: 1px solid var(--light-grey); padding: 0.5rem; width: 100%; margin-bottom: 1rem; }
+        .search-input:focus, .form-input:focus { outline: none; border-color: var(--primary-color); }
         
         /* --- SETTINGS --- */
-        #settings-content { padding: 1.5rem; }
-        .widget { background-color: rgba(var(--rgb-primary-color), 0.05); padding: 1.5rem; border: 1px solid var(--light-grey); }
+        #settings-content-grid { padding: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+        .widget { background-color: var(--medium-grey); padding: 1.5rem; border: 1px solid var(--light-grey); }
         .theme-btn { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid var(--light-grey); transition: all 0.2s; }
-        .theme-btn.active { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-color); transform: scale(1.1); }
+        .theme-btn.active { border-color: var(--primary-color); box-shadow: 0 0 15px var(--primary-color); transform: scale(1.1); }
 
-        /* --- TERMINAL --- */
-        #terminal-input { background: transparent; border: none; outline: none; width: 100%; }
-        
         /* --- WAYPOINT COLOR PICKER --- */
         input[type="color"] { -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 40px; padding: 0; border: 1px solid var(--light-grey); background-color: transparent; cursor: pointer; }
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: none; border-radius: 0; }
         input[type="color"]::-moz-color-swatch { border: none; border-radius: 0; }
 
+        /* --- INTEL SCREEN RE-STYLE --- */
+        #faction-detail-view .db-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--light-grey); margin-bottom: 1.5rem; }
+        #faction-detail-view .db-tab { padding: 0.75rem 1.25rem; border: 1px solid transparent; border-bottom: none; border-radius: 4px 4px 0 0; transform: translateY(1px); }
+        #faction-detail-view .db-tab.active { background: var(--medium-grey); border-color: var(--light-grey); color: var(--primary-color); }
+        .intel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .intel-card { background: var(--dark-grey); padding: 1rem; border: 1px solid var(--light-grey); border-radius: 4px; }
+        .intel-card h3 { font-family: 'Orbitron', sans-serif; color: var(--primary-color); margin-bottom: 0.75rem; font-size: 1rem; }
+        .intel-card ul { list-style: none; padding: 0; }
+        .intel-card li { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--light-grey); }
+        .intel-card li:last-child { border-bottom: none; }
+        .intel-card li span:first-child { color: var(--accent-color); }
+        
+        /* --- MODAL --- */
+        #modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        #modal-content { background: var(--medium-grey); border: 1px solid var(--light-grey); padding: 2rem; width: 90%; max-width: 500px; border-radius: 4px; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
+        .modal-btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; }
+        .modal-btn-confirm { background-color: var(--primary-color); color: var(--dark-grey); }
+        .modal-btn-cancel { background-color: var(--light-grey); color: var(--text-color); }
+
+        /* --- Audit Log --- */
+        .log-entry { border-left: 3px solid var(--light-grey); padding-left: 1rem; margin-bottom: 0.75rem; }
+        .log-entry.Created { border-color: var(--success-color); }
+        .log-entry.Updated { border-color: var(--warning-color); }
+        .log-entry.Deleted { border-color: var(--error-color); }
+        .log-meta { font-size: 0.75rem; color: #888; }
+        
+        /* --- Online Operators --- */
+        .operator-list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--light-grey); }
+        .clearance-badge { padding: 0.1rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        .clearance-1 { background-color: #6b7280; color: #fff; }
+        .clearance-2 { background-color: #1d4ed8; color: #fff; }
+        .clearance-3 { background-color: #16a34a; color: #fff; }
+        .clearance-4 { background-color: #f59e0b; color: #000; }
+        .clearance-5 { background-color: #ef4444; color: #fff; }
+        .clearance-6 { background-color: #9333ea; color: #fff; }
+        .clearance-7 { background-color: #fff; color: #000; text-shadow: 0 0 5px #fff; }
+
+        /* --- Armoury Back Button --- */
+        .back-button {
+            color: var(--primary-color);
+            font-weight: bold;
+            background-color: rgba(var(--rgb-primary-color), 0.1);
+        }
+
     </style>
 </head>
 <body class="theme-helios">
+    <!-- Modal Placeholder -->
+    <div id="modal-backdrop">
+        <div id="modal-content">
+            <h2 id="modal-title" class="font-orbitron text-xl text-primary mb-4"></h2>
+            <div id="modal-body"></div>
+            <div class="modal-buttons">
+                <button id="modal-cancel-btn" class="modal-btn modal-btn-cancel">Cancel</button>
+                <button id="modal-confirm-btn" class="modal-btn modal-btn-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Password Screen -->
     <div id="password-screen" class="screen">
         <form id="password-form">
             <h1 class="font-orbitron text-3xl text-primary mb-4 glow">HELIOS PROTOCOL</h1>
             <p class="mb-4 text-lg">Awaiting Security Credentials</p>
-            <input type="password" id="password-input" class="font-orbitron mb-4" placeholder="PASSWORD">
+            <input type="text" id="username-input" class="font-orbitron" placeholder="OPERATOR NAME" autocomplete="username">
+            <input type="password" id="password-input" class="font-orbitron" placeholder="PASSWORD" autocomplete="current-password">
             <p id="password-error" class="text-error mb-4">&nbsp;</p>
             <button type="submit" id="password-submit" class="font-orbitron">AUTHENTICATE</button>
         </form>
@@ -286,7 +361,7 @@
                 <div class="flex-grow pt-4">
                     <div class="nav-item active" data-tab="dashboard"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg><span class="nav-text font-orbitron">Dashboard</span></div>
                     <div class="nav-item" data-tab="plans"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-1.447-.894L15 7m-6 10h6M9 7L15 4"></path></svg><span class="nav-text font-orbitron">Plans</span></div>
-                    <div class="nav-item" data-tab="armory"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-9-5.747h18"></path><path d="M9.29 4.29a.75.75 0 01.28-.53L12 1.5l2.43 2.26a.75.75 0 01.28.53v15.42a.75.75 0 01-.28.53L12 22.5l-2.43-2.26a.75.75 0 01-.28-.53V4.29z"></path></svg><span class="nav-text font-orbitron">Armory</span></div>
+                    <div class="nav-item" data-tab="armoury"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-9-5.747h18"></path><path d="M9.29 4.29a.75.75 0 01.28-.53L12 1.5l2.43 2.26a.75.75 0 01.28.53v15.42a.75.75 0 01-.28.53L12 22.5l-2.43-2.26a.75.75 0 01-.28-.53V4.29z"></path></svg><span class="nav-text font-orbitron">Armoury</span></div>
                     <div class="nav-item" data-tab="intel"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a3 3 0 100-6 3 3 0 000 6z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 100-18 9 9 0 000 18z"></path></svg><span class="nav-text font-orbitron">Intel</span></div>
                     <div class="nav-item" data-tab="codex"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-9-5.747h18" /><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg><span class="nav-text font-orbitron">Codex</span></div>
                     <div class="nav-item" data-tab="settings"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg><span class="nav-text font-orbitron">Settings</span></div>
@@ -309,7 +384,7 @@
                 <!-- Tab Content will be loaded here -->
                 <div id="dashboard-content" class="tab-content active"></div>
                 <div id="plans-content" class="tab-content"></div>
-                <div id="armory-content" class="tab-content"></div>
+                <div id="armoury-content" class="tab-content"></div>
                 <div id="intel-content" class="tab-content"></div>
                 <div id="codex-content" class="tab-content"></div>
                 <div id="settings-content" class="tab-content"></div>
@@ -326,14 +401,20 @@
             <svg id="war-plan-overlay" class="absolute inset-0 z-20 pointer-events-none"></svg>
             <div class="relative z-30 pointer-events-none h-full">
                 <div class="hud-element top-banner">
-                    <span class="top-banner-text">SYSTEM STATUS: NOMINAL ++ THREATCON: GREEN ++ ALL CHANNELS SECURE ++ OPERATOR ONLINE ++ </span>
+                    <span class="top-banner-text">
+                        <span>SYSTEM STATUS: <span class="text-success">NOMINAL</span></span>
+                        <span>THREATCON: <span class="text-success">GREEN</span></span>
+                        <span>ALL CHANNELS <span class="text-primary">SECURE</span></span>
+                        <span>OPERATOR <span class="text-success">ONLINE</span></span>
+                        <span>SYSTEM STATUS: <span class="text-success">NOMINAL</span></span>
+                        <span>THREATCON: <span class="text-success">GREEN</span></span>
+                        <span>ALL CHANNELS <span class="text-primary">SECURE</span></span>
+                        <span>OPERATOR <span class="text-success">ONLINE</span></span>
+                    </span>
                 </div>
-                <div class="hud-element absolute top-20 left-4 p-4 text-left pointer-events-auto"><h2 class="font-orbitron text-primary">CLEARANCE</h2><p id="clearance-level-display" class="text-3xl text-success"></p></div>
-                
-                <div class="hud-element absolute bottom-4 right-4 w-96 h-48 pointer-events-auto flex flex-col">
-                    <h2 class="widget-title font-orbitron">COMMAND INPUT</h2>
-                    <div id="terminal-log" class="flex-grow overflow-y-auto"></div>
-                    <div class="flex gap-2 pt-2 border-t border-light-grey"><span class="text-primary">&gt;</span><input id="terminal-input" type="text" class="bg-transparent border-none outline-none w-full"></div>
+                <div class="hud-element absolute top-20 left-4 p-4 text-left pointer-events-auto">
+                    <h2 class="font-orbitron text-primary">CLEARANCE</h2>
+                    <p id="clearance-level-display" class="text-3xl text-success"></p>
                 </div>
 
                 <svg id="kuroshi-logo" viewBox="0 0 100 100"><path d="M 50 5 L 95 27.5 L 95 72.5 L 50 95 L 5 72.5 L 5 27.5 Z" fill="none" stroke="var(--primary-color)" stroke-width="2"/><path d="M 50 15 L 85 32.5 L 85 67.5 L 50 85 L 15 67.5 L 15 32.5 Z" fill="rgba(var(--rgb-primary-color), 0.2)" /><text x="50" y="58" font-size="30" fill="var(--text-color)" text-anchor="middle" class="font-orbitron">KC</text></svg>
@@ -369,10 +450,14 @@
         </div>
     </template>
 
-    <template id="template-armory">
+    <template id="template-armoury">
         <div class="db-list-container">
             <h2 class="font-orbitron text-primary text-xl mb-4">ASSET DATABASE</h2>
-            <input type="text" id="armory-search" class="search-input" placeholder="Search assets...">
+            <div id="armoury-breadcrumbs" class="mb-2 text-sm text-gray-400"></div>
+            <div class="relative">
+                <input type="text" id="armoury-search" class="search-input" placeholder="Search assets...">
+                <button id="add-asset-btn" class="absolute top-0 right-0 h-[34px] px-3 text-lg bg-green-800 hover:bg-green-700 rounded">+</button>
+            </div>
             <div id="asset-list" class="db-list"></div>
         </div>
         <div class="db-content" id="asset-detail-view">
@@ -403,42 +488,51 @@
     </template>
 
     <template id="template-settings">
-        <div class="p-6">
-            <h1 class="font-orbitron text-3xl text-primary mb-6">Interface Settings</h1>
-            <div class="space-y-8 max-w-4xl">
-                <div class="widget">
-                    <h2 class="widget-title font-orbitron text-xl mb-4">Theme Selection</h2>
-                    <div class="flex flex-wrap items-center gap-6" id="theme-selector">
-                        <button class="theme-btn" data-theme="theme-helios" style="background-color: #B71C1C;"></button>
-                        <button class="theme-btn" data-theme="theme-cobalt" style="background-color: #1976D2;"></button>
-                        <button class="theme-btn" data-theme="theme-hunter" style="background-color: #2E7D32;"></button>
-                        <button class="theme-btn" data-theme="theme-amber" style="background-color: #FFA000;"></button>
-                        <button class="theme-btn" data-theme="theme-crimson" style="background-color: #DC143C;"></button>
-                        <button class="theme-btn" data-theme="theme-orion" style="background-color: #4A90E2;"></button>
-                        <button class="theme-btn" data-theme="theme-void" style="background-color: #9C27B0;"></button>
-                        <button class="theme-btn" data-theme="theme-solaris" style="background-color: #F57C00;"></button>
-                        <button class="theme-btn" data-theme="theme-aegis" style="background-color: #009688;"></button>
+        <div class="p-6 grid" id="settings-content-grid">
+            <div class="widget">
+                <h2 class="widget-title font-orbitron text-xl mb-4">Theme Selection</h2>
+                <div class="flex flex-wrap items-center gap-6" id="theme-selector">
+                    <button class="theme-btn" data-theme="theme-helios" style="background-color: #9cd4c4;"></button>
+                    <button class="theme-btn" data-theme="theme-cobalt" style="background-color: #1976D2;"></button>
+                    <button class="theme-btn" data-theme="theme-hunter" style="background-color: #2E7D32;"></button>
+                    <button class="theme-btn" data-theme="theme-amber" style="background-color: #FFA000;"></button>
+                    <button class="theme-btn" data-theme="theme-crimson" style="background-color: #DC143C;"></button>
+                    <button class="theme-btn" data-theme="theme-orion" style="background-color: #4A90E2;"></button>
+                    <button class="theme-btn" data-theme="theme-void" style="background-color: #9C27B0;"></button>
+                    <button class="theme-btn" data-theme="theme-solaris" style="background-color: #F57C00;"></button>
+                    <button class="theme-btn" data-theme="theme-aegis" style="background-color: #009688;"></button>
+                </div>
+            </div>
+            <div class="widget">
+                <h2 class="widget-title font-orbitron text-xl mb-4">UI Options</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label for="sound-toggle">Enable UI Sounds</label>
+                        <input type="checkbox" id="sound-toggle" class="form-checkbox h-5 w-5 text-primary bg-dark-grey border-light-grey rounded focus:ring-primary">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="anim-toggle">Enable Decorative Animations</label>
+                        <input type="checkbox" id="anim-toggle" checked class="form-checkbox h-5 w-5 text-primary bg-dark-grey border-light-grey rounded focus:ring-primary">
+                    </div>
+                     <div class="flex items-center justify-between">
+                        <label for="ui-density-select">UI Density</label>
+                        <select id="ui-density-select" class="form-input w-32">
+                            <option value="compact">Compact</option>
+                            <option value="default" selected>Default</option>
+                            <option value="comfortable">Comfortable</option>
+                        </select>
                     </div>
                 </div>
-                <div class="widget">
-                    <h2 class="widget-title font-orbitron text-xl mb-4">UI Options</h2>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <label for="sound-toggle">Enable UI Sounds</label>
-                            <input type="checkbox" id="sound-toggle" class="form-checkbox h-5 w-5 text-primary bg-dark-grey border-light-grey rounded focus:ring-primary">
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <label for="anim-toggle">Enable Decorative Animations</label>
-                            <input type="checkbox" id="anim-toggle" checked class="form-checkbox h-5 w-5 text-primary bg-dark-grey border-light-grey rounded focus:ring-primary">
-                        </div>
-                    </div>
+            </div>
+             <div id="online-operators-widget" class="widget">
+                    <h2>ONLINE OPERATORS</h2>
+                    <div id="online-operators-list"></div>
                 </div>
-                <div id="admin-log-widget" class="widget">
-                     <h2 class="widget-title font-orbitron text-xl mb-4">System Audit Log</h2>
-                     <div id="admin-log-container" class="space-y-2 text-xs overflow-y-auto max-h-96 bg-dark-grey p-2 rounded">
-                         <p class="text-gray-500">Loading log...</p>
-                     </div>
-                </div>
+            <div id="admin-log-widget" class="widget col-span-1 md:col-span-2">
+                 <h2 class="widget-title font-orbitron text-xl mb-4">System Audit Log</h2>
+                 <div id="admin-log-container" class="space-y-2 text-xs overflow-y-auto max-h-96 bg-dark-grey p-2 rounded">
+                     <p class="text-gray-500">Loading log...</p>
+                 </div>
             </div>
         </div>
     </template>
@@ -447,17 +541,20 @@
         // Import necessary Firebase functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, addDoc, onSnapshot, query, deleteDoc, updateDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, addDoc, onSnapshot, query, deleteDoc, updateDoc, orderBy, limit, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', function () {
             // --- Application State ---
             const state = {
-                clearanceLevel: 7,
-                correctPassword: "I9j4vEW><2p£5vQGQDtVs",
-                adminUserId: "YOUR_ADMIN_USER_ID_HERE", // <-- IMPORTANT: REPLACE THIS
+                username: null,
+                clearanceLevel: 0,
+                clearanceName: "NO ACCESS",
+                adminUserId: "PROMETHEUS", // Admin check by name
                 charts: {},
                 waypoints: new Map(),
                 plans: new Map(),
+                assets: new Map(),
+                currentArmouryFolder: null,
                 textures: {},
                 isGlobeRotating: true,
                 audioCtx: null,
@@ -471,7 +568,9 @@
                     renderer: null,
                     camera: null,
                     scene: null,
-                    waypointObjects: new THREE.Group()
+                    waypointObjects: new THREE.Group(),
+                    grid: null,
+                    logonProgress: 0,
                 },
                 firebase: {
                     db: null,
@@ -479,8 +578,19 @@
                     userId: null,
                     unsubscribeWaypoints: null,
                     unsubscribePlans: null,
+                    unsubscribeAssets: null,
                     unsubscribeAdminLog: null
                 }
+            };
+
+            const users = {
+                "GUEST": { password: "GuestP@ssword", level: 1, name: "ECHO" },
+                "CATSPAW": { password: "o_!79CC_", level: 2, name: "CATSPAW" },
+                "RAZOR": { password: "*mWHZJ2!bE", level: 3, name: "RAZOR" },
+                "GUIDON": { password: "%^DY38X67^-cX@", level: 4, name: "GUIDON" },
+                "WARDEN": { password: "Z.i2,wWWEZ,:Vfo:6H", level: 5, name: "WARDEN" },
+                "KERBEROS": { password: "TkM*Mi9t0f*Upw-H=tyQtB", level: 6, name: "KERBEROS" },
+                "PROMETHEUS": { password: "wu@]bLETr=Zw5?roj@yMgd0x5~", level: 7, name: "PROMETHEUS" }
             };
             
             // --- Data ---
@@ -493,7 +603,6 @@
                 'coum': { name: 'C0UM (Confederation Of Uniform Members)', threat: 'Unknown', location: 'Unknown', hostility: 'Unknown', ground_strength: 'Unknown', air_strength: 'Unknown', naval_strength: 'Unknown', report: 'A confederation with unknown motives.', hierarchy: { Leader: 'Agent Brick (thunderbord)' }, assets: ['Unknown.'] },
                 'ocf': { name: 'OCF (Oceania Coalition Force)', threat: 'Neutral', location: 'Oceania', hostility: 'Passive', ground_strength: 'Equal', air_strength: 'Equal', naval_strength: 'Superior', report: 'A non-hostile coalition with claims of passive behavior.', hierarchy: { Leader: 'TheJetNinja' }, assets: ['Regional defensive forces.'] }
             };
-            const armoryData = { 'analysis': { name: 'System Analysis', type: 'Data' }, 'naval': { name: 'Naval Assets', type: 'Category', subcategories: { 'ships': 'Ships', 'structures': 'Structures' } }, 'air': { name: 'Aircraft', type: 'Category', subcategories: { 'fighters': 'Fighters', 'bombers': 'Bombers' } }, 'ground': { name: 'Ground Vehicles', type: 'Category' } };
             const codexData = { 'general': { name: 'General Server Rules' }, 'warfare': { name: 'Rules of Engagement' }, 'factions': { name: 'Faction Regulations' }, 'structures': { name: 'Structure Regulations' }, 'ships': { name: 'Ship Classifications' }, 'aircraft': { name: 'Aircraft Classifications' }, 'vehicles': { name: 'Ground Vehicle Classifications' }, 'resources': { name: 'Resource Acquisition' } };
 
             // --- Utility Functions ---
@@ -528,7 +637,7 @@
                                 console.log("Authenticated with user ID:", state.firebase.userId);
                                 const userIdDisplay = document.getElementById('user-id-display');
                                 if (userIdDisplay) {
-                                    userIdDisplay.textContent = `ID: ${user.uid.substring(0, 8)}...`;
+                                    userIdDisplay.textContent = `${state.username} // ${user.uid.substring(0, 8)}...`;
                                 }
                                 resolve(user);
                             }
@@ -629,9 +738,9 @@
                     });
                 };
                 
-                await typeLine("AUTHENTICATION SUCCESSFUL. DECRYPTING QUANTUM-LOCKED CREDENTIALS...", "text-accent");
+                await typeLine(`AUTHENTICATION CONFIRMED FOR OPERATOR: ${state.username}`, "text-primary");
                 await sleep(200);
-                await typeLine("INITIATING HELIOS CORE BOOT SEQUENCE...");
+                await typeLine("DECRYPTING QUANTUM-LOCKED CREDENTIALS...");
                 await sleep(500);
 
                 initLogonExtras();
@@ -640,21 +749,21 @@
                 const checks = [
                     { name: "INITIATING BIOS CHECK...", failChance: 0, retries: 0 },
                     { name: "LOADING KERNEL MODULES...", failChance: 0, retries: 0 },
-                    { name: "MOUNTING VIRTUAL FILESYSTEM...", failChance: 0.2, retries: 1 },
-                    { name: "CALIBRATING POWER CORE STABILITY...", failChance: 0.3, retries: 2 },
-                    { name: "VERIFYING NEURAL INTERFACE SYNC...", failChance: 0.4, retries: 2 },
-                    { name: "ESTABLISHING TACHYON UPLINK...", failChance: 0.5, retries: 3 },
-                    { name: "CONNECTING TO STRATEGIC DATABASE...", failChance: 0.1, retries: 2 },
-                    { name: "DECOMPRESSING TACTICAL OVERLAYS...", failChance: 0, retries: 0 },
-                    { name: "LOADING COGNITIVE MODELS...", failChance: 0.2, retries: 1 },
-                    { name: "CHECKING SYSTEM INTEGRITY...", failChance: 0, retries: 0 }
+                    { name: "MOUNTING VOLUMETRIC FILESYSTEM...", failChance: 0.1, retries: 1 },
+                    { name: "CALIBRATING CRYO-CORE STABILITY...", failChance: 0.2, retries: 2 },
+                    { name: "VERIFYING NEURAL-CORTEX INTERFACE SYNC...", failChance: 0.3, retries: 2 },
+                    { name: "ESTABLISHING TACHYON UPLINK TO NOCLIP-2...", failChance: 0.4, retries: 3 },
+                    { name: "CONNECTING TO STRATEGIC DATABASE CLUSTER...", failChance: 0.1, retries: 2 },
+                    { name: "DECOMPRESSING TACTICAL OVERLAYS & HEURISTICS...", failChance: 0, retries: 0 },
+                    { name: "LOADING PREDICTIVE COGNITIVE MODELS...", failChance: 0.2, retries: 1 },
+                    { name: "CHECKING SUB-SYSTEM INTEGRITY...", failChance: 0, retries: 0 }
                 ];
 
-                for (const check of checks) {
+                for (let i = 0; i < checks.length; i++) {
+                    const check = checks[i];
                     let attempts = 0;
                     let success = false;
                     while (attempts <= check.retries && !success) {
-                        // If it's a retry, don't type the main line again
                         if (attempts === 0) {
                            await typeLine(check.name, 'text-white', 15);
                         }
@@ -665,10 +774,9 @@
                             lastLine.innerHTML = check.name + ` <span class="text-error">FAILED</span>`;
                             playSound('error');
                             await sleep(500);
-                            await typeLine(`   RETRYING... (ATTEMPT ${attempts + 2}/${check.retries + 1})`, 'text-warning', 15);
+                            await typeLine(`&nbsp;&nbsp;&nbsp;RE-ROUTING... (ATTEMPT ${attempts + 2}/${check.retries + 1})`, 'text-warning', 15);
                             await sleep(500);
                             attempts++;
-                            // Remove the "RETRYING" line before the next attempt
                             textContainer.removeChild(textContainer.lastChild);
                         } else {
                             const lastLine = textContainer.lastChild;
@@ -676,6 +784,7 @@
                             playSound('success');
                             success = true;
                         }
+                        state.three.logonProgress = (i + 1) / checks.length;
                         await sleep(250);
                     }
                 }
@@ -683,7 +792,7 @@
                 await sleep(500);
                 await typeLine("ALL SYSTEMS NOMINAL. ENGAGING STRATEGIC INTERFACE.", "text-success");
                 await sleep(300);
-                await typeLine("ACCESS GRANTED. WELCOME, OPERATOR.", "text-primary glow text-2xl font-orbitron");
+                await typeLine(`ACCESS GRANTED. WELCOME, ${state.clearanceName}.`, "text-primary glow text-2xl font-orbitron");
                 playSound('final');
                 
                 await sleep(2000);
@@ -701,34 +810,45 @@
                 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
                 renderer.setSize(window.innerWidth, window.innerHeight);
 
-                const material = new THREE.MeshStandardMaterial({
-                    emissive: 0x0,
-                    roughness: 0.5,
-                    metalness: 0.8,
-                    wireframe: true,
-                });
-
                 const group = new THREE.Group();
                 scene.add(group);
+                
+                const offlineColor = new THREE.Color("#808080");
+                const midColor = new THREE.Color("#FF5722");
+                const finalColor = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim());
 
-                const knot = new THREE.Mesh(new THREE.TorusKnotGeometry(1, 0.3, 128, 16), material);
+                const knot = new THREE.Mesh(
+                    new THREE.TorusKnotGeometry(1, 0.3, 256, 16), 
+                    new THREE.MeshStandardMaterial({
+                        emissive: offlineColor,
+                        color: offlineColor,
+                        roughness: 0.4,
+                        metalness: 0.9,
+                        wireframe: true,
+                    })
+                );
                 group.add(knot);
 
+                const grid = new THREE.GridHelper(30, 30, 0x3a3a3c, 0x3a3a3c);
+                grid.rotation.x = Math.PI / 2;
+                scene.add(grid);
+                state.three.grid = grid;
+
                 const particlesGeometry = new THREE.BufferGeometry();
-                const particlesCnt = 15000;
+                const particlesCnt = 20000;
                 const posArray = new Float32Array(particlesCnt * 3);
                 for(let i = 0; i < particlesCnt * 3; i++) {
-                    posArray[i] = (Math.random() - 0.5) * 25;
+                    posArray[i] = (Math.random() - 0.5) * 30;
                 }
                 particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-                const particlesMaterial = new THREE.PointsMaterial({ size: 0.009, transparent: true, opacity: 0.7 });
+                const particlesMaterial = new THREE.PointsMaterial({ color: offlineColor, size: 0.015, transparent: true, opacity: 0.7 });
                 const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
                 scene.add(particlesMesh);
                 
-                const light = new THREE.DirectionalLight(0xffffff, 1.2);
+                const light = new THREE.DirectionalLight(0xffffff, 1.5);
                 light.position.set(1, 1, 1);
                 scene.add(light);
-                scene.add(new THREE.AmbientLight(0x404040, 2));
+                scene.add(new THREE.AmbientLight(0x9cd4c4, 0.5));
                 camera.position.z = 5;
 
                 const clock = new THREE.Clock();
@@ -736,18 +856,24 @@
                 const animate = () => {
                     const elapsedTime = clock.getElapsedTime();
                     
-                    const hue = (elapsedTime * 15) % 360;
-                    const color = new THREE.Color(`hsl(${hue}, 100%, 50%)`);
+                    const p = state.three.logonProgress;
+                    const currentColor = new THREE.Color();
+                    if (p < 0.5) {
+                        currentColor.lerpColors(offlineColor, midColor, p * 2);
+                    } else {
+                        currentColor.lerpColors(midColor, finalColor, (p - 0.5) * 2);
+                    }
                     
-                    knot.material.color.set(color);
-                    knot.material.emissive.set(color);
-                    particlesMesh.material.color.set(color);
+                    knot.material.color.set(currentColor);
+                    knot.material.emissive.set(currentColor);
+                    particlesMesh.material.color.set(currentColor);
 
-                    group.rotation.y = elapsedTime * 0.2;
-                    knot.rotation.x = elapsedTime * 0.1;
-                    knot.rotation.y = elapsedTime * 0.1;
+                    group.rotation.y = elapsedTime * 0.1;
+                    knot.rotation.x = elapsedTime * 0.05;
+                    knot.rotation.y = elapsedTime * 0.05;
+                    state.three.grid.rotation.z = elapsedTime * 0.02;
 
-                    particlesMesh.rotation.y = -elapsedTime * 0.05;
+                    particlesMesh.rotation.y = -elapsedTime * 0.03;
                     renderer.render(scene, camera);
                     state.logonAnimation = requestAnimationFrame(animate);
                 };
@@ -762,58 +888,61 @@
             }
 
             function initLogonExtras() {
-                // Jargon Scroller
                 const jargonContainer = document.getElementById('logon-jargon');
-                const prefixes = ['Quantum', 'Tachyon', 'Subspace', 'Heuristic', 'Cryo', 'Neural', 'Exo'];
-                const nouns = ['Matrix', 'Compiler', 'Datastream', 'Protocol', 'Array', 'Buffer', 'Core'];
-                const statuses = ['INITIATED', 'OK', 'CALIBRATING', 'DECRYPTING', 'SYNCED', 'ERROR', 'NOMINAL'];
+                const prefixes = ['Quantum', 'Tachyon', 'Subspace', 'Heuristic', 'Cryo', 'Neural', 'Exo', 'Volumetric', 'Cortex'];
+                const nouns = ['Matrix', 'Compiler', 'Datastream', 'Protocol', 'Array', 'Buffer', 'Core', 'Uplink', 'Heuristics'];
+                const statuses = ['INITIATED', 'OK', 'CALIBRATING', 'DECRYPTING', 'SYNCED', 'ERROR', 'NOMINAL', 'ROUTING', 'VERIFIED'];
                 const jargonInterval = setInterval(() => {
                     const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
                     const noun = nouns[Math.floor(Math.random() * nouns.length)];
                     const status = statuses[Math.floor(Math.random() * statuses.length)];
                     const p = document.createElement('p');
-                    p.innerHTML = `${prefix.toUpperCase()}.${noun.toUpperCase()}: <span class="${status === 'OK' || status === 'NOMINAL' ? 'text-success' : 'text-warning'}">${status}</span>`;
+                    p.innerHTML = `${prefix.toUpperCase()}.${noun.toUpperCase()}: <span class="${status === 'OK' || status === 'NOMINAL' || status === 'VERIFIED' ? 'text-success' : 'text-warning'}">${status}</span>`;
                     jargonContainer.appendChild(p);
                     jargonContainer.scrollTop = jargonContainer.scrollHeight;
                     if (jargonContainer.children.length > 20) {
                         jargonContainer.removeChild(jargonContainer.firstChild);
                     }
-                }, 300);
+                }, 200);
                 state.logonIntervals.push(jargonInterval);
 
-                // Live Graph
                 const graphCanvas = document.getElementById('logon-graph-canvas');
                 if (!graphCanvas) return;
                 const graphCtx = graphCanvas.getContext('2d');
-                const data = {
-                    labels: Array(10).fill(''),
-                    datasets: [{
-                        label: 'Core Temp',
-                        data: Array(10).fill(50),
-                        borderColor: 'rgba(var(--rgb-primary-color), 0.8)',
-                        backgroundColor: 'rgba(var(--rgb-primary-color), 0.2)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                };
+                
+                const gradient1 = graphCtx.createLinearGradient(0, 0, 0, 120);
+                gradient1.addColorStop(0, 'rgba(255, 87, 34, 0.5)');
+                gradient1.addColorStop(1, 'rgba(255, 87, 34, 0)');
+                const gradient2 = graphCtx.createLinearGradient(0, 0, 0, 120);
+                gradient2.addColorStop(0, 'rgba(41, 182, 246, 0.5)');
+                gradient2.addColorStop(1, 'rgba(41, 182, 246, 0)');
+                const gradient3 = graphCtx.createLinearGradient(0, 0, 0, 120);
+                gradient3.addColorStop(0, 'rgba(102, 187, 106, 0.5)');
+                gradient3.addColorStop(1, 'rgba(102, 187, 106, 0)');
+
                 const logonChart = new Chart(graphCtx, {
                     type: 'line',
-                    data: data,
+                    data: {
+                        labels: Array(20).fill(''),
+                        datasets: [
+                            { label: 'Signal A', data: [], borderColor: '#FF5722', backgroundColor: gradient1, fill: true, tension: 0.4, pointRadius: 0 },
+                            { label: 'Signal B', data: [], borderColor: '#29B6F6', backgroundColor: gradient2, fill: true, tension: 0.4, pointRadius: 0 },
+                            { label: 'Signal C', data: [], borderColor: '#66BB6A', backgroundColor: gradient3, fill: true, tension: 0.4, pointRadius: 0 },
+                        ]
+                    },
                     options: {
                         plugins: { legend: { display: false } },
-                        scales: {
-                            y: { display: false, min: 0, max: 100 },
-                            x: { display: false }
-                        },
-                        elements: { point: { radius: 0 } }
+                        scales: { y: { display: false, min: 0, max: 100 }, x: { display: false } },
+                        animation: { duration: 250 }
                     }
                 });
                 const graphInterval = setInterval(() => {
-                    const newData = Math.random() * 50 + 25;
-                    logonChart.data.datasets[0].data.push(newData);
-                    logonChart.data.datasets[0].data.shift();
-                    logonChart.update('quiet');
-                }, 200);
+                    logonChart.data.datasets.forEach(dataset => {
+                        dataset.data.push(Math.random() * 80 + 10);
+                        if(dataset.data.length > 20) dataset.data.shift();
+                    });
+                    logonChart.update();
+                }, 250);
                 state.logonIntervals.push(graphInterval);
             }
             
@@ -824,6 +953,14 @@
                 
                 buildTabContent('dashboard');
                 state.loadedTabs.add('dashboard');
+
+                document.getElementById('clearance-level-display').innerHTML = `LEVEL ${state.clearanceLevel} <span class="text-lg text-primary">${state.clearanceName}</span>`;
+                if (state.clearanceLevel < 3) {
+                    const armouryTab = document.querySelector('.nav-item[data-tab="armoury"]');
+                    if (armouryTab) {
+                        armouryTab.classList.add('disabled');
+                    }
+                }
                 
                 document.getElementById('logout-btn').addEventListener('click', () => {
                     location.reload();
@@ -831,7 +968,7 @@
 
                 document.getElementById('main-nav').addEventListener('click', (e) => {
                     const navItem = e.target.closest('.nav-item');
-                    if (!navItem || !navItem.dataset.tab) return;
+                    if (!navItem || !navItem.dataset.tab || navItem.classList.contains('disabled')) return;
                     
                     const tabId = navItem.dataset.tab;
                     
@@ -856,13 +993,13 @@
                 if (!container || !template) return;
 
                 const content = template.content.cloneNode(true);
-                container.innerHTML = ''; // Clear previous content if any
+                container.innerHTML = ''; 
                 container.appendChild(content);
 
                 switch (tabId) {
                     case 'dashboard': initDashboard(); break;
                     case 'plans': initPlans(); break;
-                    case 'armory': initArmory(); break;
+                    case 'armoury': initArmoury(); break;
                     case 'intel': initIntel(); break;
                     case 'codex': initCodex(); break;
                     case 'settings': initSettings(); break;
@@ -871,10 +1008,9 @@
 
             // --- Dashboard ---
             function initDashboard() {
-                document.getElementById('clearance-level-display').textContent = `LEVEL ${state.clearanceLevel}`;
+                document.getElementById('clearance-level-display').innerHTML = `LEVEL ${state.clearanceLevel} <span class="text-lg text-primary">${state.clearanceName}</span>`;
                 setupGlobe();
                 setupDashboardControls();
-                setupTerminal();
                 listenForWaypoints();
                 listenForPlans(); 
             }
@@ -889,10 +1025,14 @@
                 container.appendChild(state.three.renderer.domElement);
 
                 const textureLoader = new THREE.TextureLoader();
-                state.textures.map = textureLoader.load('https://i.imgur.com/3wyfTqX.jpeg');
+                
+                state.textures.map = textureLoader.load('https://i.imgur.com/3wyfTqX.jpeg', (texture) => {
+                    texture.wrapS = THREE.RepeatWrapping;
+                    texture.offset.x = 0.45; 
+                });
                 state.textures.heightMap = textureLoader.load('https://i.imgur.com/w5H23UT.jpeg', (texture) => {
                     texture.wrapS = THREE.RepeatWrapping;
-                    texture.offset.x = 0.5; // Default offset for alignment
+                    texture.offset.x = 0.15;
                 });
                 
                 const sphereGeometry = new THREE.SphereGeometry(2.5, 128, 128); 
@@ -1022,45 +1162,6 @@
                     });
                 });
             }
-            
-            function setupTerminal() {
-                const terminalLog = document.getElementById('terminal-log');
-                const terminalInput = document.getElementById('terminal-input');
-                const commands = {
-                    help: "Available commands: help, scan, status, clear, wipe_waypoints_all",
-                    scan: "Scanning sector... 3 anomalies detected.",
-                    status: "All systems nominal. Threat level: MODERATE.",
-                    clear: () => { terminalLog.innerHTML = ''; return ''; },
-                    wipe_waypoints_all: () => {
-                        if (state.firebase.userId === state.adminUserId) {
-                            terminalLog.innerHTML += `<p class="text-warning">Executing admin command: WIPE_WAYPOINTS_ALL. This is irreversible.</p>`;
-                            state.waypoints.forEach(wp => {
-                                deleteWaypointFromFirestore(wp.id);
-                            });
-                            return 'All waypoints have been purged from the database.';
-                        } else {
-                            return '<p class="text-error">Error: Insufficient clearance for this command.</p>';
-                        }
-                    }
-                };
-                terminalInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        const command = terminalInput.value.trim().toLowerCase();
-                        if (command) {
-                            terminalLog.innerHTML += `<p>> ${command}</p>`;
-                            const response = commands[command];
-                            if (response) {
-                                const result = typeof response === 'function' ? response() : response;
-                                if(result) terminalLog.innerHTML += `<p>${result}</p>`;
-                            } else {
-                                terminalLog.innerHTML += `<p class="text-error">Error: Command not found: ${command}</p>`;
-                            }
-                            terminalLog.scrollTop = terminalLog.scrollHeight;
-                        }
-                        terminalInput.value = '';
-                    }
-                });
-            }
 
             function onWindowResize() {
                 const mainArea = document.getElementById('dashboard-main');
@@ -1075,8 +1176,8 @@
             function renderWaypoints() {
                 while(state.three.waypointObjects.children.length > 0){ state.three.waypointObjects.remove(state.three.waypointObjects.children[0]); }
                 state.waypoints.forEach(wp => {
-                    let color = wp.color || (wp.owner === state.firebase.userId ? 0xff0000 : 0x00ff00);
-                    if (wp.locked) color = 0xFFD700;
+                    let color = wp.colour || (wp.owner === state.firebase.userId ? '#FF5722' : '#9cd4c4');
+                    if (wp.locked) color = '#FFD700';
                     
                     const marker = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.15, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(color) }));
                     marker.position.copy(wp.position);
@@ -1090,7 +1191,7 @@
 
             function showWaypointInfo(waypointData) {
                 const panel = document.getElementById('waypoint-info-widget');
-                const { id, name, timestamp, position, owner, locked, color, planTag } = waypointData;
+                const { id, name, timestamp, position, owner, ownerName, locked, colour, planTag } = waypointData;
                 const isOwner = owner === state.firebase.userId;
                 
                 let planOptions = '<option value="">None</option>';
@@ -1110,11 +1211,11 @@
                             <select id="waypoint-plan-select" class="form-input p-1" ${!isOwner ? 'disabled' : ''}>${planOptions}</select>
                         </div>
                         <div class="mb-4">
-                            <label for="waypoint-color-input" class="text-xs">Color</label>
-                            <input type="color" id="waypoint-color-input" value="${color || '#ff0000'}" ${!isOwner ? 'disabled' : ''}>
+                            <label for="waypoint-colour-input" class="text-xs">Colour</label>
+                            <input type="color" id="waypoint-colour-input" value="${colour || '#ff0000'}" ${!isOwner ? 'disabled' : ''}>
                         </div>
-                        <p class="text-xs mb-2"><strong>ID:</strong> <span class="text-accent">${id.substring(0,8)}...</span></p>
-                        <p class="text-xs mb-2"><strong>Set by:</strong> <span class="text-accent">${isOwner ? 'SELF' : `OP-${owner.substring(0,8)}...`}</span></p>
+                        <p class="text-xs mb-2"><strong>ID:</strong> <span class="text-primary">${id.substring(0,8)}...</span></p>
+                        <p class="text-xs mb-2"><strong>Set by:</strong> <span class="text-primary">${isOwner ? 'SELF' : ownerName}</span></p>
                 `;
 
                 if (isOwner) {
@@ -1134,7 +1235,7 @@
                 if(isOwner) {
                     document.getElementById('waypoint-name-input').addEventListener('change', (e) => updateWaypointInFirestore(id, { name: e.target.value }));
                     document.getElementById('waypoint-plan-select').addEventListener('change', (e) => updateWaypointInFirestore(id, { planTag: e.target.value }));
-                    document.getElementById('waypoint-color-input').addEventListener('change', (e) => updateWaypointInFirestore(id, { color: e.target.value }));
+                    document.getElementById('waypoint-colour-input').addEventListener('change', (e) => updateWaypointInFirestore(id, { colour: e.target.value }));
                     document.getElementById('waypoint-lock-toggle').addEventListener('change', (e) => updateWaypointInFirestore(id, { locked: e.target.checked }));
                     const deleteBtn = document.getElementById('delete-waypoint-btn');
                     if(deleteBtn) {
@@ -1171,7 +1272,7 @@
                     i++;
                 });
 
-                overlay.innerHTML = `<path d="${pathData}" stroke="var(--accent-color)" stroke-width="2" fill="none" stroke-dasharray="5, 5" />`;
+                overlay.innerHTML = `<path d="${pathData}" stroke="var(--primary-color)" stroke-width="2" fill="none" stroke-dasharray="5, 5" />`;
             }
             
             // --- Firestore Functions ---
@@ -1182,6 +1283,7 @@
                         action: action,
                         details: details,
                         operatorId: state.firebase.userId,
+                        operatorName: state.username,
                         timestamp: new Date().toISOString()
                     });
                 } catch (e) { console.error("Error writing to admin log:", e); }
@@ -1196,8 +1298,9 @@
                         position: { x: localPosition.x, y: localPosition.y, z: localPosition.z },
                         timestamp: new Date().toISOString(),
                         owner: state.firebase.userId,
+                        ownerName: state.username,
                         locked: false,
-                        color: '#ff0000',
+                        colour: '#9cd4c4',
                         planTag: ''
                     });
                     logAdminAction('Waypoint Created', { id: docRef.id, name: waypointName });
@@ -1236,8 +1339,9 @@
                             position: new THREE.Vector3(data.position.x, data.position.y, data.position.z),
                             timestamp: data.timestamp,
                             owner: data.owner,
+                            ownerName: data.ownerName || 'Unknown',
                             locked: data.locked || false,
-                            color: data.color || '#ff0000',
+                            colour: data.colour || '#9cd4c4',
                             planTag: data.planTag || ''
                         });
                     });
@@ -1274,6 +1378,7 @@
                                 description: planDesc,
                                 priority: planPrio,
                                 owner: state.firebase.userId,
+                                ownerName: state.username,
                                 timestamp: new Date().toISOString()
                             });
                             logAdminAction('Plan Created', { id: docRef.id, name: planName });
@@ -1281,6 +1386,16 @@
                         } catch(e) { console.error("Error adding plan:", e); }
                     }
                 });
+            }
+
+            async function deletePlanFromFirestore(planId) {
+                 if (!state.firebase.db) return;
+                try {
+                    const planName = state.plans.get(planId)?.name || 'Unknown';
+                    await deleteDoc(doc(state.firebase.db, "shared-plans", planId));
+                    logAdminAction('Plan Deleted', { id: planId, name: planName });
+                    document.getElementById('plan-detail-view').innerHTML = `<div class="text-center text-gray-500 h-full flex items-center justify-center">Plan deleted.</div>`;
+                } catch (e) { console.error("Error deleting plan: ", e); }
             }
 
             function listenForPlans() {
@@ -1312,16 +1427,16 @@
                         querySnapshot.forEach((doc) => {
                             const data = doc.data();
                             const date = new Date(data.timestamp).toLocaleString();
-                            const operator = `OP-${data.operatorId.substring(0, 6)}...`;
-                            const details = JSON.stringify(data.details);
-                            logsHTML += `<div class="p-2 bg-dark-grey rounded border-l-2 border-primary"><p><span class="text-accent">${date}</span> [${operator}]</p><p class="whitespace-normal break-words">${data.action}: ${details}</p></div>`;
+                            const operator = data.operatorName || `OP-${data.operatorId.substring(0, 6)}...`;
+                            const actionType = data.action.split(' ')[0];
+                            logsHTML += `<div class="log-entry ${actionType}"><p><span class="text-primary">${data.action}</span> by ${operator}</p><p class="log-meta">${date}</p></div>`;
                         });
                     }
                     logContainer.innerHTML = logsHTML;
                 });
             }
 
-            // --- Database Tabs (Armory, Intel, Codex, Plans) ---
+            // --- Database Tabs (Armoury/Intel/Codex/Plans) ---
             function initPlans() {
                 listenForPlans();
                 renderPlanList(); // Initial render
@@ -1372,9 +1487,15 @@
                     waypointsHTML = '<p class="text-gray-500">No waypoints linked to this plan.</p>';
                 }
                 waypointsHTML += '</ul>';
+                
+                let deleteButtonHTML = '';
+                if(plan.owner === state.firebase.userId || state.clearanceLevel >= 6) {
+                    deleteButtonHTML = `<button id="delete-plan-btn" class="absolute top-4 right-4 bg-red-800 hover:bg-red-700 text-xs p-2 rounded">Delete Plan</button>`;
+                }
 
                 detailView.innerHTML = `
-                    <div class="plan-content">
+                    <div class="plan-content relative">
+                        ${deleteButtonHTML}
                         <div class="flex justify-between items-start">
                             <h2 class="font-orbitron text-2xl text-primary mb-2">${plan.name}</h2>
                             <span class="px-2 py-1 rounded text-xs ${priorityClass}">${plan.priority.toUpperCase()}</span>
@@ -1384,6 +1505,14 @@
                         ${waypointsHTML}
                     </div>
                 `;
+                
+                if(deleteButtonHTML) {
+                    document.getElementById('delete-plan-btn').addEventListener('click', () => {
+                        showModal('Confirm Deletion', `Are you sure you want to delete the plan "${plan.name}"? This action cannot be undone.`, () => {
+                            deletePlanFromFirestore(planId);
+                        });
+                    });
+                }
             }
 
             function setupSearchableList(inputId, listId, data, displayFunction) {
@@ -1391,8 +1520,15 @@
                 const listContainer = document.getElementById(listId);
                 const renderList = (filter = '') => {
                     const lowerFilter = filter.toLowerCase();
-                    const filteredKeys = Object.keys(data).filter(key => JSON.stringify(data[key]).toLowerCase().includes(lowerFilter));
-                    listContainer.innerHTML = filteredKeys.map(key => `<div class="db-list-item" data-id="${key}">${data[key].name}</div>`).join('');
+                    let itemsHTML = '';
+                    const sortedData = [...data.entries()].sort((a, b) => a[1].name.localeCompare(b[1].name));
+
+                    for (const [key, value] of sortedData) {
+                        if (JSON.stringify(value).toLowerCase().includes(lowerFilter)) {
+                           itemsHTML += `<div class="db-list-item" data-id="${key}">${value.name}</div>`;
+                        }
+                    }
+                    listContainer.innerHTML = itemsHTML;
                 };
                 listContainer.addEventListener('click', e => {
                     if (e.target.matches('.db-list-item')) {
@@ -1405,21 +1541,193 @@
                 renderList();
             }
 
-            function initArmory() {
-                setupSearchableList('armory-search', 'asset-list', armoryData, displayAssetDetails);
+            function initArmoury() {
+                listenForAssets(); 
             }
+
+            function listenForAssets() {
+                const armoryData = new Map([
+                    // Permanent Folders
+                    ['armaments', { id: 'armaments', name: 'Armaments', type: 'Folder', parent: null, permanent: true }],
+                    ['naval', { id: 'naval', name: 'Naval Assets', type: 'Folder', parent: null, permanent: true }],
+                    ['airspace', { id: 'airspace', name: 'Airspace Assets', type: 'Folder', parent: null, permanent: true }],
+                    ['land', { id: 'land', name: 'Land Assets', type: 'Folder', parent: null, permanent: true }],
+                    
+                    // Tools
+                    ['ciws', { id: 'ciws', name: 'CIWS Analysis', type: 'Report', parent: 'armaments' }],
+                    ['wep_comp', { id: 'wep_comp', name: 'Weapon Comparison', type: 'Tool', parent: 'armaments' }],
+                    
+                    // Naval Assets
+                    ['nav_des', { id: 'nav_des', name: 'Aegis-Class Destroyer', type: 'Naval', parent: 'naval', classificationLevel: 6, stats: { Hull: 85, Speed: 60, Armament: 90, AA: 75 } }],
+                    ['nav_sub', { id: 'nav_sub', name: 'Trident-Class Submarine', type: 'Naval', parent: 'naval', classificationLevel: 7, stats: { Stealth: 95, Speed: 70, Armament: 80, AA: 10 } }],
+                    ['nav_car', { id: 'nav_car', name: 'Orion-Class Carrier', type: 'Naval', parent: 'naval', classificationLevel: 7, stats: { Hull: 90, Speed: 40, Armament: 50, AA: 95 } }],
+                    ['nav_cor', { id: 'nav_cor', name: 'Patrol Corvette', type: 'Naval', parent: 'naval', classificationLevel: 3, stats: { Hull: 40, Speed: 85, Armament: 50, AA: 60 } }],
+
+                    // Airspace Assets
+                    ['air_int', { id: 'air_int', name: 'F-77 "Wraith" Interceptor', type: 'Air', parent: 'airspace', classificationLevel: 6, stats: { Agility: 95, Speed: 90, Firepower: 75, Defence: 50 } }],
+                    ['air_bom', { id: 'air_bom', name: 'B-12 "Goliath" Bomber', type: 'Air', parent: 'airspace', classificationLevel: 5, stats: { Agility: 30, Speed: 50, Firepower: 95, Defence: 80 } }],
+                    ['air_gun', { id: 'air_gun', name: 'UH-9 "Hornet" Gunship', type: 'Air', parent: 'airspace', classificationLevel: 4, stats: { Agility: 70, Speed: 60, Firepower: 80, Defence: 65 } }],
+
+                    // Land Assets
+                    ['land_mbt', { id: 'land_mbt', name: 'M1A5 "Juggernaut" MBT', type: 'Land', parent: 'land', classificationLevel: 6, stats: { Armour: 95, Speed: 50, Firepower: 90, Versatility: 60 } }],
+                    ['land_lt', { id: 'land_lt', name: 'Scorpion Light Tank', type: 'Land', parent: 'land', classificationLevel: 4, stats: { Armour: 60, Speed: 85, Firepower: 70, Versatility: 80 } }],
+                    ['land_ifv', { id: 'land_ifv', name: '"Wolverine" IFV', type: 'Land', parent: 'land', classificationLevel: 3, stats: { Armour: 70, Speed: 75, Firepower: 60, Versatility: 90 } }],
+                ]);
+                state.assets = armoryData;
+                // Initial render at root level
+                renderArmouryList();
+            }
+            
+            async function updateAssetInFirestore(assetId, dataToUpdate) {
+                console.log(`(Placeholder) Updating asset ${assetId} with`, dataToUpdate);
+                logAdminAction('Asset Updated (Placeholder)', { id: assetId, changes: dataToUpdate });
+                if (state.assets.has(assetId)) {
+                    const asset = state.assets.get(assetId);
+                    Object.assign(asset, dataToUpdate);
+                    state.assets.set(assetId, asset);
+                }
+            }
+
+            function renderArmouryList() {
+                const listContainer = document.getElementById('asset-list');
+                const breadcrumbs = document.getElementById('armoury-breadcrumbs');
+                if (!listContainer || !breadcrumbs) return;
+
+                const currentFolder = state.assets.get(state.currentArmouryFolder);
+                
+                // Breadcrumbs
+                let path = 'Armoury';
+                if(currentFolder) path += ` / ${currentFolder.name}`;
+                breadcrumbs.textContent = path;
+
+                listContainer.innerHTML = '';
+                
+                // Add a back button if not at the root
+                if (state.currentArmouryFolder !== null) {
+                    const backButton = document.createElement('div');
+                    backButton.className = 'db-list-item back-button';
+                    backButton.innerHTML = `<span>&#8617; Back</span>`;
+                    backButton.onclick = () => {
+                        const currentFolderAsset = state.assets.get(state.currentArmouryFolder);
+                        state.currentArmouryFolder = currentFolderAsset ? currentFolderAsset.parent : null;
+                        renderArmouryList();
+                    };
+                    listContainer.appendChild(backButton);
+                }
+                
+                const itemsToShow = [...state.assets.values()].filter(asset => asset.parent === state.currentArmouryFolder);
+                
+                itemsToShow.sort((a,b) => {
+                    if (a.type === 'Folder' && b.type !== 'Folder') return -1;
+                    if (a.type !== 'Folder' && b.type === 'Folder') return 1;
+                    return a.name.localeCompare(b.name);
+                });
+                
+                itemsToShow.forEach(asset => {
+                    const icon = asset.type === 'Folder' ? '&#128193;' : '&#128441;';
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'db-list-item';
+                    itemEl.dataset.id = asset.id;
+                    itemEl.innerHTML = `<span>${icon} ${asset.name}</span>`;
+                    listContainer.appendChild(itemEl);
+                });
+
+                listContainer.onclick = (e) => {
+                    const item = e.target.closest('.db-list-item:not(.back-button)');
+                    if (item) {
+                        const assetId = item.dataset.id;
+                        const asset = state.assets.get(assetId);
+                        if (asset.type === 'Folder') {
+                            state.currentArmouryFolder = assetId;
+                            renderArmouryList();
+                        } else {
+                            displayAssetDetails(assetId);
+                        }
+                    }
+                };
+            }
+
             function displayAssetDetails(assetId) {
                 const detailView = document.getElementById('asset-detail-view');
-                if (assetId === 'analysis') {
-                    detailView.innerHTML = `<h2 class="font-orbitron text-2xl text-primary mb-4">CIWS Performance Analysis</h2><div style="position: relative; height: 60vh;"><canvas id="ciwsChart"></canvas></div>`;
-                    renderCiwsChart();
-                } else {
-                     detailView.innerHTML = `<div class="text-center text-gray-500 h-full flex items-center justify-center">Select a specific asset category to view details.</div>`;
+                const asset = state.assets.get(assetId);
+
+                if (!asset) {
+                    detailView.innerHTML = `<div class="text-center text-gray-500 h-full flex items-center justify-center">Asset not found or access denied.</div>`;
+                    return;
+                }
+                
+                if (asset.type === 'Folder') {
+                    detailView.innerHTML = `<div class="text-center text-gray-500 h-full flex items-center justify-center">Select an asset to view details.</div>`;
+                    return;
+                }
+
+                if (assetId === 'ciws') {
+                     detailView.innerHTML = `
+                        <h2 class="font-orbitron text-2xl text-primary mb-4">CIWS Performance Analysis</h2>
+                        <div class="overflow-x-auto">
+                        <table class="spec-table w-full">
+                            <thead>
+                                <tr>
+                                    <th>Missile Threat</th>
+                                    <th>CIWS Defence</th>
+                                    <th>CIWS Success Rate</th>
+                                    <th>Missile Penetration Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>4x P-250 launchers</td><td>4x AK-630-2</td><td class="text-success">96.88%</td><td class="text-error">3.12%</td></tr>
+                                <tr><td>4x P-270 launchers</td><td>4x Phalanx CIWS</td><td class="text-warning">37.50%</td><td class="text-error">62.50%</td></tr>
+                                <tr><td>4x P-270 launchers</td><td>4x Goalkeeper CIWS</td><td class="text-warning">62.50%</td><td class="text-error">37.50%</td></tr>
+                                <tr><td>4x P-270 launchers</td><td>4x AK-630</td><td class="text-success">75.00%</td><td class="text-warning">25.00%</td></tr>
+                                <tr><td>4x Slava launchers (P-1000)</td><td>4x Phalanx CIWS</td><td class="text-warning">46.88%</td><td class="text-error">53.12%</td></tr>
+                                <tr><td>4x Slava launchers (P-1000)</td><td>4x Goalkeeper CIWS</td><td class="text-warning">65.62%</td><td class="text-error">34.38%</td></tr>
+                                <tr><td>4x Slava launchers (P-1000)</td><td>4x AK-630</td><td class="text-success">84.38%</td><td class="text-warning">15.62%</td></tr>
+                                <tr><td>4x Slava launchers (P-1000)</td><td>4x AK-630-2</td><td class="text-success">100.00%</td><td class="text-success">0.00%</td></tr>
+                            </tbody>
+                        </table>
+                        </div>
+                    `;
+                } else if (assetId === 'wep_comp') {
+                    renderWeaponComparisonUI();
+                }
+                else {
+                    const canEdit = state.clearanceLevel >= 4;
+                    let classificationOptions = '';
+                    for (let i = 1; i <= 7; i++) {
+                        classificationOptions += `<option value="${i}" ${asset.classificationLevel === i ? 'selected' : ''}>Level ${i}</option>`;
+                    }
+                    
+                    let statsHTML = '';
+                    if (asset.stats) {
+                        statsHTML = '<h3 class="font-orbitron text-primary text-lg mt-6 mb-2">Specifications</h3><table class="spec-table">';
+                        for (const [key, value] of Object.entries(asset.stats)) {
+                            statsHTML += `<tr><td>${key}</td><td>${value}</td></tr>`;
+                        }
+                        statsHTML += '</table>';
+                    }
+
+                     detailView.innerHTML = `
+                        <h2 class="font-orbitron text-2xl text-primary mb-2">${asset.name}</h2>
+                        <p class="mb-4 text-gray-400">Asset Type: ${asset.type}</p>
+                        <div class="flex items-center gap-4">
+                            <label for="classification-select">Classification Level:</label>
+                            <select id="classification-select" class="form-input w-32" ${!canEdit ? 'disabled' : ''}>
+                                ${classificationOptions}
+                            </select>
+                        </div>
+                        ${statsHTML}
+                     `;
+                     if (canEdit) {
+                         document.getElementById('classification-select').addEventListener('change', (e) => {
+                             const newLevel = parseInt(e.target.value, 10);
+                             updateAssetInFirestore(assetId, { classificationLevel: newLevel });
+                         });
+                     }
                 }
             }
 
             function initIntel() {
-                setupSearchableList('intel-search', 'faction-list', intelData, (id) => displayFactionDetails(intelData[id]));
+                setupSearchableList('intel-search', 'faction-list', new Map(Object.entries(intelData)), (id) => displayFactionDetails(intelData[id]));
                 
                 document.getElementById('faction-detail-view').addEventListener('click', e => {
                     if (e.target.matches('.db-tab')) {
@@ -1441,13 +1749,25 @@
                     <h2 class="font-orbitron text-2xl text-primary mb-2">${faction.name}</h2>
                     <p class="mb-4">Threat Level: <span class="${getStrengthClass(faction.threat)}">${faction.threat}</span> // Hostility: <span class="text-accent">${faction.hostility}</span></p>
                     <div class="db-tabs">
-                        <span class="db-tab" data-pane="profile">Profile</span>
+                        <span class="db-tab active" data-pane="profile">Profile</span>
                         <span class="db-tab" data-pane="strength">Strength Assessment</span>
                         <span class="db-tab" data-pane="hierarchy">Hierarchy</span>
                     </div>
-                    <div id="profile" class="db-tab-pane"><p>${faction.report}</p></div>
-                    <div id="strength" class="db-tab-pane"><table class="spec-table"><tr><td>Naval Strength</td><td class="${getStrengthClass(faction.naval_strength)}">${faction.naval_strength}</td></tr><tr><td>Air Strength</td><td class="${getStrengthClass(faction.air_strength)}">${faction.air_strength}</td></tr><tr><td>Ground Strength</td><td class="${getStrengthClass(faction.ground_strength)}">${faction.ground_strength}</td></tr><tr><td>Known Location</td><td>${faction.location}</td></tr></table></div>
-                    <div id="hierarchy" class="db-tab-pane"><table class="spec-table">${Object.entries(faction.hierarchy).map(([key, value]) => `<tr><td>${key}</td><td>${Array.isArray(value) ? value.join('<br>') : value}</td></tr>`).join('')}</table></div>`;
+                    <div id="profile" class="db-tab-pane active"><p>${faction.report}</p></div>
+                    <div id="strength" class="db-tab-pane">
+                        <div class="intel-grid">
+                            <div class="intel-card"><h3>Naval</h3><ul><li><span>Strength:</span> <span class="${getStrengthClass(faction.naval_strength)}">${faction.naval_strength}</span></li></ul></div>
+                            <div class="intel-card"><h3>Air</h3><ul><li><span>Strength:</span> <span class="${getStrengthClass(faction.air_strength)}">${faction.air_strength}</span></li></ul></div>
+                            <div class="intel-card"><h3>Ground</h3><ul><li><span>Strength:</span> <span class="${getStrengthClass(faction.ground_strength)}">${faction.ground_strength}</span></li></ul></div>
+                            <div class="intel-card"><h3>Location</h3><ul><li><span>Last Known:</span> <span>${faction.location}</span></li></ul></div>
+                        </div>
+                    </div>
+                    <div id="hierarchy" class="db-tab-pane">
+                        <div class="intel-card">
+                            <h3>Command Structure</h3>
+                            <table class="spec-table">${Object.entries(faction.hierarchy).map(([key, value]) => `<tr><td>${key}</td><td>${Array.isArray(value) ? value.join('<br>') : value}</td></tr>`).join('')}</table>
+                        </div>
+                    </div>`;
 
                 const activeTab = detailView.querySelector(`.db-tab[data-pane="${state.activeIntelSubTab}"]`);
                 if (activeTab) activeTab.classList.add('active');
@@ -1456,19 +1776,19 @@
             }
 
             function initCodex() {
-                setupSearchableList('codex-search', 'codex-list', codexData, displayCodexDetails);
+                setupSearchableList('codex-search', 'codex-list', new Map(Object.entries(codexData)), displayCodexDetails);
             }
             function displayCodexDetails(docId) {
                 const detailView = document.getElementById('codex-detail-view');
                 let content = '';
-                switch(docId) { /* Cases for codex content remain the same */
+                switch(docId) {
                     case 'general': content = `<h3>Naval Server Rules</h3><p>All grids are to remain within the planet atmosphere. Naval Warships and Structures are large grids only. Aircraft and ground vehicles are small grids only. Each Grid requires the correct GridCore for that class. Structure GridCores must be above voxels and water.</p><h3>Block limits</h3><p>GridCores will automatically limit the amount of certain blocks. All ships can fit a max of 2 vents. O2 GENERATORS ARE ONLY ALLOWED ON BASES AND SMALL GRIDS TO PRODUCE FUEL AND ONLY 1 PER GRID IS ALLOWED. Ships will be able to fit 2 navigation computer blocks & 3 rudder blocks. ONLY BASES CAN HAVE A MAXIMUM OF 1 FUEL BLOCK REFINERY. SHIPS MAY HAVE 1 EMERGENCY FUEL Converter.</p><h3>Jet Pack Usage</h3><p>JETPACKS ARE ONLY TO BE USED AROUND FRIENDLY GRIDS FOR LOGISTICAL PURPOSES. DO NOT FLY AROUND ENEMY GRIDS. THEY WILL ONLY OPERATE WITHIN A 1KM RANGE OF A FRIENDLY GRIDCORE.</p>`; break;
                     case 'warfare': content = `<h3>Declaring War</h3><p>FACTIONS WHO WISH TO DECLARE WAR ON ANOTHER FACTION MUST DECLARE THEIR INTENTIONS IN DIPLOMACY 48HRS PRIOR TO INITIATING A SIEGE. AN ADMIN MUST APPROVE THE WAR. WAR DECLARATIONS MUST BE FOR A REASON. ATTACKERS MUST DEFINE A TARGET FOR THE WAR. AFTER A WAR IS COMPLETED THE DECLARING FACTION IS ON A COOLDOWN OF 7 DAYS BEFORE THEY CAN DECLARE ANOTHER WAR.</p><h3>Siege</h3><p>Once war is declared and an admin approves it you may start sieging 48 hrs after the declaration message. Efforts should be made to make sure both sides are able to be on for the fight. Attackers must initiate the siege by moving within 15km of the Structure they wish to attack. Once the siege is initiated Defenders have 10 minutes to push the attackers out of the Territory Capture zone. Attackers have 2 hours to siege the base. To successfully siege and capture the territory the Attackers must destroy the Defenders Base Grid Core. If the Defenders survive for 2 hours their SZ will be restored. Wars last for 5 days. Defenders can attack the Attackers FOB to end the war early.</p>`; break;
                     case 'factions': content = `<h3>Factions</h3><p>A faction is a group of players working together towards a common goal. Only have grids out in the world that are actively being used. In peace time factions do not need to have their fleets on display. Exploiting factions to increase fleet cap will result your whole faction and its members getting banned.</p><h3>Ship and Structure limits</h3><table class="spec-table"><tr><th>Structure Type</th><th>Amount</th><th>Ship Class</th><th>Amount</th></tr><tr><td>Main Base</td><td>1</td><td>Corvette</td><td>4</td></tr><tr><td>Fort</td><td>5</td><td>Frigate</td><td>3</td></tr><tr><td>Destroyer</td><td>3</td><td>Cruiser</td><td>2</td></tr><tr><td></td><td></td><td>Submarine</td><td>1</td></tr><tr><td></td><td></td><td>Logistics Ship</td><td>2</td></tr><tr><td></td><td></td><td>Battleship</td><td>1</td></tr><tr><td></td><td></td><td>Aircraft Carrier</td><td>1</td></tr><tr><td><strong>Total Structures</strong></td><td><strong>16</strong></td><td><strong>Max Fleet Size</strong></td><td><strong>18</strong></td></tr></table>`; break;
                     case 'structures': content = `<h3>Structures</h3><p>We have 3 types of structures on the server: Main Base, Fort, and Outpost. Each structure much have the correct GridCore installed.</p><table class="spec-table"><tr><th>Type</th><th>Block Count</th><th>Defensive Points</th><th>Offensive Points</th></tr><tr><td>Main Base</td><td>7500</td><td>50</td><td>80</td></tr><tr><td>Fort</td><td>5000</td><td>35</td><td>50</td></tr><tr><td>Outpost</td><td>750</td><td>20</td><td>15</td></tr></table><h3>Resource Cores</h3><p>Every structure can install a resource core to generate passive resources. Only 1 is permitted per structure.</p><h3>Structure limitations</h3><p>Structures must be placed a minimum distance of 15 km apart.</p>`; break;
-                    case 'ships': content = `<h3>Ship Classes</h3><p>Ships are divided into multiple classes which are grouped in class groups. Each class has a mass limit, this is based on the dry weight of a ship. Max ship size is 2800 square blocks (length x width).</p><table class="spec-table"><tr><th>Class Name</th><th>Max Dry Mass</th><th>Offensive Points</th><th>Defensive Points</th></tr><tr><td>Corvette</td><td>1,000 T</td><td>20</td><td>10</td></tr><tr><td>Frigate</td><td>2,500 T</td><td>35</td><td>20</td></tr><tr><td>Submarine</td><td>3,500 T</td><td>12</td><td>4</td></tr><tr><td>Destroyer</td><td>5,500 T</td><td>45</td><td>30</td></tr><tr><td>Cruiser</td><td>10,000 T</td><td>60</td><td>35</td></tr><tr><td>Battleship</td><td>20,000 T</td><td>80</td><td>40</td></tr><tr><td>Carrier</td><td>14,000 T</td><td>16</td><td>30</td></tr><tr><td>Logistics Ship</td><td>2,250 T</td><td>N/A</td><td>12</td></tr></table>`; break;
+                    case 'ships': content = `<h3>Ship Classifications</h3><p>Ships are divided into multiple classes which are grouped in class groups. Each class has a mass limit, this is based on the dry weight of a ship. Max ship size is 2800 square blocks (length x width).</p><table class="spec-table"><tr><th>Class Name</th><th>Max Dry Mass</th><th>Offensive Points</th><th>Defensive Points</th></tr><tr><td>Corvette</td><td>1,000 T</td><td>20</td><td>10</td></tr><tr><td>Frigate</td><td>2,500 T</td><td>35</td><td>20</td></tr><tr><td>Submarine</td><td>3,500 T</td><td>12</td><td>4</td></tr><tr><td>Destroyer</td><td>5,500 T</td><td>45</td><td>30</td></tr><tr><td>Cruiser</td><td>10,000 T</td><td>60</td><td>35</td></tr><tr><td>Battleship</td><td>20,000 T</td><td>80</td><td>40</td></tr><tr><td>Carrier</td><td>14,000 T</td><td>16</td><td>30</td></tr><tr><td>Logistics Ship</td><td>2,250 T</td><td>N/A</td><td>12</td></tr></table>`; break;
                     case 'aircraft': content = `<h3>Aircraft</h3><p>Aircraft are divided into several classes. Thrust must always point in the same direction. Only use propulsion from designated aircraft mods. Planes cannot exceed 3000 blocks.</p><table class="spec-table"><tr><th>Class Name</th><th>Min Weight (T)</th><th>Max Weight (T)</th><th>Max Thrust (T)</th></tr><tr><td>Fighter</td><td>10</td><td>20</td><td>30</td></tr><tr><td>Strike Fighter</td><td>20</td><td>32.5</td><td>60</td></tr><tr><td>Bomber</td><td>32.5</td><td>N/A</td><td>80</td></tr><tr><td>Strategic Bomber</td><td>45</td><td>N/A</td><td>100</td></tr><tr><td>Logistics / Radar</td><td>20</td><td>N/A</td><td>160</td></tr><tr><td>Helicopter</td><td>N/A</td><td>N/A</td><td>20</td></tr></table>`; break;
-                    case 'vehicles': content = `<h3>Ground Vehicles</h3><p>Vehicles are defined into 3 classes.</p><table class="spec-table"><tr><th>Class</th><th>Max Weight</th><th>Speed</th><th>Hardpoints</th></tr><tr><td>Main Battle Tank</td><td>80T</td><td>80KM/H</td><td>8</td></tr><tr><td>Anti Aircraft Vehicle</td><td>60T</td><td>80KM/H</td><td>8</td></tr><tr><td>Artillery</td><td>50T</td><td>50KM/H</td><td>8</td></tr></table>`; break;
+                    case 'vehicles': content = `<h3>Ground Vehicle Classifications</h3><p>Vehicles are defined into 3 classes.</p><table class="spec-table"><tr><th>Class</th><th>Max Weight</th><th>Speed</th><th>Hardpoints</th></tr><tr><td>Main Battle Tank</td><td>80T</td><td>80KM/H</td><td>8</td></tr><tr><td>Anti Aircraft Vehicle</td><td>60T</td><td>80KM/H</td><td>8</td></tr><tr><td>Artillery</td><td>50T</td><td>50KM/H</td><td>8</td></tr></table>`; break;
                     case 'resources': content = `<h3>Resource Acquisition</h3><h3>Common Ores (Iron, Silicon, Nickel)</h3><p>Mined with Resource Claim Pylons. They do not deplete the area.</p><h3>Uncommon Ores (Cobalt, Magnesium, Silver, Gold)</h3><p>Found in Resource Zones in water. These zones require Fuel Blocks and will deplete over time.</p><h3>Rare Ores (Platinum, Uranium)</h3><p>Found in random NPC bunkers or King of the Hill style events.</p>`; break;
                     default: content = `<p>Documentation for ${codexData[docId].name} is not available.</p>`;
                 }
@@ -1490,8 +1810,8 @@
                     if (state.soundEnabled && !state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 });
 
-                // Admin Log is now always visible
                 document.getElementById('admin-log-widget').classList.remove('hidden');
+                initOnlineOperatorsWidget();
                 listenForAdminLogs();
             }
             function applyTheme(theme) {
@@ -1502,48 +1822,150 @@
                         btn.classList.toggle('active', btn.dataset.theme === theme);
                     });
                 }
-                setTimeout(() => { if (state.charts.ciws) renderCiwsChart(); }, 0);
+                setTimeout(() => { if (state.charts.weaponComp) renderWeaponComparisonUI(); }, 0);
             }
             
             // --- Charting ---
-            function renderCiwsChart() {
-                const canvas = document.getElementById('ciwsChart');
+            function renderWeaponComparisonUI() {
+                const detailView = document.getElementById('asset-detail-view');
+                const weapons = [...state.assets.values()].filter(a => a.type === 'Weapon');
+                
+                let optionsHTML = '<option value="">Select Weapon</option>';
+                weapons.forEach(w => {
+                    optionsHTML += `<option value="${w.id}">${w.name}</option>`;
+                });
+
+                detailView.innerHTML = `
+                    <h2 class="font-orbitron text-2xl text-primary mb-4">Weapon Systems Comparison</h2>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <select id="weapon-select-1" class="form-input">${optionsHTML}</select>
+                        <select id="weapon-select-2" class="form-input">${optionsHTML}</select>
+                    </div>
+                    <div style="position: relative; height: 60vh;">
+                        <canvas id="weaponComparisonChart"></canvas>
+                    </div>
+                `;
+
+                const select1 = document.getElementById('weapon-select-1');
+                const select2 = document.getElementById('weapon-select-2');
+                
+                const updateChart = () => {
+                    const weapon1 = state.assets.get(select1.value);
+                    const weapon2 = state.assets.get(select2.value);
+                    renderWeaponComparisonChart(weapon1, weapon2);
+                };
+
+                select1.addEventListener('change', updateChart);
+                select2.addEventListener('change', updateChart);
+                updateChart(); 
+            }
+
+            function renderWeaponComparisonChart(weapon1, weapon2) {
+                const canvas = document.getElementById('weaponComparisonChart');
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
-                const weaponData = {
-                    'P-270': [62.5, 37.5, 25.0, 0],
-                    'P-1000': [53.12, 34.38, 15.62, 0]
-                };
-                if (state.charts.ciws) state.charts.ciws.destroy();
+
+                if (state.charts.weaponComp) state.charts.weaponComp.destroy();
+                
                 const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--rgb-primary-color').trim();
                 const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--rgb-accent-color').trim();
                 const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
 
-                state.charts.ciws = new Chart(ctx, {
-                    type: 'radar',
+                const labels = ['Damage', 'Range', 'Fire Rate', 'Accuracy'];
+                const data1 = weapon1 ? Object.values(weapon1.stats) : [0,0,0,0];
+                const data2 = weapon2 ? Object.values(weapon2.stats) : [0,0,0,0];
+
+                state.charts.weaponComp = new Chart(ctx, {
+                    type: 'bar',
                     data: {
-                        labels: ['Phalanx', 'Goalkeeper', 'AK-630', 'AK-630-2'],
-                        datasets: [{
-                            label: 'P-270 Penetration Success Rate (%)',
-                            data: weaponData['P-270'],
-                            backgroundColor: `rgba(${primaryColor}, 0.2)`,
-                            borderColor: `rgba(${primaryColor}, 1)`,
-                            pointBackgroundColor: `rgba(${primaryColor}, 1)`,
-                        }, {
-                            label: 'P-1000 Penetration Success Rate (%)',
-                            data: weaponData['P-1000'],
-                            backgroundColor: `rgba(${accentColor}, 0.2)`,
-                            borderColor: `rgba(${accentColor}, 1)`,
-                            pointBackgroundColor: `rgba(${accentColor}, 1)`,
-                        }]
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: weapon1 ? weapon1.name : 'Weapon 1',
+                                data: data1,
+                                backgroundColor: `rgba(${primaryColor}, 0.6)`,
+                                borderColor: `rgba(${primaryColor}, 1)`,
+                                borderWidth: 1
+                            },
+                            {
+                                label: weapon2 ? weapon2.name : 'Weapon 2',
+                                data: data2,
+                                backgroundColor: `rgba(${accentColor}, 0.6)`,
+                                borderColor: `rgba(${accentColor}, 1)`,
+                                borderWidth: 1
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        scales: { r: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.2)' }, angleLines: { color: 'rgba(255,255,255,0.2)' }, pointLabels: { color: textColor, font: { size: 14 } }, ticks: { backdropColor: 'rgba(0,0,0,0.5)', color: textColor }}},
+                        scales: { 
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: 'rgba(255,255,255,0.2)' },
+                                ticks: { color: textColor }
+                            },
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.1)' },
+                                ticks: { color: textColor }
+                            }
+                        },
                         plugins: { legend: { labels: { color: textColor } } }
                     }
                 });
+            }
+
+            // --- Modal System ---
+            function showModal(title, body, onConfirm) {
+                const backdrop = document.getElementById('modal-backdrop');
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('modal-body').innerHTML = body;
+                
+                const confirmBtn = document.getElementById('modal-confirm-btn');
+                const cancelBtn = document.getElementById('modal-cancel-btn');
+                
+                backdrop.style.display = 'flex';
+
+                const confirmHandler = () => {
+                    if(onConfirm) onConfirm();
+                    hideModal();
+                };
+
+                const cancelHandler = () => {
+                    hideModal();
+                };
+                
+                confirmBtn.onclick = confirmHandler;
+                cancelBtn.onclick = cancelHandler;
+            }
+
+            function hideModal() {
+                document.getElementById('modal-backdrop').style.display = 'none';
+            }
+
+            // --- Online Operators Widget ---
+            function initOnlineOperatorsWidget() {
+                const container = document.getElementById('online-operators-list');
+                if(!container) return;
+
+                // Simulated data
+                const onlineUsers = [
+                    { name: state.username, clearanceName: state.clearanceName, clearanceLevel: state.clearanceLevel },
+                    { name: 'RAZOR', clearanceName: 'RAZOR', clearanceLevel: 3 },
+                    { name: 'WARDEN', clearanceName: 'WARDEN', clearanceLevel: 5 },
+                    { name: 'GUEST', clearanceName: 'ECHO', clearanceLevel: 1 },
+                ].sort((a,b) => b.clearanceLevel - a.clearanceLevel);
+
+                let html = '';
+                onlineUsers.forEach(user => {
+                    html += `
+                        <div class="operator-list-item">
+                            <span>${user.name}</span>
+                            <span class="clearance-badge clearance-${user.clearanceLevel}">${user.clearanceName}</span>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
             }
 
             // --- Start Application ---
@@ -1553,8 +1975,15 @@
                 if (!state.audioCtx) {
                     state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 }
+                const usernameInput = document.getElementById('username-input');
                 const passwordInput = document.getElementById('password-input');
-                if (passwordInput.value === state.correctPassword) {
+                const username = usernameInput.value.toUpperCase();
+                const user = users[username];
+
+                if (user && user.password === passwordInput.value) {
+                    state.username = username;
+                    state.clearanceLevel = user.level;
+                    state.clearanceName = user.name;
                     document.getElementById('password-screen').classList.add('hidden');
                     runLogonSequence();
                 } else {
