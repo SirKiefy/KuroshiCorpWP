@@ -53,7 +53,7 @@
                     <div class="nav-item" id="user-profile">
                         <svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         <div class="nav-text">
-                            <span class="font-orbitron">OPERATOR</span>
+                            <span id="user-id-display" class="font-orbitron text-xs">OPERATOR ID</span>
                             <span class="text-xs text-success block">ONLINE</span>
                         </div>
                     </div>
@@ -105,7 +105,7 @@
                     <div class="control-toggle"><label for="waypoints-toggle" class="mr-4">Waypoints</label><input type="checkbox" id="waypoints-toggle" class="toggle-checkbox hidden" checked><label for="waypoints-toggle" class="toggle-switch"></label></div>
                     <div class="control-toggle"><label for="plans-toggle" class="mr-4">Show Plans</label><input type="checkbox" id="plans-toggle" class="toggle-checkbox hidden"><label for="plans-toggle" class="toggle-switch"></label></div>
                     <div class="control-toggle"><label for="rotate-toggle" class="mr-4">Auto-Rotate</label><input type="checkbox" id="rotate-toggle" class="toggle-checkbox hidden" checked><label for="rotate-toggle" class="toggle-switch"></label></div>
-                    <button id="clear-waypoints-btn" class="w-full mt-4 bg-red-800 hover:bg-red-700 text-xs p-1 rounded">Clear Waypoints</button>
+                    <button id="clear-waypoints-btn" class="w-full mt-4 bg-red-800 hover:bg-red-700 text-xs p-1 rounded">Clear All Waypoints</button>
                 </div>
                 <div id="waypoint-info-widget" class="sidebar-widget hidden">
                     <h2>WAYPOINT DETAILS</h2>
@@ -184,6 +184,6 @@
     </template>
     
     <!-- Your JavaScript -->
-    <script src="main.js"></script>
+    <script src="main.js" type="module"></script>
 </body>
 </html>
