@@ -53,12 +53,25 @@
         #password-error { height: 1.5rem; }
 
         #logon-content { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        #logon-text-container { z-index: 10; background: rgba(10,10,10,0.7); backdrop-filter: blur(4px); padding: 2rem; border-radius: 0.5rem; border: 1px solid var(--light-grey); width: 80%; max-width: 900px; }
+        #logon-text-container { 
+            z-index: 10; 
+            background: rgba(10,10,10,0.7); 
+            backdrop-filter: blur(4px); 
+            padding: 2rem; 
+            border: 1px solid var(--light-grey); 
+            width: 80%; 
+            max-width: 900px;
+            clip-path: polygon(0% 2%, 2% 0%, 98% 0%, 100% 2%, 100% 98%, 98% 100%, 2% 100%, 0% 98%);
+        }
         .logon-line { margin-bottom: 0.5rem; white-space: pre-wrap; }
         .logon-line.typing::after { content: '_'; animation: blink 1s step-end infinite; }
         @keyframes blink { 50% { opacity: 0; } }
         
         #logon-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .logon-extra { position: absolute; z-index: 12; opacity: 0.6; transition: opacity 0.5s ease-out; background: rgba(10,10,10,0.5); backdrop-filter: blur(2px); border: 1px solid var(--light-grey); }
+        .logon-extra.hidden { opacity: 0; }
+        #logon-jargon { top: 2rem; left: 2rem; width: 300px; height: 150px; font-size: 0.7rem; overflow: hidden; padding: 0.5rem; }
+        .logon-graph { bottom: 2rem; right: 2rem; width: 250px; height: 120px; padding: 0.5rem;}
 
         /* --- MAIN LAYOUT --- */
         #main-interface.hidden { display: none; }
@@ -71,6 +84,8 @@
             transition: width 0.3s ease; 
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden;
         }
         #main-nav:hover { width: 250px; }
         
@@ -144,10 +159,20 @@
             overflow-y: auto;
             transition: width 0.3s ease, padding 0.3s ease;
             position: relative;
+            overflow-x: hidden;
         }
          #dashboard-sidebar.collapsed { width: 40px; padding: 1rem 0; cursor: pointer; }
-        #sidebar-content { opacity: 1; transition: opacity 0.3s ease; }
-        #dashboard-sidebar.collapsed #sidebar-content { opacity: 0; pointer-events: none; }
+        #sidebar-content { 
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        #dashboard-sidebar.collapsed #sidebar-content { 
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+        }
         #sidebar-toggle {
             position: absolute;
             top: 50%;
@@ -172,7 +197,7 @@
         .hud-element { position: absolute; background-color: rgba(10, 10, 10, 0.8); backdrop-filter: blur(5px); border: 1px solid var(--light-grey); padding: 1rem; border-radius: 0.25rem; opacity: 0; transform: translateY(20px); transition: opacity 0.5s, transform 0.5s; }
         #dashboard-globe { cursor: grab; position: absolute; inset: 0; z-index: 10; }
         #dashboard-globe:active { cursor: grabbing; }
-        #dashboard-map { background-image: url('https://i.imgur.com/FwrFLYh.jpeg'); background-size: cover; background-position: center; display: none; position: absolute; inset: 0; z-index: 10; }
+        #dashboard-map { background-image: url('https://i.imgur.com/3wyfTqX.jpeg'); background-size: cover; background-position: center; display: none; position: absolute; inset: 0; z-index: 10; }
         #kuroshi-logo { position: absolute; bottom: 1rem; left: 1rem; width: 100px; opacity: 0.7; animation: pulse 4s infinite ease-in-out; }
         @keyframes pulse { 0%, 100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.05); } }
         .top-banner { top: 1rem; left: 1rem; right: 1rem; width: auto; overflow: hidden; white-space: nowrap; }
@@ -185,8 +210,8 @@
         .toggle-checkbox:checked + .toggle-switch::after { transform: translateX(20px); }
         .toggle-checkbox:checked + .toggle-switch { background: var(--primary-color); }
         
-        /* --- DB LAYOUT (ARMORY/INTEL/CODEX) --- */
-        #armory-content, #intel-content, #codex-content { padding: 1.5rem; grid-template-columns: 350px 1fr; gap: 1.5rem; }
+        /* --- DB LAYOUT (ARMORY/INTEL/CODEX/PLANS) --- */
+        #armory-content, #intel-content, #codex-content, #plans-content { padding: 1.5rem; grid-template-columns: 350px 1fr; gap: 1.5rem; }
         .db-list-container { background-color: rgba(var(--rgb-primary-color), 0.05); border: 1px solid var(--light-grey); padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; }
         .db-list { flex-grow: 1; overflow-y: auto; }
         .db-content { background-color: rgba(var(--rgb-primary-color), 0.05); border: 1px solid var(--light-grey); padding: 1.5rem; overflow-y: auto; position: relative; }
@@ -203,11 +228,11 @@
         .spec-table th { text-align: left; padding: 0.5rem; border-bottom: 2px solid var(--light-grey); color: var(--accent-color); }
         .spec-table td { padding: 0.5rem; border-bottom: 1px solid var(--light-grey); }
         .spec-table td:first-child { font-weight: bold; }
-        .codex-content h3 { font-family: 'Orbitron', sans-serif; color: var(--primary-color); font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        .codex-content h3, .plan-content h3 { font-family: 'Orbitron', sans-serif; color: var(--primary-color); font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.5rem; }
         .codex-content ul { list-style-type: disc; padding-left: 1.5rem; }
         .strength-overwhelming { color: #ef4444; font-weight: bold; } .strength-superior { color: #f97316; } .strength-equal { color: #eab308; } .strength-weaker { color: #84cc16; } .strength-obsolete { color: #a1a1aa; } .strength-unknown { color: #6b7280; }
-        .search-input { background: var(--medium-grey); border: 1px solid var(--light-grey); padding: 0.5rem; width: 100%; margin-bottom: 1rem; }
-        .search-input:focus { outline: none; border-color: var(--accent-color); }
+        .search-input, .form-input { background: var(--medium-grey); border: 1px solid var(--light-grey); padding: 0.5rem; width: 100%; margin-bottom: 1rem; }
+        .search-input:focus, .form-input:focus { outline: none; border-color: var(--accent-color); }
         
         /* --- SETTINGS --- */
         #settings-content { padding: 1.5rem; }
@@ -217,6 +242,13 @@
 
         /* --- TERMINAL --- */
         #terminal-input { background: transparent; border: none; outline: none; width: 100%; }
+        
+        /* --- WAYPOINT COLOR PICKER --- */
+        input[type="color"] { -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 40px; padding: 0; border: 1px solid var(--light-grey); background-color: transparent; cursor: pointer; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 0; }
+        input[type="color"]::-moz-color-swatch { border: none; border-radius: 0; }
+
     </style>
 </head>
 <body class="theme-helios">
@@ -236,6 +268,10 @@
         <div id="logon-content">
             <canvas id="logon-canvas"></canvas>
             <div id="logon-text-container"></div>
+            <div id="logon-jargon" class="logon-extra hidden"></div>
+            <div class="logon-graph logon-extra hidden">
+                <canvas id="logon-graph-canvas"></canvas>
+            </div>
         </div>
     </div>
 
@@ -249,6 +285,7 @@
                 </div>
                 <div class="flex-grow pt-4">
                     <div class="nav-item active" data-tab="dashboard"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg><span class="nav-text font-orbitron">Dashboard</span></div>
+                    <div class="nav-item" data-tab="plans"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-1.447-.894L15 7m-6 10h6M9 7L15 4"></path></svg><span class="nav-text font-orbitron">Plans</span></div>
                     <div class="nav-item" data-tab="armory"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-9-5.747h18"></path><path d="M9.29 4.29a.75.75 0 01.28-.53L12 1.5l2.43 2.26a.75.75 0 01.28.53v15.42a.75.75 0 01-.28.53L12 22.5l-2.43-2.26a.75.75 0 01-.28-.53V4.29z"></path></svg><span class="nav-text font-orbitron">Armory</span></div>
                     <div class="nav-item" data-tab="intel"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a3 3 0 100-6 3 3 0 000 6z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 100-18 9 9 0 000 18z"></path></svg><span class="nav-text font-orbitron">Intel</span></div>
                     <div class="nav-item" data-tab="codex"><svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-9-5.747h18" /><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg><span class="nav-text font-orbitron">Codex</span></div>
@@ -271,6 +308,7 @@
             <div id="content-area">
                 <!-- Tab Content will be loaded here -->
                 <div id="dashboard-content" class="tab-content active"></div>
+                <div id="plans-content" class="tab-content"></div>
                 <div id="armory-content" class="tab-content"></div>
                 <div id="intel-content" class="tab-content"></div>
                 <div id="codex-content" class="tab-content"></div>
@@ -282,6 +320,7 @@
     <!-- HTML content for each tab -->
     <template id="template-dashboard">
         <div id="dashboard-main">
+            <div id="starfield-bg"></div>
             <div id="dashboard-globe"></div>
             <div id="dashboard-map"></div>
             <svg id="war-plan-overlay" class="absolute inset-0 z-20 pointer-events-none"></svg>
@@ -310,14 +349,24 @@
                     <div class="control-toggle"><label for="waypoints-toggle" class="mr-4">Waypoints</label><input type="checkbox" id="waypoints-toggle" class="toggle-checkbox hidden" checked><label for="waypoints-toggle" class="toggle-switch"></label></div>
                     <div class="control-toggle"><label for="plans-toggle" class="mr-4">Show Plans</label><input type="checkbox" id="plans-toggle" class="toggle-checkbox hidden"><label for="plans-toggle" class="toggle-switch"></label></div>
                     <div class="control-toggle"><label for="rotate-toggle" class="mr-4">Auto-Rotate</label><input type="checkbox" id="rotate-toggle" class="toggle-checkbox hidden" checked><label for="rotate-toggle" class="toggle-switch"></label></div>
-                    <button id="clear-waypoints-btn" class="w-full mt-4 bg-red-800 hover:bg-red-700 text-xs p-1 rounded">Clear All Waypoints</button>
+                    <button id="clear-waypoints-btn" class="w-full mt-4 bg-red-800 hover:bg-red-700 text-xs p-1 rounded">Clear My Waypoints</button>
                 </div>
                 <div id="waypoint-info-widget" class="sidebar-widget hidden">
-                    <h2>WAYPOINT DETAILS</h2>
-                    <div id="waypoint-info-content">Select a waypoint to view details.</div>
+                    <!-- Waypoint info will be dynamically injected here -->
                 </div>
             </div>
         </aside>
+    </template>
+
+    <template id="template-plans">
+        <div class="db-list-container">
+            <h2 class="font-orbitron text-primary text-xl mb-4">OPERATIONAL PLANS</h2>
+            <div id="plan-list" class="db-list"></div>
+            <button id="new-plan-btn" class="w-full mt-4 bg-green-800 hover:bg-green-700 p-2 rounded font-orbitron">NEW PLAN</button>
+        </div>
+        <div class="db-content" id="plan-detail-view">
+            <div class="text-center text-gray-500 h-full flex items-center justify-center">Select or create a plan to view details.</div>
+        </div>
     </template>
 
     <template id="template-armory">
@@ -384,6 +433,12 @@
                         </div>
                     </div>
                 </div>
+                <div id="admin-log-widget" class="widget">
+                     <h2 class="widget-title font-orbitron text-xl mb-4">System Audit Log</h2>
+                     <div id="admin-log-container" class="space-y-2 text-xs overflow-y-auto max-h-96 bg-dark-grey p-2 rounded">
+                         <p class="text-gray-500">Loading log...</p>
+                     </div>
+                </div>
             </div>
         </div>
     </template>
@@ -391,21 +446,24 @@
     <script type="module">
         // Import necessary Firebase functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, addDoc, onSnapshot, query, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, addDoc, onSnapshot, query, deleteDoc, updateDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', function () {
             // --- Application State ---
             const state = {
                 clearanceLevel: 7,
                 correctPassword: "I9j4vEW><2p£5vQGQDtVs",
+                adminUserId: "YOUR_ADMIN_USER_ID_HERE", // <-- IMPORTANT: REPLACE THIS
                 charts: {},
                 waypoints: new Map(),
+                plans: new Map(),
                 textures: {},
                 isGlobeRotating: true,
                 audioCtx: null,
                 soundEnabled: false,
                 logonAnimation: null,
+                logonIntervals: [],
                 loadedTabs: new Set(),
                 activeIntelSubTab: 'profile',
                 three: {
@@ -419,7 +477,9 @@
                     db: null,
                     auth: null,
                     userId: null,
-                    unsubscribeWaypoints: null
+                    unsubscribeWaypoints: null,
+                    unsubscribePlans: null,
+                    unsubscribeAdminLog: null
                 }
             };
             
@@ -441,8 +501,6 @@
 
             // --- Firebase Setup ---
             async function initializeFirebase() {
-                // THIS IS THE ONLY PART YOU NEED TO EDIT
-                // Paste your Firebase configuration object here.
                 const firebaseConfig = {
                     apiKey: "AIzaSyBXeJG9xc2xQCoCzKX6WATwSW2CulOre3E",
                     authDomain: "helios-interface.firebaseapp.com",
@@ -452,11 +510,6 @@
                     appId: "1:1073548914126:web:ec04b501ba577b08584f9f",
                     measurementId: "G-65W3XRX32Y"
                 };
-
-                // --- SECURITY WARNING ---
-                // This method is simple but not secure for a public repository.
-                // Anyone who views your code on GitHub can see your secret keys.
-                // It is strongly recommended to make your GitHub repository PRIVATE.
                 
                 try {
                     if (!firebaseConfig.apiKey) {
@@ -511,6 +564,12 @@
                         oscillator.frequency.setValueAtTime(523.25, state.audioCtx.currentTime);
                         gainNode.gain.setValueAtTime(0.2, state.audioCtx.currentTime);
                         oscillator.frequency.setValueAtTime(1046.50, state.audioCtx.currentTime + 0.1);
+                        gainNode.gain.exponentialRampToValueAtTime(0.00001, state.audioCtx.currentTime + 0.2);
+                        break;
+                    case 'error':
+                        oscillator.type = 'square';
+                        oscillator.frequency.setValueAtTime(110, state.audioCtx.currentTime);
+                        gainNode.gain.setValueAtTime(0.2, state.audioCtx.currentTime);
                         gainNode.gain.exponentialRampToValueAtTime(0.00001, state.audioCtx.currentTime + 0.2);
                         break;
                     case 'final':
@@ -575,23 +634,50 @@
                 await typeLine("INITIATING HELIOS CORE BOOT SEQUENCE...");
                 await sleep(500);
 
+                initLogonExtras();
+                document.querySelectorAll('.logon-extra').forEach(el => el.classList.remove('hidden'));
+
                 const checks = [
-                    "CALIBRATING POWER CORE STABILITY...",
-                    "VERIFYING NEURAL INTERFACE SYNC...",
-                    "ESTABLISHING TACHYON UPLINK...",
-                    "CONNECTING TO STRATEGIC DATABASE...",
-                    "DECOMPRESSING TACTICAL OVERLAYS...",
-                    "LOADING COGNITIVE MODELS...",
-                    "CHECKING SYSTEM INTEGRITY..."
+                    { name: "INITIATING BIOS CHECK...", failChance: 0, retries: 0 },
+                    { name: "LOADING KERNEL MODULES...", failChance: 0, retries: 0 },
+                    { name: "MOUNTING VIRTUAL FILESYSTEM...", failChance: 0.2, retries: 1 },
+                    { name: "CALIBRATING POWER CORE STABILITY...", failChance: 0.3, retries: 2 },
+                    { name: "VERIFYING NEURAL INTERFACE SYNC...", failChance: 0.4, retries: 2 },
+                    { name: "ESTABLISHING TACHYON UPLINK...", failChance: 0.5, retries: 3 },
+                    { name: "CONNECTING TO STRATEGIC DATABASE...", failChance: 0.1, retries: 2 },
+                    { name: "DECOMPRESSING TACTICAL OVERLAYS...", failChance: 0, retries: 0 },
+                    { name: "LOADING COGNITIVE MODELS...", failChance: 0.2, retries: 1 },
+                    { name: "CHECKING SYSTEM INTEGRITY...", failChance: 0, retries: 0 }
                 ];
 
                 for (const check of checks) {
-                    await typeLine(check, 'text-white', 15);
-                    await sleep(100);
-                    const lastLine = textContainer.lastChild;
-                    lastLine.innerHTML += ` <span class="text-success">OK</span>`;
-                    playSound('success');
-                    await sleep(250);
+                    let attempts = 0;
+                    let success = false;
+                    while (attempts <= check.retries && !success) {
+                        // If it's a retry, don't type the main line again
+                        if (attempts === 0) {
+                           await typeLine(check.name, 'text-white', 15);
+                        }
+                        await sleep(150 + Math.random() * 200);
+
+                        if (Math.random() < check.failChance && attempts < check.retries) {
+                            const lastLine = textContainer.lastChild;
+                            lastLine.innerHTML = check.name + ` <span class="text-error">FAILED</span>`;
+                            playSound('error');
+                            await sleep(500);
+                            await typeLine(`   RETRYING... (ATTEMPT ${attempts + 2}/${check.retries + 1})`, 'text-warning', 15);
+                            await sleep(500);
+                            attempts++;
+                            // Remove the "RETRYING" line before the next attempt
+                            textContainer.removeChild(textContainer.lastChild);
+                        } else {
+                            const lastLine = textContainer.lastChild;
+                            lastLine.innerHTML = check.name + ` <span class="text-success">OK</span>`;
+                            playSound('success');
+                            success = true;
+                        }
+                        await sleep(250);
+                    }
                 }
                 
                 await sleep(500);
@@ -604,6 +690,7 @@
 
                 logonScreen.classList.add('hidden');
                 cancelAnimationFrame(state.logonAnimation);
+                state.logonIntervals.forEach(clearInterval);
                 initializeMainUI();
             }
 
@@ -614,41 +701,53 @@
                 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
                 renderer.setSize(window.innerWidth, window.innerHeight);
 
-                const sphereGeometry = new THREE.IcosahedronGeometry(1.5, 4);
-                const sphereMaterial = new THREE.MeshPhongMaterial({
-                    color: 0xffffff,
-                    emissive: 0x333333,
-                    shininess: 50,
-                    specular: 0x111111,
+                const material = new THREE.MeshStandardMaterial({
+                    emissive: 0x0,
+                    roughness: 0.5,
+                    metalness: 0.8,
                     wireframe: true,
-                    opacity: 0.5,
-                    transparent: true
                 });
-                const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-                scene.add(sphere);
 
-                const particlesGeometry = new THREE.BufferGeometry;
-                const particlesCnt = 10000;
+                const group = new THREE.Group();
+                scene.add(group);
+
+                const knot = new THREE.Mesh(new THREE.TorusKnotGeometry(1, 0.3, 128, 16), material);
+                group.add(knot);
+
+                const particlesGeometry = new THREE.BufferGeometry();
+                const particlesCnt = 15000;
                 const posArray = new Float32Array(particlesCnt * 3);
                 for(let i = 0; i < particlesCnt * 3; i++) {
-                    posArray[i] = (Math.random() - 0.5) * 20;
+                    posArray[i] = (Math.random() - 0.5) * 25;
                 }
                 particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-                const particlesMaterial = new THREE.PointsMaterial({ size: 0.008, color: 0xffffff, transparent: true, opacity: 0.5 });
+                const particlesMaterial = new THREE.PointsMaterial({ size: 0.009, transparent: true, opacity: 0.7 });
                 const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
                 scene.add(particlesMesh);
                 
-                const light = new THREE.DirectionalLight(0xffffff, 1);
+                const light = new THREE.DirectionalLight(0xffffff, 1.2);
                 light.position.set(1, 1, 1);
                 scene.add(light);
-                scene.add(new THREE.AmbientLight(0x404040));
+                scene.add(new THREE.AmbientLight(0x404040, 2));
                 camera.position.z = 5;
 
-                const animate = (time) => {
-                    time *= 0.0005; 
-                    sphere.rotation.x = time;
-                    sphere.rotation.y = time;
-                    particlesMesh.rotation.y = -time * 0.2;
+                const clock = new THREE.Clock();
+
+                const animate = () => {
+                    const elapsedTime = clock.getElapsedTime();
+                    
+                    const hue = (elapsedTime * 15) % 360;
+                    const color = new THREE.Color(`hsl(${hue}, 100%, 50%)`);
+                    
+                    knot.material.color.set(color);
+                    knot.material.emissive.set(color);
+                    particlesMesh.material.color.set(color);
+
+                    group.rotation.y = elapsedTime * 0.2;
+                    knot.rotation.x = elapsedTime * 0.1;
+                    knot.rotation.y = elapsedTime * 0.1;
+
+                    particlesMesh.rotation.y = -elapsedTime * 0.05;
                     renderer.render(scene, camera);
                     state.logonAnimation = requestAnimationFrame(animate);
                 };
@@ -659,7 +758,63 @@
                     renderer.setSize(window.innerWidth, window.innerHeight);
                 });
 
-                animate(0);
+                animate();
+            }
+
+            function initLogonExtras() {
+                // Jargon Scroller
+                const jargonContainer = document.getElementById('logon-jargon');
+                const prefixes = ['Quantum', 'Tachyon', 'Subspace', 'Heuristic', 'Cryo', 'Neural', 'Exo'];
+                const nouns = ['Matrix', 'Compiler', 'Datastream', 'Protocol', 'Array', 'Buffer', 'Core'];
+                const statuses = ['INITIATED', 'OK', 'CALIBRATING', 'DECRYPTING', 'SYNCED', 'ERROR', 'NOMINAL'];
+                const jargonInterval = setInterval(() => {
+                    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+                    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+                    const status = statuses[Math.floor(Math.random() * statuses.length)];
+                    const p = document.createElement('p');
+                    p.innerHTML = `${prefix.toUpperCase()}.${noun.toUpperCase()}: <span class="${status === 'OK' || status === 'NOMINAL' ? 'text-success' : 'text-warning'}">${status}</span>`;
+                    jargonContainer.appendChild(p);
+                    jargonContainer.scrollTop = jargonContainer.scrollHeight;
+                    if (jargonContainer.children.length > 20) {
+                        jargonContainer.removeChild(jargonContainer.firstChild);
+                    }
+                }, 300);
+                state.logonIntervals.push(jargonInterval);
+
+                // Live Graph
+                const graphCanvas = document.getElementById('logon-graph-canvas');
+                if (!graphCanvas) return;
+                const graphCtx = graphCanvas.getContext('2d');
+                const data = {
+                    labels: Array(10).fill(''),
+                    datasets: [{
+                        label: 'Core Temp',
+                        data: Array(10).fill(50),
+                        borderColor: 'rgba(var(--rgb-primary-color), 0.8)',
+                        backgroundColor: 'rgba(var(--rgb-primary-color), 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                };
+                const logonChart = new Chart(graphCtx, {
+                    type: 'line',
+                    data: data,
+                    options: {
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { display: false, min: 0, max: 100 },
+                            x: { display: false }
+                        },
+                        elements: { point: { radius: 0 } }
+                    }
+                });
+                const graphInterval = setInterval(() => {
+                    const newData = Math.random() * 50 + 25;
+                    logonChart.data.datasets[0].data.push(newData);
+                    logonChart.data.datasets[0].data.shift();
+                    logonChart.update('quiet');
+                }, 200);
+                state.logonIntervals.push(graphInterval);
             }
             
             // --- UI Initializers ---
@@ -706,6 +861,7 @@
 
                 switch (tabId) {
                     case 'dashboard': initDashboard(); break;
+                    case 'plans': initPlans(); break;
                     case 'armory': initArmory(); break;
                     case 'intel': initIntel(); break;
                     case 'codex': initCodex(); break;
@@ -719,7 +875,8 @@
                 setupGlobe();
                 setupDashboardControls();
                 setupTerminal();
-                listenForWaypoints(); // Start listening for real-time updates
+                listenForWaypoints();
+                listenForPlans(); 
             }
 
             function setupGlobe() {
@@ -727,15 +884,25 @@
                 state.three.scene = new THREE.Scene();
                 state.three.camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
                 state.three.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                state.three.renderer.setClearColor(0x000000, 0);
                 state.three.renderer.setSize(container.clientWidth, container.clientHeight);
                 container.appendChild(state.three.renderer.domElement);
 
                 const textureLoader = new THREE.TextureLoader();
-                state.textures.map = textureLoader.load('https://i.imgur.com/FwrFLYh.jpeg');
-                state.textures.heightMap = textureLoader.load('https://i.imgur.com/w5H23UT.jpeg');
-
-                const sphereGeometry = new THREE.SphereGeometry(2.5, 64, 64);
-                const sphereMaterial = new THREE.MeshPhongMaterial({ map: state.textures.map, bumpMap: state.textures.heightMap, bumpScale: 0.05 });
+                state.textures.map = textureLoader.load('https://i.imgur.com/3wyfTqX.jpeg');
+                state.textures.heightMap = textureLoader.load('https://i.imgur.com/w5H23UT.jpeg', (texture) => {
+                    texture.wrapS = THREE.RepeatWrapping;
+                    texture.offset.x = 0.5; // Default offset for alignment
+                });
+                
+                const sphereGeometry = new THREE.SphereGeometry(2.5, 128, 128); 
+                const sphereMaterial = new THREE.MeshPhongMaterial({ 
+                    map: state.textures.map, 
+                    bumpMap: state.textures.map, 
+                    bumpScale: 0.05,
+                    displacementMap: null,
+                    displacementScale: 0.15,
+                });
                 state.three.globe = new THREE.Mesh(sphereGeometry, sphereMaterial);
                 state.three.scene.add(state.three.globe);
                 state.three.globe.add(state.three.waypointObjects);
@@ -747,9 +914,25 @@
                 
                 state.three.camera.position.z = 5;
 
+                const starGeometry = new THREE.BufferGeometry();
+                const starVertices = [];
+                for (let i = 0; i < 10000; i++) {
+                    const x = (Math.random() - 0.5) * 2000;
+                    const y = (Math.random() - 0.5) * 2000;
+                    const z = (Math.random() - 0.5) * 2000;
+                    if (x*x + y*y + z*z > 100*100) {
+                        starVertices.push(x, y, z);
+                    }
+                }
+                starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+                const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.7 });
+                const stars = new THREE.Points(starGeometry, starMaterial);
+                state.three.scene.add(stars);
+
                 const animate = () => {
                     requestAnimationFrame(animate);
                     if(state.isGlobeRotating) state.three.globe.rotation.y += 0.0005;
+                    stars.rotation.y += 0.0001;
                     state.three.renderer.render(state.three.scene, state.three.camera);
                     if (document.getElementById('plans-toggle')?.checked) {
                         drawWarPlans();
@@ -814,16 +997,28 @@
                     container.style.display = e.target.checked ? 'none' : 'block';
                     mapContainer.style.display = e.target.checked ? 'block' : 'none';
                 });
+                
                 document.getElementById('heightmap-toggle').addEventListener('change', (e) => {
-                    state.three.globe.material.map = e.target.checked ? state.textures.heightMap : state.textures.map;
+                    if (e.target.checked) {
+                        state.three.globe.material.displacementMap = state.textures.heightMap;
+                        state.three.globe.material.bumpMap = state.textures.heightMap;
+                        state.three.globe.material.bumpScale = 0.1;
+                    } else {
+                        state.three.globe.material.displacementMap = null;
+                        state.three.globe.material.bumpMap = state.textures.map;
+                        state.three.globe.material.bumpScale = 0.05;
+                    }
                     state.three.globe.material.needsUpdate = true;
                 });
+
                 document.getElementById('waypoints-toggle').addEventListener('change', (e) => { state.three.waypointObjects.visible = e.target.checked; });
                 document.getElementById('plans-toggle').addEventListener('change', (e) => { document.getElementById('war-plan-overlay').style.display = e.target.checked ? 'block' : 'none'; });
                 document.getElementById('rotate-toggle').addEventListener('change', (e) => { state.isGlobeRotating = e.target.checked; });
                 document.getElementById('clear-waypoints-btn').addEventListener('click', () => {
                     state.waypoints.forEach(wp => {
-                        deleteWaypointFromFirestore(wp.id);
+                        if(wp.owner === state.firebase.userId && !wp.locked) {
+                            deleteWaypointFromFirestore(wp.id);
+                        }
                     });
                 });
             }
@@ -832,10 +1027,21 @@
                 const terminalLog = document.getElementById('terminal-log');
                 const terminalInput = document.getElementById('terminal-input');
                 const commands = {
-                    help: "Available commands: help, scan, status, clear",
+                    help: "Available commands: help, scan, status, clear, wipe_waypoints_all",
                     scan: "Scanning sector... 3 anomalies detected.",
                     status: "All systems nominal. Threat level: MODERATE.",
-                    clear: () => { terminalLog.innerHTML = ''; return ''; }
+                    clear: () => { terminalLog.innerHTML = ''; return ''; },
+                    wipe_waypoints_all: () => {
+                        if (state.firebase.userId === state.adminUserId) {
+                            terminalLog.innerHTML += `<p class="text-warning">Executing admin command: WIPE_WAYPOINTS_ALL. This is irreversible.</p>`;
+                            state.waypoints.forEach(wp => {
+                                deleteWaypointFromFirestore(wp.id);
+                            });
+                            return 'All waypoints have been purged from the database.';
+                        } else {
+                            return '<p class="text-error">Error: Insufficient clearance for this command.</p>';
+                        }
+                    }
                 };
                 terminalInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
@@ -869,8 +1075,10 @@
             function renderWaypoints() {
                 while(state.three.waypointObjects.children.length > 0){ state.three.waypointObjects.remove(state.three.waypointObjects.children[0]); }
                 state.waypoints.forEach(wp => {
-                    const color = wp.owner === state.firebase.userId ? 0xff0000 : 0x00ff00; // Red for own, green for others
-                    const marker = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.15, 8), new THREE.MeshBasicMaterial({ color }));
+                    let color = wp.color || (wp.owner === state.firebase.userId ? 0xff0000 : 0x00ff00);
+                    if (wp.locked) color = 0xFFD700;
+                    
+                    const marker = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.15, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(color) }));
                     marker.position.copy(wp.position);
                     marker.lookAt(new THREE.Vector3(0, 0, 0));
                     marker.rotateX(Math.PI / 2);
@@ -882,10 +1090,60 @@
 
             function showWaypointInfo(waypointData) {
                 const panel = document.getElementById('waypoint-info-widget');
-                const content = document.getElementById('waypoint-info-content');
-                const { id, timestamp, position, owner } = waypointData;
-                content.innerHTML = `<p><strong>ID:</strong> <span class="text-accent">${id.substring(0,8)}...</span></p><p><strong>Timestamp:</strong> ${timestamp}</p><p><strong>Set by:</strong> <span class="text-accent">${owner === state.firebase.userId ? 'SELF' : `OP-${owner.substring(0,8)}...`}</span></p><p><strong>Coordinates:</strong></p><ul class="list-disc pl-5 text-sm"><li>X: ${position.x.toFixed(4)}</li><li>Y: ${position.y.toFixed(4)}</li><li>Z: ${position.z.toFixed(4)}</li></ul>`;
+                const { id, name, timestamp, position, owner, locked, color, planTag } = waypointData;
+                const isOwner = owner === state.firebase.userId;
+                
+                let planOptions = '<option value="">None</option>';
+                state.plans.forEach(plan => {
+                    planOptions += `<option value="${plan.id}" ${plan.id === planTag ? 'selected' : ''}>${plan.name}</option>`;
+                });
+
+                let contentHTML = `
+                    <h2>WAYPOINT DETAILS</h2>
+                    <div id="waypoint-info-content">
+                        <div class="mb-2">
+                            <label for="waypoint-name-input" class="text-xs">Name</label>
+                            <input id="waypoint-name-input" class="form-input text-lg font-orbitron p-1" value="${name}" ${!isOwner ? 'readonly' : ''}>
+                        </div>
+                        <div class="mb-2">
+                            <label for="waypoint-plan-select" class="text-xs">Plan Tag</label>
+                            <select id="waypoint-plan-select" class="form-input p-1" ${!isOwner ? 'disabled' : ''}>${planOptions}</select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="waypoint-color-input" class="text-xs">Color</label>
+                            <input type="color" id="waypoint-color-input" value="${color || '#ff0000'}" ${!isOwner ? 'disabled' : ''}>
+                        </div>
+                        <p class="text-xs mb-2"><strong>ID:</strong> <span class="text-accent">${id.substring(0,8)}...</span></p>
+                        <p class="text-xs mb-2"><strong>Set by:</strong> <span class="text-accent">${isOwner ? 'SELF' : `OP-${owner.substring(0,8)}...`}</span></p>
+                `;
+
+                if (isOwner) {
+                    contentHTML += `
+                        <div class="control-toggle">
+                            <label for="waypoint-lock-toggle" class="mr-4">Lock Waypoint</label>
+                            <input type="checkbox" id="waypoint-lock-toggle" class="toggle-checkbox hidden" ${locked ? 'checked' : ''}>
+                            <label for="waypoint-lock-toggle" class="toggle-switch"></label>
+                        </div>
+                        <button id="delete-waypoint-btn" class="w-full mt-2 bg-red-800 hover:bg-red-700 text-xs p-1 rounded ${locked ? 'opacity-50 cursor-not-allowed' : ''}" ${locked ? 'disabled' : ''}>Delete Waypoint</button>
+                    `;
+                }
+                contentHTML += `</div>`;
+                panel.innerHTML = contentHTML;
                 panel.classList.remove('hidden');
+
+                if(isOwner) {
+                    document.getElementById('waypoint-name-input').addEventListener('change', (e) => updateWaypointInFirestore(id, { name: e.target.value }));
+                    document.getElementById('waypoint-plan-select').addEventListener('change', (e) => updateWaypointInFirestore(id, { planTag: e.target.value }));
+                    document.getElementById('waypoint-color-input').addEventListener('change', (e) => updateWaypointInFirestore(id, { color: e.target.value }));
+                    document.getElementById('waypoint-lock-toggle').addEventListener('change', (e) => updateWaypointInFirestore(id, { locked: e.target.checked }));
+                    const deleteBtn = document.getElementById('delete-waypoint-btn');
+                    if(deleteBtn) {
+                        deleteBtn.addEventListener('click', () => {
+                            deleteWaypointFromFirestore(id);
+                            panel.classList.add('hidden');
+                        });
+                    }
+                }
             }
 
             function toScreenPosition(vec3, camera) {
@@ -904,37 +1162,65 @@
                 if (state.waypoints.size < 2) return;
                 let pathData = "";
                 let i = 0;
-                state.waypoints.forEach(wp => {
+                const waypointsArray = Array.from(state.waypoints.values());
+                waypointsArray.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+                waypointsArray.forEach(wp => {
                     const point = toScreenPosition(wp.position, state.three.camera);
                     pathData += `${i === 0 ? 'M' : 'L'} ${point.x} ${point.y} `;
                     i++;
                 });
+
                 overlay.innerHTML = `<path d="${pathData}" stroke="var(--accent-color)" stroke-width="2" fill="none" stroke-dasharray="5, 5" />`;
             }
             
-            // --- Firestore Waypoint Functions ---
+            // --- Firestore Functions ---
+            async function logAdminAction(action, details = {}) {
+                if (!state.firebase.db) return;
+                try {
+                    await addDoc(collection(state.firebase.db, "audit-log"), {
+                        action: action,
+                        details: details,
+                        operatorId: state.firebase.userId,
+                        timestamp: new Date().toISOString()
+                    });
+                } catch (e) { console.error("Error writing to admin log:", e); }
+            }
+
             async function addWaypointToFirestore(localPosition) {
                 if (!state.firebase.db) return;
                 try {
+                    const waypointName = `Waypoint-${state.waypoints.size + 1}`;
                     const docRef = await addDoc(collection(state.firebase.db, "shared-waypoints"), {
+                        name: waypointName,
                         position: { x: localPosition.x, y: localPosition.y, z: localPosition.z },
-                        timestamp: new Date().toUTCString(),
-                        owner: state.firebase.userId
+                        timestamp: new Date().toISOString(),
+                        owner: state.firebase.userId,
+                        locked: false,
+                        color: '#ff0000',
+                        planTag: ''
                     });
-                    console.log("Waypoint added with ID: ", docRef.id);
-                } catch (e) {
-                    console.error("Error adding waypoint: ", e);
-                }
+                    logAdminAction('Waypoint Created', { id: docRef.id, name: waypointName });
+                } catch (e) { console.error("Error adding waypoint: ", e); }
             }
             
             async function deleteWaypointFromFirestore(docId) {
                 if (!state.firebase.db) return;
                 try {
+                    const waypointName = state.waypoints.get(docId)?.name || 'Unknown';
                     await deleteDoc(doc(state.firebase.db, "shared-waypoints", docId));
-                    console.log("Waypoint deleted: ", docId);
-                } catch (e) {
-                    console.error("Error deleting waypoint: ", e);
-                }
+                    logAdminAction('Waypoint Deleted', { id: docId, name: waypointName });
+                } catch (e) { console.error("Error deleting waypoint: ", e); }
+            }
+
+            async function updateWaypointInFirestore(docId, dataToUpdate) {
+                if (!state.firebase.db) return;
+                try {
+                    const waypointRef = doc(state.firebase.db, "shared-waypoints", docId);
+                    await updateDoc(waypointRef, dataToUpdate);
+                    const waypointName = state.waypoints.get(docId)?.name || 'Unknown';
+                    logAdminAction('Waypoint Updated', { id: docId, name: waypointName, changes: dataToUpdate });
+                } catch (e) { console.error("Error updating waypoint: ", e); }
             }
 
             function listenForWaypoints() {
@@ -946,9 +1232,13 @@
                         const data = doc.data();
                         newWaypoints.set(doc.id, {
                             id: doc.id,
+                            name: data.name || 'Unnamed Waypoint',
                             position: new THREE.Vector3(data.position.x, data.position.y, data.position.z),
                             timestamp: data.timestamp,
-                            owner: data.owner
+                            owner: data.owner,
+                            locked: data.locked || false,
+                            color: data.color || '#ff0000',
+                            planTag: data.planTag || ''
                         });
                     });
                     state.waypoints = newWaypoints;
@@ -956,7 +1246,146 @@
                 });
             }
 
-            // --- Database Tabs (Armory, Intel, Codex) ---
+            async function addPlanToFirestore() {
+                if (!state.firebase.db) return;
+                const detailView = document.getElementById('plan-detail-view');
+                detailView.innerHTML = `
+                    <div class="p-4">
+                        <h3 class="font-orbitron text-xl text-primary mb-4">Create New Plan</h3>
+                        <input id="new-plan-name-input" class="form-input" placeholder="Enter plan name...">
+                        <textarea id="new-plan-desc-input" class="form-input h-32" placeholder="Enter plan description..."></textarea>
+                        <select id="new-plan-priority-select" class="form-input">
+                            <option value="low">Low Priority</option>
+                            <option value="medium">Medium Priority</option>
+                            <option value="high">High Priority</option>
+                            <option value="critical">Critical Priority</option>
+                        </select>
+                        <button id="save-new-plan-btn" class="w-full mt-2 bg-green-800 hover:bg-green-700 p-2 rounded">Save Plan</button>
+                    </div>
+                `;
+                document.getElementById('save-new-plan-btn').addEventListener('click', async () => {
+                    const planName = document.getElementById('new-plan-name-input').value;
+                    const planDesc = document.getElementById('new-plan-desc-input').value;
+                    const planPrio = document.getElementById('new-plan-priority-select').value;
+                    if (planName) {
+                        try {
+                            const docRef = await addDoc(collection(state.firebase.db, "shared-plans"), {
+                                name: planName,
+                                description: planDesc,
+                                priority: planPrio,
+                                owner: state.firebase.userId,
+                                timestamp: new Date().toISOString()
+                            });
+                            logAdminAction('Plan Created', { id: docRef.id, name: planName });
+                            detailView.innerHTML = `<div class="text-center text-gray-500 h-full flex items-center justify-center">Plan created successfully.</div>`;
+                        } catch(e) { console.error("Error adding plan:", e); }
+                    }
+                });
+            }
+
+            function listenForPlans() {
+                if (!state.firebase.db) return;
+                const q = query(collection(state.firebase.db, "shared-plans"));
+                state.firebase.unsubscribePlans = onSnapshot(q, (querySnapshot) => {
+                    const newPlans = new Map();
+                    querySnapshot.forEach((doc) => {
+                        newPlans.set(doc.id, { id: doc.id, ...doc.data() });
+                    });
+                    state.plans = newPlans;
+                    if (document.getElementById('plan-list')) {
+                        renderPlanList();
+                    }
+                });
+            }
+            
+            function listenForAdminLogs() {
+                if (!state.firebase.db) return;
+                const logContainer = document.getElementById('admin-log-container');
+                if (!logContainer) return;
+
+                const q = query(collection(state.firebase.db, "audit-log"), orderBy("timestamp", "desc"), limit(50));
+                state.firebase.unsubscribeAdminLog = onSnapshot(q, (querySnapshot) => {
+                    let logsHTML = '';
+                    if (querySnapshot.empty) {
+                        logsHTML = '<p class="text-gray-500">No log entries found.</p>';
+                    } else {
+                        querySnapshot.forEach((doc) => {
+                            const data = doc.data();
+                            const date = new Date(data.timestamp).toLocaleString();
+                            const operator = `OP-${data.operatorId.substring(0, 6)}...`;
+                            const details = JSON.stringify(data.details);
+                            logsHTML += `<div class="p-2 bg-dark-grey rounded border-l-2 border-primary"><p><span class="text-accent">${date}</span> [${operator}]</p><p class="whitespace-normal break-words">${data.action}: ${details}</p></div>`;
+                        });
+                    }
+                    logContainer.innerHTML = logsHTML;
+                });
+            }
+
+            // --- Database Tabs (Armory, Intel, Codex, Plans) ---
+            function initPlans() {
+                listenForPlans();
+                renderPlanList(); // Initial render
+                document.getElementById('new-plan-btn').addEventListener('click', addPlanToFirestore);
+                document.getElementById('plan-list').addEventListener('click', e => {
+                    if (e.target.matches('.db-list-item')) {
+                        document.querySelectorAll('#plan-list .db-list-item').forEach(el => el.classList.remove('active'));
+                        e.target.classList.add('active');
+                        displayPlanDetails(e.target.dataset.id);
+                    }
+                });
+            }
+
+            function renderPlanList() {
+                const listContainer = document.getElementById('plan-list');
+                if (!listContainer) return;
+                listContainer.innerHTML = '';
+                const sortedPlans = Array.from(state.plans.values()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                sortedPlans.forEach(plan => {
+                    listContainer.innerHTML += `<div class="db-list-item" data-id="${plan.id}">${plan.name}</div>`;
+                });
+            }
+
+            function displayPlanDetails(planId) {
+                const detailView = document.getElementById('plan-detail-view');
+                const plan = state.plans.get(planId);
+                if (!plan) {
+                    detailView.innerHTML = `<div class="text-center text-gray-500">Plan not found.</div>`;
+                    return;
+                }
+
+                const priorityColors = {
+                    low: 'text-success',
+                    medium: 'text-warning',
+                    high: 'text-error',
+                    critical: 'text-error font-bold glow'
+                };
+                const priorityClass = priorityColors[plan.priority] || 'text-gray-400';
+
+                const linkedWaypoints = Array.from(state.waypoints.values()).filter(wp => wp.planTag === planId);
+
+                let waypointsHTML = '<ul>';
+                if(linkedWaypoints.length > 0) {
+                    linkedWaypoints.forEach(wp => {
+                        waypointsHTML += `<li class="p-2 border-b border-light-grey">${wp.name}</li>`;
+                    });
+                } else {
+                    waypointsHTML = '<p class="text-gray-500">No waypoints linked to this plan.</p>';
+                }
+                waypointsHTML += '</ul>';
+
+                detailView.innerHTML = `
+                    <div class="plan-content">
+                        <div class="flex justify-between items-start">
+                            <h2 class="font-orbitron text-2xl text-primary mb-2">${plan.name}</h2>
+                            <span class="px-2 py-1 rounded text-xs ${priorityClass}">${plan.priority.toUpperCase()}</span>
+                        </div>
+                        <p class="mb-4 text-gray-400">${plan.description || 'No description provided.'}</p>
+                        <h3>Linked Waypoints</h3>
+                        ${waypointsHTML}
+                    </div>
+                `;
+            }
+
             function setupSearchableList(inputId, listId, data, displayFunction) {
                 const searchInput = document.getElementById(inputId);
                 const listContainer = document.getElementById(listId);
@@ -1060,6 +1489,10 @@
                     state.soundEnabled = e.target.checked;
                     if (state.soundEnabled && !state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 });
+
+                // Admin Log is now always visible
+                document.getElementById('admin-log-widget').classList.remove('hidden');
+                listenForAdminLogs();
             }
             function applyTheme(theme) {
                 document.body.className = theme;
