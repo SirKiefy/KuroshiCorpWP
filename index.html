@@ -4,217 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kuroshi Corp // HELIOS Strategic Interface</title>
+    
+    <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #B71C1C; --rgb-primary-color: 183, 28, 28;
-            --dark-primary: #8B0000;
-            --accent-color: #FF5722; --rgb-accent-color: 255, 87, 34;
-            --dark-grey: #0A0A0A; --medium-grey: #1A1A1A; --light-grey: #2F2F2F;
-            --text-color: #E0E0E0; --success-color: #4CAF50; --warning-color: #FFC107; --error-color: #D32F2F;
-        }
-        /* --- Theme Overrides --- */
-        body.theme-helios { --primary-color: #B71C1C; --rgb-primary-color: 183, 28, 28; --dark-primary: #8B0000; --accent-color: #FF5722; --rgb-accent-color: 255, 87, 34; }
-        body.theme-cobalt { --primary-color: #1976D2; --rgb-primary-color: 25, 118, 210; --dark-primary: #0D47A1; --accent-color: #29B6F6; --rgb-accent-color: 41, 182, 246; }
-        body.theme-hunter { --primary-color: #2E7D32; --rgb-primary-color: 46, 125, 50; --dark-primary: #1B5E20; --accent-color: #66BB6A; --rgb-accent-color: 102, 187, 106; }
-        body.theme-amber { --primary-color: #FFA000; --rgb-primary-color: 255, 160, 0; --dark-primary: #FF6F00; --accent-color: #FFCA28; --rgb-accent-color: 255, 202, 40; }
-        body.theme-crimson { --primary-color: #DC143C; --rgb-primary-color: 220, 20, 60; --dark-primary: #8B0000; --accent-color: #FF4500; --rgb-accent-color: 255, 69, 0; }
-        body.theme-orion { --primary-color: #4A90E2; --rgb-primary-color: 74, 144, 226; --dark-primary: #2A4D8C; --accent-color: #50E3C2; --rgb-accent-color: 80, 227, 194; }
-        body.theme-void { --primary-color: #9C27B0; --rgb-primary-color: 156, 39, 176; --dark-primary: #6A1B9A; --accent-color: #00BCD4; --rgb-accent-color: 0, 188, 212; }
-        body.theme-solaris { --primary-color: #F57C00; --rgb-primary-color: 245, 124, 0; --dark-primary: #E65100; --accent-color: #FFEB3B; --rgb-accent-color: 255, 235, 59; }
-        body.theme-aegis { --primary-color: #009688; --rgb-primary-color: 0, 150, 136; --dark-primary: #00695C; --accent-color: #FFFFFF; --rgb-accent-color: 255, 255, 255; }
-
-
-        body { background-color: var(--dark-grey); color: var(--text-color); font-family: 'Roboto Mono', monospace; overflow: hidden; }
-        .font-orbitron { font-family: 'Orbitron', sans-serif; }
-        .text-primary { color: var(--primary-color); }
-        .border-primary { border-color: var(--primary-color); }
-        .text-accent { color: var(--accent-color); }
-        .text-success { color: var(--success-color); }
-        .text-warning { color: var(--warning-color); }
-        .text-error { color: var(--error-color); }
-        .glow { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-
-        /* --- SCREENS (Password, Logon) --- */
-        .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--dark-grey); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
-        .screen.hidden { opacity: 0; pointer-events: none; }
-        
-        #password-form { width: 80%; max-width: 400px; text-align: center; }
-        #password-input { background-color: var(--medium-grey); border: 1px solid var(--light-grey); color: var(--text-color); width: 100%; padding: 0.75rem; text-align: center; font-size: 1.25rem; }
-        #password-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 10px var(--primary-color); }
-        #password-submit { background-color: var(--primary-color); color: var(--text-color); padding: 0.75rem 1.5rem; border: none; cursor: pointer; transition: background-color 0.2s; }
-        #password-submit:hover { background-color: var(--dark-primary); }
-        #password-error { height: 1.5rem; }
-
-        #logon-content { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        #logon-text-container { z-index: 10; background: rgba(10,10,10,0.7); backdrop-filter: blur(4px); padding: 2rem; border-radius: 0.5rem; border: 1px solid var(--light-grey); width: 80%; max-width: 900px; }
-        .logon-line { margin-bottom: 0.5rem; white-space: pre-wrap; }
-        .logon-line.typing::after { content: '_'; animation: blink 1s step-end infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
-        
-        #logon-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-
-        /* --- MAIN LAYOUT --- */
-        #main-interface.hidden { display: none; }
-        #main-grid { display: grid; grid-template-columns: 80px 1fr; height: 100vh; }
-        #main-nav { 
-            background-color: rgba(10, 10, 10, 0.7); 
-            backdrop-filter: blur(8px);
-            border-right: 1px solid var(--light-grey);
-            z-index: 50; 
-            transition: width 0.3s ease; 
-            display: flex;
-            flex-direction: column;
-        }
-        #main-nav:hover { width: 250px; }
-        
-        .nav-item { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 1rem; 
-            cursor: pointer; 
-            transition: color 0.2s;
-            position: relative;
-            color: var(--text-color);
-            overflow: hidden;
-        }
-        #main-nav:hover .nav-item { justify-content: flex-start; }
-        
-        .nav-item::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, rgba(var(--rgb-accent-color), 0.2), transparent);
-            transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            z-index: 1;
-        }
-        .nav-item:hover::after { left: 0; }
-        .nav-item:hover { color: var(--accent-color); }
-        .nav-item > * { z-index: 2; }
-
-        .nav-item.active { color: var(--primary-color); background-color: rgba(var(--rgb-primary-color), 0.1); }
-        .nav-item.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 15%;
-            height: 70%;
-            width: 4px;
-            background-color: var(--primary-color);
-            box-shadow: 0 0 12px var(--primary-color);
-            border-radius: 0 4px 4px 0;
-            z-index: 3;
-        }
-
-        .nav-text { 
-            opacity: 0; 
-            visibility: hidden; 
-            transition: opacity 0.2s, visibility 0.2s; 
-            white-space: nowrap; 
-            margin-left: 1rem;
-        }
-        #main-nav:hover .nav-text { opacity: 1; visibility: visible; transition-delay: 0.1s; }
-        #nav-footer { margin-top: auto; border-top: 1px solid var(--light-grey); }
-
-        #content-area { overflow: hidden; position: relative; }
-        #content-area::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(var(--light-grey) 1px, transparent 1px), linear-gradient(to right, var(--light-grey) 1px, transparent 1px); background-size: 50px 50px; opacity: 0.05; pointer-events: none; z-index: 0;}
-        .tab-content { display: none; height: 100%; }
-        .tab-content.active { display: grid; } /* Use grid for active tabs */
-
-        /* --- DASHBOARD & SIDEBAR --- */
-        #dashboard-content { grid-template-columns: 1fr auto; }
-        #dashboard-main { position: relative; grid-column: 1 / 2; }
-        #dashboard-sidebar {
-            grid-column: 2 / 3;
-            width: 350px;
-            background-color: rgba(10, 10, 10, 0.7);
-            backdrop-filter: blur(8px);
-            border-left: 1px solid var(--light-grey);
-            padding: 1rem;
-            overflow-y: auto;
-            transition: width 0.3s ease, padding 0.3s ease;
-            position: relative;
-        }
-         #dashboard-sidebar.collapsed { width: 40px; padding: 1rem 0; cursor: pointer; }
-        #sidebar-content { opacity: 1; transition: opacity 0.3s ease; }
-        #dashboard-sidebar.collapsed #sidebar-content { opacity: 0; pointer-events: none; }
-        #sidebar-toggle {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translate(-50%, -50%);
-            width: 24px;
-            height: 48px;
-            background-color: var(--light-grey);
-            border: 1px solid var(--medium-grey);
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-color);
-            z-index: 100;
-        }
-        #sidebar-toggle:hover { background-color: var(--primary-color); }
-        .sidebar-widget { background-color: rgba(var(--rgb-primary-color), 0.05); border: 1px solid var(--light-grey); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px; }
-        .sidebar-widget h2 { font-family: 'Orbitron', sans-serif; color: var(--primary-color); border-bottom: 1px solid var(--light-grey); padding-bottom: 0.5rem; margin-bottom: 1rem; }
-        
-        .hud-element { position: absolute; background-color: rgba(10, 10, 10, 0.8); backdrop-filter: blur(5px); border: 1px solid var(--light-grey); padding: 1rem; border-radius: 0.25rem; opacity: 0; transform: translateY(20px); transition: opacity 0.5s, transform 0.5s; }
-        #dashboard-globe { cursor: grab; position: absolute; inset: 0; z-index: 10; }
-        #dashboard-globe:active { cursor: grabbing; }
-        #dashboard-map { background-image: url('https://i.imgur.com/FwrFLYh.jpeg'); background-size: cover; background-position: center; display: none; position: absolute; inset: 0; z-index: 10; }
-        #kuroshi-logo { position: absolute; bottom: 1rem; left: 1rem; width: 100px; opacity: 0.7; animation: pulse 4s infinite ease-in-out; }
-        @keyframes pulse { 0%, 100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.05); } }
-        .top-banner { top: 1rem; left: 1rem; right: 1rem; width: auto; overflow: hidden; white-space: nowrap; }
-        .top-banner-text { display: inline-block; animation: ticker-scroll 30s linear infinite; padding-left: 100%; }
-        @keyframes ticker-scroll { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
-        
-        .control-toggle { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-        .toggle-switch { width: 40px; height: 20px; background: var(--medium-grey); border-radius: 10px; position: relative; cursor: pointer; }
-        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: var(--text-color); border-radius: 50%; transition: transform 0.2s; }
-        .toggle-checkbox:checked + .toggle-switch::after { transform: translateX(20px); }
-        .toggle-checkbox:checked + .toggle-switch { background: var(--primary-color); }
-        
-        /* --- DB LAYOUT (ARMORY/INTEL/CODEX) --- */
-        #armory-content, #intel-content, #codex-content { padding: 1.5rem; grid-template-columns: 350px 1fr; gap: 1.5rem; }
-        .db-list-container { background-color: rgba(var(--rgb-primary-color), 0.05); border: 1px solid var(--light-grey); padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; }
-        .db-list { flex-grow: 1; overflow-y: auto; }
-        .db-content { background-color: rgba(var(--rgb-primary-color), 0.05); border: 1px solid var(--light-grey); padding: 1.5rem; overflow-y: auto; position: relative; }
-        .db-list-item { cursor: pointer; padding: 0.75rem; border-left: 4px solid transparent; transition: all 0.2s ease; }
-        .db-list-item:hover { background-color: var(--light-grey); border-left-color: var(--accent-color); }
-        .db-list-item.active { background-color: var(--dark-grey); border-left-color: var(--primary-color); }
-        .db-tabs { border-bottom: 1px solid var(--light-grey); margin-bottom: 1rem; }
-        .db-tab { display: inline-block; padding: 0.5rem 1rem; cursor: pointer; border-bottom: 2px solid transparent; }
-        .db-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
-        .db-tab-pane { display: none; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .db-tab-pane.active { display: block; }
-        .spec-table { width: 100%; border-collapse: collapse; }
-        .spec-table th { text-align: left; padding: 0.5rem; border-bottom: 2px solid var(--light-grey); color: var(--accent-color); }
-        .spec-table td { padding: 0.5rem; border-bottom: 1px solid var(--light-grey); }
-        .spec-table td:first-child { font-weight: bold; }
-        .codex-content h3 { font-family: 'Orbitron', sans-serif; color: var(--primary-color); font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-        .codex-content ul { list-style-type: disc; padding-left: 1.5rem; }
-        .strength-overwhelming { color: #ef4444; font-weight: bold; } .strength-superior { color: #f97316; } .strength-equal { color: #eab308; } .strength-weaker { color: #84cc16; } .strength-obsolete { color: #a1a1aa; } .strength-unknown { color: #6b7280; }
-        .search-input { background: var(--medium-grey); border: 1px solid var(--light-grey); padding: 0.5rem; width: 100%; margin-bottom: 1rem; }
-        .search-input:focus { outline: none; border-color: var(--accent-color); }
-        
-        /* --- SETTINGS --- */
-        #settings-content { padding: 1.5rem; }
-        .widget { background-color: rgba(var(--rgb-primary-color), 0.05); padding: 1.5rem; border: 1px solid var(--light-grey); }
-        .theme-btn { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid var(--light-grey); transition: all 0.2s; }
-        .theme-btn.active { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-color); transform: scale(1.1); }
-
-        /* --- TERMINAL --- */
-        #terminal-input { background: transparent; border: none; outline: none; width: 100%; }
-    </style>
+    
+    <!-- Your Stylesheet -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-helios">
     <!-- Password Screen -->
@@ -266,47 +64,8 @@
                 </div>
             </nav>
             <div id="content-area">
-                <!-- Dashboard Content -->
-                <div id="dashboard-content" class="tab-content active">
-                    <div id="dashboard-main">
-                        <div id="dashboard-globe"></div>
-                        <div id="dashboard-map"></div>
-                        <svg id="war-plan-overlay" class="absolute inset-0 z-20 pointer-events-none"></svg>
-                        <div class="relative z-30 pointer-events-none h-full">
-                            <div class="hud-element top-banner">
-                                <span class="top-banner-text">SYSTEM STATUS: NOMINAL ++ THREATCON: GREEN ++ ALL CHANNELS SECURE ++ OPERATOR ONLINE ++ </span>
-                            </div>
-                            <div class="hud-element absolute top-20 left-4 p-4 text-left pointer-events-auto"><h2 class="font-orbitron text-primary">CLEARANCE</h2><p id="clearance-level-display" class="text-3xl text-success"></p></div>
-                            
-                            <div class="hud-element absolute bottom-4 right-4 w-96 h-48 pointer-events-auto flex flex-col">
-                                <h2 class="widget-title font-orbitron">COMMAND INPUT</h2>
-                                <div id="terminal-log" class="flex-grow overflow-y-auto"></div>
-                                <div class="flex gap-2 pt-2 border-t border-light-grey"><span class="text-primary">&gt;</span><input id="terminal-input" type="text" class="bg-transparent border-none outline-none w-full"></div>
-                            </div>
-
-                            <svg id="kuroshi-logo" viewBox="0 0 100 100"><path d="M 50 5 L 95 27.5 L 95 72.5 L 50 95 L 5 72.5 L 5 27.5 Z" fill="none" stroke="var(--primary-color)" stroke-width="2"/><path d="M 50 15 L 85 32.5 L 85 67.5 L 50 85 L 15 67.5 L 15 32.5 Z" fill="rgba(var(--rgb-primary-color), 0.2)" /><text x="50" y="58" font-size="30" fill="var(--text-color)" text-anchor="middle" class="font-orbitron">KC</text></svg>
-                        </div>
-                    </div>
-                    <aside id="dashboard-sidebar">
-                        <div id="sidebar-toggle">&lt;</div>
-                        <div id="sidebar-content">
-                            <div id="globe-controls-widget" class="sidebar-widget">
-                                <h2>GLOBE CONTROLS</h2>
-                                <div class="control-toggle"><label for="globe-view-toggle" class="mr-4">3D / 2D View</label><input type="checkbox" id="globe-view-toggle" class="toggle-checkbox hidden"><label for="globe-view-toggle" class="toggle-switch"></label></div>
-                                <div class="control-toggle"><label for="heightmap-toggle" class="mr-4">Height Map</label><input type="checkbox" id="heightmap-toggle" class="toggle-checkbox hidden"><label for="heightmap-toggle" class="toggle-switch"></label></div>
-                                <div class="control-toggle"><label for="waypoints-toggle" class="mr-4">Waypoints</label><input type="checkbox" id="waypoints-toggle" class="toggle-checkbox hidden" checked><label for="waypoints-toggle" class="toggle-switch"></label></div>
-                                <div class="control-toggle"><label for="plans-toggle" class="mr-4">Show Plans</label><input type="checkbox" id="plans-toggle" class="toggle-checkbox hidden"><label for="plans-toggle" class="toggle-switch"></label></div>
-                                <div class="control-toggle"><label for="rotate-toggle" class="mr-4">Auto-Rotate</label><input type="checkbox" id="rotate-toggle" class="toggle-checkbox hidden" checked><label for="rotate-toggle" class="toggle-switch"></label></div>
-                                <button id="clear-waypoints-btn" class="w-full mt-4 bg-red-800 hover:bg-red-700 text-xs p-1 rounded">Clear Waypoints</button>
-                            </div>
-                            <div id="waypoint-info-widget" class="sidebar-widget hidden">
-                                <h2>WAYPOINT DETAILS</h2>
-                                <div id="waypoint-info-content">Select a waypoint to view details.</div>
-                            </div>
-                        </div>
-                    </aside>
-                </div>
-                <!-- Other Tab Content Placeholders -->
+                <!-- Tab Content will be loaded here -->
+                <div id="dashboard-content" class="tab-content active"></div>
                 <div id="armory-content" class="tab-content"></div>
                 <div id="intel-content" class="tab-content"></div>
                 <div id="codex-content" class="tab-content"></div>
@@ -315,821 +74,116 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // --- CORE STATE ---
-            const mainInterface = document.getElementById('main-interface');
-            let clearanceLevel = 7;
-            let dashboardGlobe, dashboardRenderer, dashboardCamera, dashboardScene;
-            const sleep = ms => new Promise(res => setTimeout(res, ms));
-            const CORRECT_PASSWORD = "I9j4vEW><2p£5vQGQDtVs";
-            let charts = {};
-            let waypoints = []; 
-            let waypointObjects = new THREE.Group();
-            let textures = {};
-            let isGlobeRotating = true;
-            let audioCtx;
-            let soundEnabled = false;
-            let logonAnimation;
-            const loadedTabs = new Set(['dashboard']); // Keep track of which tabs have been loaded
-
-            // --- DATA ---
-            const intelData = {
-                'fssa': { name: 'FSSA (Federated Sovereign State of Armkava)', threat: 'Hostile', location: 'Unknown', hostility: 'Active', ground_strength: 'Equal', air_strength: 'Weaker', naval_strength: 'Equal', report: 'A hostile state actor.', hierarchy: { Leader: 'Day (valcry97)', Members: ['jake from statefarm (thisscreenisnuts)'] }, assets: ['Standard military hardware.'] },
-                'bss': { name: 'BSS (Black Sea Syndicate)', threat: 'Neutral', location: 'Black Sea', hostility: 'Opportunistic', ground_strength: 'Weaker', air_strength: 'Obsolete', naval_strength: 'Superior', report: 'A neutral syndicate operating in the Black Sea region.', hierarchy: { Leader: 'Quasitedjr.TTV', Members: ['Bizmark7 (Admin)', 'dloglo1980', 'Snowwolf (snowwolf1512)'] }, assets: ['Naval assets, smuggling routes.'] },
-                'nim': { name: 'NIM (Nordman Industries & Manufacturing)', threat: 'Neutral', location: 'Northern Territories', hostility: 'Aggressive', ground_strength: 'Superior', air_strength: 'Equal', naval_strength: 'Weaker', report: 'A neutral but aggressive industrial corporation. Hostility is advised in interactions.', hierarchy: { Leader: 'Fred (fredaibot, Admin/Overseer)', Members: ['KesseL (kessel5657)', 'Kokonoe (kokonoe2280)', 'NorthWind (north.wind772)'] }, assets: ['Advanced manufacturing facilities, prototype weaponry.'] },
-                'tt': { name: 'T-T (Terra Titans)', threat: 'Avoid', location: 'Global', hostility: 'Dominant', ground_strength: 'Overwhelming', air_strength: 'Overwhelming', naval_strength: 'Overwhelming', report: 'A powerful faction that should be avoided. Holds significant influence.', hierarchy: { Leader: 'DarkXeRoX (darkxerox, Server Owner)', Members: ['K4rma (k4rmaletracteur)', 'Rudi/Noah (ruaidhri.noah, Admin)', 'Delfred353', 'PossibleHacker', 'Gifted Lion', 'Aragath', 'Tellyhead'] }, assets: ['High-tier military assets, server administrative control.'] },
-                'bbc': { name: 'BBC (Bean Bois Corporation)', threat: 'Unknown', location: 'Unknown', hostility: 'Unknown', ground_strength: 'Unknown', air_strength: 'Unknown', naval_strength: 'Unknown', report: 'An organization with unknown motives and capabilities.', hierarchy: { Leader: 'syreX (bessechurger)' }, assets: ['Unknown.'] },
-                'coum': { name: 'C0UM (Confederation Of Uniform Members)', threat: 'Unknown', location: 'Unknown', hostility: 'Unknown', ground_strength: 'Unknown', air_strength: 'Unknown', naval_strength: 'Unknown', report: 'A confederation with unknown motives.', hierarchy: { Leader: 'Agent Brick (thunderbord)' }, assets: ['Unknown.'] },
-                'ocf': { name: 'OCF (Oceania Coalition Force)', threat: 'Neutral', location: 'Oceania', hostility: 'Passive', ground_strength: 'Equal', air_strength: 'Equal', naval_strength: 'Superior', report: 'A non-hostile coalition with claims of passive behavior.', hierarchy: { Leader: 'TheJetNinja' }, assets: ['Regional defensive forces.'] }
-            };
-            const armoryData = { 'analysis': { name: 'System Analysis', type: 'Data' }, 'naval': { name: 'Naval Assets', type: 'Category', subcategories: { 'ships': 'Ships', 'structures': 'Structures' } }, 'air': { name: 'Aircraft', type: 'Category', subcategories: { 'fighters': 'Fighters', 'bombers': 'Bombers' } }, 'ground': { name: 'Ground Vehicles', type: 'Category' } };
-            const codexData = { 'general': { name: 'General Server Rules' }, 'warfare': { name: 'Rules of Engagement' }, 'factions': { name: 'Faction Regulations' }, 'structures': { name: 'Structure Regulations' }, 'ships': { name: 'Ship Classifications' }, 'aircraft': { name: 'Aircraft Classifications' }, 'vehicles': { name: 'Ground Vehicle Classifications' }, 'resources': { name: 'Resource Acquisition' } };
-
-            // --- AUDIO ---
-            function playSound(type) {
-                if (!soundEnabled || !audioCtx) return;
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                gainNode.connect(audioCtx.destination);
-                oscillator.connect(gainNode);
-
-                switch (type) {
-                    case 'type':
-                        oscillator.type = 'sine';
-                        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-                        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.1);
-                        break;
-                    case 'success':
-                        oscillator.type = 'sine';
-                        oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-                        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                        oscillator.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.1);
-                        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.2);
-                        break;
-                    case 'final':
-                        oscillator.type = 'sawtooth';
-                        oscillator.frequency.setValueAtTime(220, audioCtx.currentTime);
-                        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.0);
-                        break;
-                }
-                oscillator.start(audioCtx.currentTime);
-                oscillator.stop(audioCtx.currentTime + 1.0);
-            }
-
-            // --- PASSWORD SEQUENCE ---
-            const passwordForm = document.getElementById('password-form');
-            const passwordInput = document.getElementById('password-input');
-            const passwordError = document.getElementById('password-error');
-            
-            passwordForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (passwordInput.value === CORRECT_PASSWORD) {
-                    document.getElementById('password-screen').classList.add('hidden');
-                    runLogonSequence();
-                } else {
-                    passwordError.textContent = "ACCESS DENIED";
-                    passwordInput.value = "";
-                    setTimeout(() => passwordError.textContent = "\u00A0", 2000);
-                }
-            });
-
-            // --- LOGON SEQUENCE ---
-            async function runLogonSequence() {
-                const logonScreen = document.getElementById('logon-screen');
-                logonScreen.classList.remove('hidden');
-                const textContainer = document.getElementById('logon-text-container');
+    <!-- HTML content for each tab -->
+    <template id="template-dashboard">
+        <div id="dashboard-main">
+            <div id="dashboard-globe"></div>
+            <div id="dashboard-map"></div>
+            <svg id="war-plan-overlay" class="absolute inset-0 z-20 pointer-events-none"></svg>
+            <div class="relative z-30 pointer-events-none h-full">
+                <div class="hud-element top-banner">
+                    <span class="top-banner-text">SYSTEM STATUS: NOMINAL ++ THREATCON: GREEN ++ ALL CHANNELS SECURE ++ OPERATOR ONLINE ++ </span>
+                </div>
+                <div class="hud-element absolute top-20 left-4 p-4 text-left pointer-events-auto"><h2 class="font-orbitron text-primary">CLEARANCE</h2><p id="clearance-level-display" class="text-3xl text-success"></p></div>
                 
-                initLogonAnimation();
+                <div class="hud-element absolute bottom-4 right-4 w-96 h-48 pointer-events-auto flex flex-col">
+                    <h2 class="widget-title font-orbitron">COMMAND INPUT</h2>
+                    <div id="terminal-log" class="flex-grow overflow-y-auto"></div>
+                    <div class="flex gap-2 pt-2 border-t border-light-grey"><span class="text-primary">&gt;</span><input id="terminal-input" type="text" class="bg-transparent border-none outline-none w-full"></div>
+                </div>
 
-                const typeLine = async (text, color = 'text-white', speed = 25) => {
-                    const p = document.createElement('p');
-                    p.className = `logon-line ${color}`;
-                    textContainer.appendChild(p);
-                    p.innerHTML = '_';
-                    await typeWriter(p, text, speed);
-                };
+                <svg id="kuroshi-logo" viewBox="0 0 100 100"><path d="M 50 5 L 95 27.5 L 95 72.5 L 50 95 L 5 72.5 L 5 27.5 Z" fill="none" stroke="var(--primary-color)" stroke-width="2"/><path d="M 50 15 L 85 32.5 L 85 67.5 L 50 85 L 15 67.5 L 15 32.5 Z" fill="rgba(var(--rgb-primary-color), 0.2)" /><text x="50" y="58" font-size="30" fill="var(--text-color)" text-anchor="middle" class="font-orbitron">KC</text></svg>
+            </div>
+        </div>
+        <aside id="dashboard-sidebar">
+            <div id="sidebar-toggle">&lt;</div>
+            <div id="sidebar-content">
+                <div id="globe-controls-widget" class="sidebar-widget">
+                    <h2>GLOBE CONTROLS</h2>
+                    <div class="control-toggle"><label for="globe-view-toggle" class="mr-4">3D / 2D View</label><input type="checkbox" id="globe-view-toggle" class="toggle-checkbox hidden"><label for="globe-view-toggle" class="toggle-switch"></label></div>
+                    <div class="control-toggle"><label for="heightmap-toggle" class="mr-4">Height Map</label><input type="checkbox" id="heightmap-toggle" class="toggle-checkbox hidden"><label for="heightmap-toggle" class="toggle-switch"></label></div>
+                    <div class="control-toggle"><label for="waypoints-toggle" class="mr-4">Waypoints</label><input type="checkbox" id="waypoints-toggle" class="toggle-checkbox hidden" checked><label for="waypoints-toggle" class="toggle-switch"></label></div>
+                    <div class="control-toggle"><label for="plans-toggle" class="mr-4">Show Plans</label><input type="checkbox" id="plans-toggle" class="toggle-checkbox hidden"><label for="plans-toggle" class="toggle-switch"></label></div>
+                    <div class="control-toggle"><label for="rotate-toggle" class="mr-4">Auto-Rotate</label><input type="checkbox" id="rotate-toggle" class="toggle-checkbox hidden" checked><label for="rotate-toggle" class="toggle-switch"></label></div>
+                    <button id="clear-waypoints-btn" class="w-full mt-4 bg-red-800 hover:bg-red-700 text-xs p-1 rounded">Clear Waypoints</button>
+                </div>
+                <div id="waypoint-info-widget" class="sidebar-widget hidden">
+                    <h2>WAYPOINT DETAILS</h2>
+                    <div id="waypoint-info-content">Select a waypoint to view details.</div>
+                </div>
+            </div>
+        </aside>
+    </template>
 
-                const typeWriter = (element, text, speed) => {
-                    return new Promise(resolve => {
-                        let i = 0;
-                        const glitchChars = '█▓▒░';
-                        element.classList.add('typing');
-                        const typeInterval = setInterval(() => {
-                            if (i < text.length) {
-                                let currentText = text.substring(0, i + 1);
-                                if (Math.random() < 0.2) {
-                                    currentText = text.substring(0, i) + glitchChars.charAt(Math.floor(Math.random() * glitchChars.length));
-                                }
-                                element.innerHTML = currentText + '_';
-                                if (i % 3 === 0) playSound('type');
-                                i++;
-                            } else {
-                                clearInterval(typeInterval);
-                                element.classList.remove('typing');
-                                element.innerHTML = text;
-                                resolve();
-                            }
-                        }, speed);
-                    });
-                };
-                
-                await typeLine("AUTHENTICATION SUCCESSFUL. DECRYPTING QUANTUM-LOCKED CREDENTIALS...", "text-accent");
-                await sleep(200);
-                await typeLine("INITIATING HELIOS CORE BOOT SEQUENCE...");
-                await sleep(500);
+    <template id="template-armory">
+        <div class="db-list-container">
+            <h2 class="font-orbitron text-primary text-xl mb-4">ASSET DATABASE</h2>
+            <input type="text" id="armory-search" class="search-input" placeholder="Search assets...">
+            <div id="asset-list" class="db-list"></div>
+        </div>
+        <div class="db-content" id="asset-detail-view">
+            <div class="text-center text-gray-500 h-full flex items-center justify-center">Select an asset to view details.</div>
+        </div>
+    </template>
 
-                const checks = [
-                    "CALIBRATING POWER CORE STABILITY...",
-                    "VERIFYING NEURAL INTERFACE SYNC...",
-                    "ESTABLISHING TACHYON UPLINK...",
-                    "DECOMPRESSING TACTICAL OVERLAYS...",
-                    "LOADING COGNITIVE MODELS...",
-                    "CHECKING SYSTEM INTEGRITY..."
-                ];
+    <template id="template-intel">
+        <div class="db-list-container">
+            <h2 class="font-orbitron text-primary text-xl mb-4">FACTION DATABASE</h2>
+            <input type="text" id="intel-search" class="search-input" placeholder="Search factions...">
+            <div id="faction-list" class="db-list"></div>
+        </div>
+        <div class="db-content" id="faction-detail-view">
+            <div class="text-center text-gray-500 h-full flex items-center justify-center">Select a faction to view intel.</div>
+        </div>
+    </template>
 
-                for (const check of checks) {
-                    await typeLine(check, 'text-white', 15);
-                    await sleep(100);
-                    const lastLine = textContainer.lastChild;
-                    lastLine.innerHTML += ` <span class="text-success">OK</span>`;
-                    playSound('success');
-                    await sleep(250);
-                }
-                
-                await sleep(500);
-                await typeLine("ALL SYSTEMS NOMINAL. ENGAGING STRATEGIC INTERFACE.", "text-success");
-                await sleep(300);
-                await typeLine("ACCESS GRANTED. WELCOME, OPERATOR.", "text-primary glow text-2xl font-orbitron");
-                playSound('final');
-                
-                await sleep(2000);
+    <template id="template-codex">
+        <div class="db-list-container">
+            <h2 class="font-orbitron text-primary text-xl mb-4">CODEX</h2>
+            <input type="text" id="codex-search" class="search-input" placeholder="Search documents...">
+            <div id="codex-list" class="db-list"></div>
+        </div>
+        <div class="db-content" id="codex-detail-view">
+            <div class="text-center text-gray-500 h-full flex items-center justify-center">Select a document to view.</div>
+        </div>
+    </template>
 
-                logonScreen.classList.add('hidden');
-                cancelAnimationFrame(logonAnimation); // Stop the logon animation
-                initializeMainUI();
-            }
-
-            function initLogonAnimation() {
-                const canvas = document.getElementById('logon-canvas');
-                const scene = new THREE.Scene();
-                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-                renderer.setSize(window.innerWidth, window.innerHeight);
-
-                // Central spinning sphere
-                const sphereGeometry = new THREE.IcosahedronGeometry(1.5, 4);
-                const sphereMaterial = new THREE.MeshPhongMaterial({
-                    color: 0xffffff,
-                    emissive: 0x333333,
-                    shininess: 50,
-                    specular: 0x111111,
-                    wireframe: true,
-                    opacity: 0.5,
-                    transparent: true
-                });
-                const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-                scene.add(sphere);
-
-                // Particle system
-                const particlesGeometry = new THREE.BufferGeometry;
-                const particlesCnt = 10000;
-                const posArray = new Float32Array(particlesCnt * 3);
-                for(let i = 0; i < particlesCnt * 3; i++) {
-                    posArray[i] = (Math.random() - 0.5) * 20;
-                }
-                particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-                const particlesMaterial = new THREE.PointsMaterial({ size: 0.008, color: 0xffffff, transparent: true, opacity: 0.5 });
-                const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
-                scene.add(particlesMesh);
-                
-                const light = new THREE.DirectionalLight(0xffffff, 1);
-                light.position.set(1, 1, 1);
-                scene.add(light);
-                scene.add(new THREE.AmbientLight(0x404040));
-
-                camera.position.z = 5;
-
-                const animate = (time) => {
-                    time *= 0.0005; // convert time to seconds
-                    sphere.rotation.x = time;
-                    sphere.rotation.y = time;
-                    particlesMesh.rotation.y = -time * 0.2;
-                    renderer.render(scene, camera);
-                    logonAnimation = requestAnimationFrame(animate);
-                };
-                
-                window.addEventListener('resize', () => {
-                    camera.aspect = window.innerWidth / window.innerHeight;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                });
-
-                animate(0);
-            }
-
-            // --- INITIALIZATION ---
-            function initializeMainUI() {
-                mainInterface.classList.remove('hidden');
-                initDashboard();
-                
-                document.getElementById('logout-btn').addEventListener('click', () => {
-                    location.reload();
-                });
-            }
-
-            // --- NAVIGATION & TAB LOADING ---
-            document.getElementById('main-nav').addEventListener('click', (e) => {
-                const navItem = e.target.closest('.nav-item');
-                if (!navItem || !navItem.dataset.tab) return;
-                
-                const tabId = navItem.dataset.tab;
-                
-                // Update active state on nav items
-                document.querySelectorAll('#main-nav .nav-item').forEach(b => {
-                    if(b.dataset.tab) b.classList.remove('active');
-                });
-                navItem.classList.add('active');
-
-                // Lazy load tab content
-                if (!loadedTabs.has(tabId)) {
-                    buildTabContent(tabId);
-                    loadedTabs.add(tabId);
-                }
-
-                // Show the correct tab content
-                document.querySelectorAll('#content-area > .tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                document.getElementById(`${tabId}-content`).classList.add('active');
-            });
-
-            function buildTabContent(tabId) {
-                const container = document.getElementById(`${tabId}-content`);
-                if (!container) return;
-
-                switch (tabId) {
-                    case 'armory':
-                        container.innerHTML = getArmoryHTML();
-                        initArmory();
-                        break;
-                    case 'intel':
-                        container.innerHTML = getIntelHTML();
-                        initIntel();
-                        break;
-                    case 'codex':
-                        container.innerHTML = getCodexHTML();
-                        initCodex();
-                        break;
-                    case 'settings':
-                        container.innerHTML = getSettingsHTML();
-                        initSettings();
-                        break;
-                }
-            }
-
-            // --- DASHBOARD ---
-            function initDashboard() {
-                document.getElementById('clearance-level-display').textContent = `LEVEL ${clearanceLevel}`;
-                
-                const container = document.getElementById('dashboard-globe');
-                const mapContainer = document.getElementById('dashboard-map');
-                const sidebar = document.getElementById('dashboard-sidebar');
-                const sidebarToggle = document.getElementById('sidebar-toggle');
-
-                dashboardScene = new THREE.Scene();
-                dashboardCamera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-                dashboardRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-                dashboardRenderer.setSize(container.clientWidth, container.clientHeight);
-                container.appendChild(dashboardRenderer.domElement);
-
-                const textureLoader = new THREE.TextureLoader();
-                textures.map = textureLoader.load('https://i.imgur.com/FwrFLYh.jpeg');
-                textures.heightMap = textureLoader.load('https://i.imgur.com/w5H23UT.jpeg');
-
-                const sphereGeometry = new THREE.SphereGeometry(2.5, 64, 64);
-                const sphereMaterial = new THREE.MeshPhongMaterial({ map: textures.map, bumpMap: textures.heightMap, bumpScale: 0.05 });
-                dashboardGlobe = new THREE.Mesh(sphereGeometry, sphereMaterial);
-                dashboardScene.add(dashboardGlobe);
-                dashboardGlobe.add(waypointObjects);
-                
-                dashboardScene.add(new THREE.AmbientLight(0xcccccc, 1.5));
-                const light = new THREE.DirectionalLight(0xffffff, 1);
-                light.position.set(5, 3, 5);
-                dashboardScene.add(light);
-                
-                dashboardCamera.position.z = 5;
-
-                let isDragging = false, previousMousePosition = { x: 0, y: 0 };
-                container.addEventListener('mousedown', e => { 
-                    if (e.button === 0) {
-                        isDragging = true; 
-                        isGlobeRotating = false; 
-                        previousMousePosition = { x: e.clientX, y: e.clientY }; 
-                    }
-                });
-                container.addEventListener('mouseup', () => { 
-                    isDragging = false; 
-                    if(document.getElementById('rotate-toggle').checked) {
-                        setTimeout(() => { isGlobeRotating = true; }, 2000); 
-                    }
-                });
-                container.addEventListener('mousemove', e => {
-                    if (!isDragging) return;
-                    const deltaMove = { x: e.clientX - previousMousePosition.x, y: e.clientY - previousMousePosition.y };
-                    dashboardGlobe.rotation.y += deltaMove.x * 0.005;
-                    dashboardGlobe.rotation.x += deltaMove.y * 0.005;
-                    previousMousePosition = { x: e.clientX, y: e.clientY };
-                });
-                
-                const raycaster = new THREE.Raycaster();
-                container.addEventListener('click', (event) => {
-                    const rect = dashboardRenderer.domElement.getBoundingClientRect();
-                    const mouse = new THREE.Vector2(
-                        ((event.clientX - rect.left) / rect.width) * 2 - 1,
-                        -((event.clientY - rect.top) / rect.height) * 2 + 1
-                    );
-                    raycaster.setFromCamera(mouse, dashboardCamera);
-                    const intersects = raycaster.intersectObjects(waypointObjects.children);
-                    if (intersects.length > 0) {
-                        const clickedWaypoint = intersects[0].object;
-                        showWaypointInfo(clickedWaypoint.waypointData);
-                    }
-                });
-
-                container.addEventListener('contextmenu', (event) => {
-                    event.preventDefault();
-                    const rect = dashboardRenderer.domElement.getBoundingClientRect();
-                    const mouse = new THREE.Vector2(
-                        ((event.clientX - rect.left) / rect.width) * 2 - 1,
-                        -((event.clientY - rect.top) / rect.height) * 2 + 1
-                    );
-                    raycaster.setFromCamera(mouse, dashboardCamera);
-                    const intersects = raycaster.intersectObject(dashboardGlobe);
-                    if (intersects.length > 0) {
-                        const worldPoint = intersects[0].point;
-                        const localPoint = dashboardGlobe.worldToLocal(worldPoint.clone());
-                        
-                        const newWaypoint = {
-                            id: `WP-${Date.now()}`,
-                            position: localPoint,
-                            timestamp: new Date().toUTCString(),
-                        };
-                        waypoints.push(newWaypoint);
-                        renderWaypoints();
-                    }
-                });
-
-                sidebarToggle.addEventListener('click', () => {
-                    sidebar.classList.toggle('collapsed');
-                    sidebarToggle.innerHTML = sidebar.classList.contains('collapsed') ? '&gt;' : '&lt;';
-                    setTimeout(onWindowResize, 300);
-                });
-
-                document.getElementById('globe-view-toggle').addEventListener('change', (e) => {
-                    if (e.target.checked) {
-                        container.style.display = 'none';
-                        mapContainer.style.display = 'block';
-                    } else {
-                        container.style.display = 'block';
-                        mapContainer.style.display = 'none';
-                    }
-                });
-
-                document.getElementById('heightmap-toggle').addEventListener('change', (e) => {
-                    dashboardGlobe.material.map = e.target.checked ? textures.heightMap : textures.map;
-                    dashboardGlobe.material.needsUpdate = true;
-                });
-
-                document.getElementById('waypoints-toggle').addEventListener('change', (e) => {
-                    waypointObjects.visible = e.target.checked;
-                });
-                
-                document.getElementById('plans-toggle').addEventListener('change', (e) => {
-                    document.getElementById('war-plan-overlay').style.display = e.target.checked ? 'block' : 'none';
-                });
-                
-                document.getElementById('rotate-toggle').addEventListener('change', (e) => {
-                    isGlobeRotating = e.target.checked;
-                });
-
-                document.getElementById('clear-waypoints-btn').addEventListener('click', () => {
-                    waypoints = [];
-                    renderWaypoints();
-                    document.getElementById('waypoint-info-widget').classList.add('hidden');
-                });
-                
-                const animate = () => {
-                    requestAnimationFrame(animate);
-                    if(isGlobeRotating) dashboardGlobe.rotation.y += 0.0005;
-                    dashboardRenderer.render(dashboardScene, dashboardCamera);
-                    if (document.getElementById('plans-toggle').checked) {
-                        drawWarPlans();
-                    }
-                };
-                
-                function onWindowResize() {
-                    const mainArea = document.getElementById('dashboard-main');
-                    if (!mainArea) return;
-                    const newWidth = mainArea.clientWidth;
-                    const newHeight = mainArea.clientHeight;
-                    dashboardCamera.aspect = newWidth / newHeight;
-                    dashboardCamera.updateProjectionMatrix();
-                    dashboardRenderer.setSize(newWidth, newHeight);
-                }
-
-                window.addEventListener('resize', onWindowResize);
-                onWindowResize();
-                animate();
-
-                // Terminal
-                const terminalLog = document.getElementById('terminal-log');
-                const terminalInput = document.getElementById('terminal-input');
-                const commands = {
-                    help: "Available commands: help, scan, status, clear",
-                    scan: "Scanning sector... 3 anomalies detected.",
-                    status: "All systems nominal. Threat level: MODERATE.",
-                    clear: () => { terminalLog.innerHTML = ''; return ''; }
-                };
-                terminalInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        const command = terminalInput.value.trim().toLowerCase();
-                        if (command) {
-                            const logEntry = document.createElement('p');
-                            logEntry.textContent = `> ${command}`;
-                            terminalLog.appendChild(logEntry);
-                            
-                            const response = commands[command];
-                            if (response) {
-                                const responseEntry = document.createElement('p');
-                                if (typeof response === 'function') {
-                                    responseEntry.textContent = response();
-                                } else {
-                                    responseEntry.textContent = response;
-                                }
-                                if(responseEntry.textContent) terminalLog.appendChild(responseEntry);
-                            } else {
-                                const errorEntry = document.createElement('p');
-                                errorEntry.className = 'text-error';
-                                errorEntry.textContent = `Error: Command not found: ${command}`;
-                                terminalLog.appendChild(errorEntry);
-                            }
-                            terminalLog.scrollTop = terminalLog.scrollHeight;
-                        }
-                        terminalInput.value = '';
-                    }
-                });
-            }
-
-            function renderWaypoints() {
-                while(waypointObjects.children.length > 0){ 
-                    waypointObjects.remove(waypointObjects.children[0]); 
-                }
-                
-                waypoints.forEach(wp => {
-                    const markerGeometry = new THREE.ConeGeometry(0.05, 0.15, 8);
-                    const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-                    const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-                    
-                    marker.position.copy(wp.position);
-                    marker.lookAt(new THREE.Vector3(0, 0, 0));
-                    marker.rotateX(Math.PI / 2);
-                    
-                    marker.waypointData = wp; 
-                    
-                    waypointObjects.add(marker);
-                });
-                drawWarPlans();
-            }
-
-            function showWaypointInfo(waypointData) {
-                const panel = document.getElementById('waypoint-info-widget');
-                const content = document.getElementById('waypoint-info-content');
-
-                const { id, timestamp, position } = waypointData;
-                content.innerHTML = `
-                    <p><strong>ID:</strong> <span class="text-accent">${id}</span></p>
-                    <p><strong>Timestamp:</strong> ${timestamp}</p>
-                    <p><strong>Coordinates (Local):</strong></p>
-                    <ul class="list-disc pl-5 text-sm">
-                        <li>X: ${position.x.toFixed(4)}</li>
-                        <li>Y: ${position.y.toFixed(4)}</li>
-                        <li>Z: ${position.z.toFixed(4)}</li>
-                    </ul>
-                `;
-                panel.classList.remove('hidden');
-            }
-
-            function toScreenPosition(vec3, camera) {
-                const vector = new THREE.Vector3();
-                const mainArea = document.getElementById('dashboard-main');
-                dashboardGlobe.localToWorld(vector.copy(vec3));
-                const widthHalf = mainArea.clientWidth / 2;
-                const heightHalf = mainArea.clientHeight / 2;
-                vector.project(camera);
-                return {
-                    x: (vector.x * widthHalf) + widthHalf,
-                    y: -(vector.y * heightHalf) + heightHalf
-                };
-            }
-
-            function drawWarPlans() {
-                const overlay = document.getElementById('war-plan-overlay');
-                overlay.innerHTML = '';
-                if (waypoints.length < 2) return;
-
-                for (let i = 0; i < waypoints.length - 1; i++) {
-                    const startPoint = toScreenPosition(waypoints[i].position, dashboardCamera);
-                    const endPoint = toScreenPosition(waypoints[i + 1].position, dashboardCamera);
-                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    line.setAttribute('x1', startPoint.x);
-                    line.setAttribute('y1', startPoint.y);
-                    line.setAttribute('x2', endPoint.x);
-                    line.setAttribute('y2', endPoint.y);
-                    line.setAttribute('stroke', 'var(--accent-color)');
-                    line.setAttribute('stroke-width', '2');
-                    line.setAttribute('stroke-dasharray', '5, 5');
-                    overlay.appendChild(line);
-                }
-            }
-
-            // --- HTML BUILDERS ---
-            function getArmoryHTML() {
-                return `
-                    <div class="db-list-container">
-                        <h2 class="font-orbitron text-primary text-xl mb-4">ASSET DATABASE</h2>
-                        <input type="text" id="armory-search" class="search-input" placeholder="Search assets...">
-                        <div id="asset-list" class="db-list"></div>
+    <template id="template-settings">
+        <div class="p-6">
+            <h1 class="font-orbitron text-3xl text-primary mb-6">Interface Settings</h1>
+            <div class="space-y-8 max-w-4xl">
+                <div class="widget">
+                    <h2 class="widget-title font-orbitron text-xl mb-4">Theme Selection</h2>
+                    <div class="flex flex-wrap items-center gap-6" id="theme-selector">
+                        <button class="theme-btn" data-theme="theme-helios" style="background-color: #B71C1C;"></button>
+                        <button class="theme-btn" data-theme="theme-cobalt" style="background-color: #1976D2;"></button>
+                        <button class="theme-btn" data-theme="theme-hunter" style="background-color: #2E7D32;"></button>
+                        <button class="theme-btn" data-theme="theme-amber" style="background-color: #FFA000;"></button>
+                        <button class="theme-btn" data-theme="theme-crimson" style="background-color: #DC143C;"></button>
+                        <button class="theme-btn" data-theme="theme-orion" style="background-color: #4A90E2;"></button>
+                        <button class="theme-btn" data-theme="theme-void" style="background-color: #9C27B0;"></button>
+                        <button class="theme-btn" data-theme="theme-solaris" style="background-color: #F57C00;"></button>
+                        <button class="theme-btn" data-theme="theme-aegis" style="background-color: #009688;"></button>
                     </div>
-                    <div class="db-content" id="asset-detail-view">
-                        <div class="text-center text-gray-500 h-full flex items-center justify-center">Select an asset to view details.</div>
-                    </div>
-                `;
-            }
-
-            function getIntelHTML() {
-                return `
-                    <div class="db-list-container">
-                        <h2 class="font-orbitron text-primary text-xl mb-4">FACTION DATABASE</h2>
-                        <input type="text" id="intel-search" class="search-input" placeholder="Search factions...">
-                        <div id="faction-list" class="db-list"></div>
-                    </div>
-                    <div class="db-content" id="faction-detail-view">
-                        <div class="text-center text-gray-500 h-full flex items-center justify-center">Select a faction to view intel.</div>
-                    </div>
-                `;
-            }
-
-            function getCodexHTML() {
-                return `
-                    <div class="db-list-container">
-                        <h2 class="font-orbitron text-primary text-xl mb-4">CODEX</h2>
-                        <input type="text" id="codex-search" class="search-input" placeholder="Search documents...">
-                        <div id="codex-list" class="db-list"></div>
-                    </div>
-                    <div class="db-content" id="codex-detail-view">
-                        <div class="text-center text-gray-500 h-full flex items-center justify-center">Select a document to view.</div>
-                    </div>
-                `;
-            }
-
-            function getSettingsHTML() {
-                return `
-                    <h1 class="font-orbitron text-3xl text-primary mb-6">Interface Settings</h1>
-                    <div class="space-y-8 max-w-4xl">
-                        <div class="widget">
-                            <h2 class="widget-title font-orbitron text-xl mb-4">Theme Selection</h2>
-                            <div class="flex flex-wrap items-center gap-6" id="theme-selector">
-                                <button class="theme-btn" data-theme="theme-helios" style="background-color: #B71C1C;"></button>
-                                <button class="theme-btn" data-theme="theme-cobalt" style="background-color: #1976D2;"></button>
-                                <button class="theme-btn" data-theme="theme-hunter" style="background-color: #2E7D32;"></button>
-                                <button class="theme-btn" data-theme="theme-amber" style="background-color: #FFA000;"></button>
-                                <button class="theme-btn" data-theme="theme-crimson" style="background-color: #DC143C;"></button>
-                                <button class="theme-btn" data-theme="theme-orion" style="background-color: #4A90E2;"></button>
-                                <button class="theme-btn" data-theme="theme-void" style="background-color: #9C27B0;"></button>
-                                <button class="theme-btn" data-theme="theme-solaris" style="background-color: #F57C00;"></button>
-                                <button class="theme-btn" data-theme="theme-aegis" style="background-color: #009688;"></button>
-                            </div>
+                </div>
+                <div class="widget">
+                    <h2 class="widget-title font-orbitron text-xl mb-4">UI Options</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label for="sound-toggle">Enable UI Sounds</label>
+                            <input type="checkbox" id="sound-toggle" class="form-checkbox h-5 w-5 text-primary bg-dark-grey border-light-grey rounded focus:ring-primary">
                         </div>
-                        <div class="widget">
-                            <h2 class="widget-title font-orbitron text-xl mb-4">UI Options</h2>
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between">
-                                    <label for="sound-toggle">Enable UI Sounds</label>
-                                    <input type="checkbox" id="sound-toggle" class="form-checkbox h-5 w-5 text-primary bg-dark-grey border-light-grey rounded focus:ring-primary">
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <label for="anim-toggle">Enable Decorative Animations</label>
-                                    <input type="checkbox" id="anim-toggle" checked class="form-checkbox h-5 w-5 text-primary bg-dark-grey border-light-grey rounded focus:ring-primary">
-                                </div>
-                            </div>
+                        <div class="flex items-center justify-between">
+                            <label for="anim-toggle">Enable Decorative Animations</label>
+                            <input type="checkbox" id="anim-toggle" checked class="form-checkbox h-5 w-5 text-primary bg-dark-grey border-light-grey rounded focus:ring-primary">
                         </div>
                     </div>
-                `;
-            }
-
-            // --- TAB-SPECIFIC INITIALIZERS ---
-            function setupSearchableList(inputId, listId, data, displayFunction) {
-                const searchInput = document.getElementById(inputId);
-                const listContainer = document.getElementById(listId);
-
-                const renderList = (filter = '') => {
-                    const lowerFilter = filter.toLowerCase();
-                    const filteredKeys = Object.keys(data).filter(key => {
-                        const item = data[key];
-                        return JSON.stringify(item).toLowerCase().includes(lowerFilter);
-                    });
-                    listContainer.innerHTML = filteredKeys.map(key => `<div class="db-list-item" data-id="${key}">${data[key].name}</div>`).join('');
-                };
-
-                listContainer.addEventListener('click', e => {
-                    if (e.target.matches('.db-list-item')) {
-                        listContainer.querySelectorAll('.db-list-item').forEach(el => el.classList.remove('active'));
-                        e.target.classList.add('active');
-                        displayFunction(e.target.dataset.id);
-                    }
-                });
-
-                searchInput.addEventListener('keyup', () => renderList(searchInput.value));
-                renderList();
-            }
-
-            function initArmory() {
-                setupSearchableList('armory-search', 'asset-list', armoryData, displayAssetDetails);
-            }
-            function displayAssetDetails(assetId) {
-                const detailView = document.getElementById('asset-detail-view');
-                if (assetId === 'analysis') {
-                    detailView.innerHTML = `<h2 class="font-orbitron text-2xl text-primary mb-4">CIWS Performance Analysis</h2><div style="position: relative; height: 40vh;"><canvas id="ciwsChart"></canvas></div>`;
-                    renderCiwsChart();
-                } else {
-                     detailView.innerHTML = `<div class="text-center text-gray-500 h-full flex items-center justify-center">Select a specific asset category to view details.</div>`;
-                }
-            }
-
-            function initIntel() {
-                setupSearchableList('intel-search', 'faction-list', intelData, (id) => displayFactionDetails(intelData[id]));
-            }
-            function getStrengthClass(strength) {
-                return `strength-${(strength || 'unknown').toLowerCase()}`;
-            }
-            function displayFactionDetails(faction) {
-                document.getElementById('faction-detail-view').innerHTML = `
-                    <h2 class="font-orbitron text-2xl text-primary mb-2">${faction.name}</h2>
-                    <p class="mb-4">Threat Level: <span class="${getStrengthClass(faction.threat)}">${faction.threat}</span> // Hostility: <span class="text-accent">${faction.hostility}</span></p>
-                    <div class="db-tabs">
-                        <span class="db-tab active" data-pane="profile">Profile</span>
-                        <span class="db-tab" data-pane="strength">Strength Assessment</span>
-                        <span class="db-tab" data-pane="hierarchy">Hierarchy</span>
-                    </div>
-                    <div id="profile" class="db-tab-pane active"><p>${faction.report}</p></div>
-                    <div id="strength" class="db-tab-pane">
-                        <table class="spec-table">
-                            <tr><td>Naval Strength</td><td class="${getStrengthClass(faction.naval_strength)}">${faction.naval_strength}</td></tr>
-                            <tr><td>Air Strength</td><td class="${getStrengthClass(faction.air_strength)}">${faction.air_strength}</td></tr>
-                            <tr><td>Ground Strength</td><td class="${getStrengthClass(faction.ground_strength)}">${faction.ground_strength}</td></tr>
-                            <tr><td>Known Location</td><td>${faction.location}</td></tr>
-                        </table>
-                    </div>
-                    <div id="hierarchy" class="db-tab-pane">
-                        <table class="spec-table">${Object.entries(faction.hierarchy).map(([key, value]) => `<tr><td>${key}</td><td>${Array.isArray(value) ? value.join('<br>') : value}</td></tr>`).join('')}</table>
-                    </div>
-                `;
-                setupDbTabs('faction-detail-view');
-            }
-
-            function initCodex() {
-                setupSearchableList('codex-search', 'codex-list', codexData, displayCodexDetails);
-            }
-
-            function displayCodexDetails(docId) {
-                const detailView = document.getElementById('codex-detail-view');
-                let content = '';
-                switch(docId) {
-                    case 'general': content = `<h3>Naval Server Rules</h3><p>All grids are to remain within the planet atmosphere. Naval Warships and Structures are large grids only. Aircraft and ground vehicles are small grids only. Each Grid requires the correct GridCore for that class. Structure GridCores must be above voxels and water.</p><h3>Block limits</h3><p>GridCores will automatically limit the amount of certain blocks. All ships can fit a max of 2 vents. O2 GENERATORS ARE ONLY ALLOWED ON BASES AND SMALL GRIDS TO PRODUCE FUEL AND ONLY 1 PER GRID IS ALLOWED. Ships will be able to fit 2 navigation computer blocks & 3 rudder blocks. ONLY BASES CAN HAVE A MAXIMUM OF 1 FUEL BLOCK REFINERY. SHIPS MAY HAVE 1 EMERGENCY FUEL Converter.</p><h3>Jet Pack Usage</h3><p>JETPACKS ARE ONLY TO BE USED AROUND FRIENDLY GRIDS FOR LOGISTICAL PURPOSES. DO NOT FLY AROUND ENEMY GRIDS. THEY WILL ONLY OPERATE WITHIN A 1KM RANGE OF A FRIENDLY GRIDCORE.</p>`; break;
-                    case 'warfare': content = `<h3>Declaring War</h3><p>FACTIONS WHO WISH TO DECLARE WAR ON ANOTHER FACTION MUST DECLARE THEIR INTENTIONS IN DIPLOMACY 48HRS PRIOR TO INITIATING A SIEGE. AN ADMIN MUST APPROVE THE WAR. WAR DECLARATIONS MUST BE FOR A REASON. ATTACKERS MUST DEFINE A TARGET FOR THE WAR. AFTER A WAR IS COMPLETED THE DECLARING FACTION IS ON A COOLDOWN OF 7 DAYS BEFORE THEY CAN DECLARE ANOTHER WAR.</p><h3>Siege</h3><p>Once war is declared and an admin approves it you may start sieging 48 hrs after the declaration message. Efforts should be made to make sure both sides are able to be on for the fight. Attackers must initiate the siege by moving within 15km of the Structure they wish to attack. Once the siege is initiated Defenders have 10 minutes to push the attackers out of the Territory Capture zone. Attackers have 2 hours to siege the base. To successfully siege and capture the territory the Attackers must destroy the Defenders Base Grid Core. If the Defenders survive for 2 hours their SZ will be restored. Wars last for 5 days. Defenders can attack the Attackers FOB to end the war early.</p>`; break;
-                    case 'factions': content = `<h3>Factions</h3><p>A faction is a group of players working together towards a common goal. Only have grids out in the world that are actively being used. In peace time factions do not need to have their fleets on display. Exploiting factions to increase fleet cap will result your whole faction and its members getting banned.</p><h3>Ship and Structure limits</h3><table class="spec-table"><tr><th>Structure Type</th><th>Amount</th><th>Ship Class</th><th>Amount</th></tr><tr><td>Main Base</td><td>1</td><td>Corvette</td><td>4</td></tr><tr><td>Fort</td><td>5</td><td>Frigate</td><td>3</td></tr><tr><td>Destroyer</td><td>3</td><td>Cruiser</td><td>2</td></tr><tr><td></td><td></td><td>Submarine</td><td>1</td></tr><tr><td></td><td></td><td>Logistics Ship</td><td>2</td></tr><tr><td></td><td></td><td>Battleship</td><td>1</td></tr><tr><td></td><td></td><td>Aircraft Carrier</td><td>1</td></tr><tr><td><strong>Total Structures</strong></td><td><strong>16</strong></td><td><strong>Max Fleet Size</strong></td><td><strong>18</strong></td></tr></table>`; break;
-                    case 'structures': content = `<h3>Structures</h3><p>We have 3 types of structures on the server: Main Base, Fort, and Outpost. Each structure much have the correct GridCore installed.</p><table class="spec-table"><tr><th>Type</th><th>Block Count</th><th>Defensive Points</th><th>Offensive Points</th></tr><tr><td>Main Base</td><td>7500</td><td>50</td><td>80</td></tr><tr><td>Fort</td><td>5000</td><td>35</td><td>50</td></tr><tr><td>Outpost</td><td>750</td><td>20</td><td>15</td></tr></table><h3>Resource Cores</h3><p>Every structure can install a resource core to generate passive resources. Only 1 is permitted per structure.</p><h3>Structure limitations</h3><p>Structures must be placed a minimum distance of 15 km apart.</p>`; break;
-                    case 'ships': content = `<h3>Ship Classes</h3><p>Ships are divided into multiple classes which are grouped in class groups. Each class has a mass limit, this is based on the dry weight of a ship. Max ship size is 2800 square blocks (length x width).</p><table class="spec-table"><tr><th>Class Name</th><th>Max Dry Mass</th><th>Offensive Points</th><th>Defensive Points</th></tr><tr><td>Corvette</td><td>1,000 T</td><td>20</td><td>10</td></tr><tr><td>Frigate</td><td>2,500 T</td><td>35</td><td>20</td></tr><tr><td>Submarine</td><td>3,500 T</td><td>12</td><td>4</td></tr><tr><td>Destroyer</td><td>5,500 T</td><td>45</td><td>30</td></tr><tr><td>Cruiser</td><td>10,000 T</td><td>60</td><td>35</td></tr><tr><td>Battleship</td><td>20,000 T</td><td>80</td><td>40</td></tr><tr><td>Carrier</td><td>14,000 T</td><td>16</td><td>30</td></tr><tr><td>Logistics Ship</td><td>2,250 T</td><td>N/A</td><td>12</td></tr></table>`; break;
-                    case 'aircraft': content = `<h3>Aircraft</h3><p>Aircraft are divided into several classes. Thrust must always point in the same direction. Only use propulsion from designated aircraft mods. Planes cannot exceed 3000 blocks.</p><table class="spec-table"><tr><th>Class Name</th><th>Min Weight (T)</th><th>Max Weight (T)</th><th>Max Thrust (T)</th></tr><tr><td>Fighter</td><td>10</td><td>20</td><td>30</td></tr><tr><td>Strike Fighter</td><td>20</td><td>32.5</td><td>60</td></tr><tr><td>Bomber</td><td>32.5</td><td>N/A</td><td>80</td></tr><tr><td>Strategic Bomber</td><td>45</td><td>N/A</td><td>100</td></tr><tr><td>Logistics / Radar</td><td>20</td><td>N/A</td><td>160</td></tr><tr><td>Helicopter</td><td>N/A</td><td>N/A</td><td>20</td></tr></table>`; break;
-                    case 'vehicles': content = `<h3>Ground Vehicles</h3><p>Vehicles are defined into 3 classes.</p><table class="spec-table"><tr><th>Class</th><th>Max Weight</th><th>Speed</th><th>Hardpoints</th></tr><tr><td>Main Battle Tank</td><td>80T</td><td>80KM/H</td><td>8</td></tr><tr><td>Anti Aircraft Vehicle</td><td>60T</td><td>80KM/H</td><td>8</td></tr><tr><td>Artillery</td><td>50T</td><td>50KM/H</td><td>8</td></tr></table>`; break;
-                    case 'resources': content = `<h3>Resource Acquisition</h3><h3>Common Ores (Iron, Silicon, Nickel)</h3><p>Mined with Resource Claim Pylons. They do not deplete the area.</p><h3>Uncommon Ores (Cobalt, Magnesium, Silver, Gold)</h3><p>Found in Resource Zones in water. These zones require Fuel Blocks and will deplete over time.</p><h3>Rare Ores (Platinum, Uranium)</h3><p>Found in random NPC bunkers or King of the Hill style events.</p>`; break;
-                    default: content = `<p>Documentation for ${codexData[docId].name} is not available.</p>`;
-                }
-                detailView.innerHTML = `<div class="codex-content">${content}</div>`;
-            }
-            
-            function setupDbTabs(containerId) {
-                const container = document.getElementById(containerId);
-                container.addEventListener('click', e => {
-                    if (e.target.matches('.db-tab')) {
-                        container.querySelectorAll('.db-tab').forEach(tab => tab.classList.remove('active'));
-                        e.target.classList.add('active');
-                        container.querySelectorAll('.db-tab-pane').forEach(pane => {
-                            pane.id === e.target.dataset.pane ? pane.classList.add('active') : pane.classList.remove('active');
-                        });
-                    }
-                });
-            }
-
-            function initSettings() {
-                const themeSelector = document.getElementById('theme-selector');
-                const savedTheme = localStorage.getItem('heliosTheme') || 'theme-helios';
-                applyTheme(savedTheme);
-
-                themeSelector.addEventListener('click', (e) => {
-                    if(e.target.classList.contains('theme-btn')) {
-                        applyTheme(e.target.dataset.theme);
-                    }
-                });
-
-                const soundToggle = document.getElementById('sound-toggle');
-                soundToggle.checked = soundEnabled;
-                soundToggle.addEventListener('change', (e) => {
-                    soundEnabled = e.target.checked;
-                    if (soundEnabled && !audioCtx) {
-                         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    }
-                });
-            }
-            function applyTheme(theme) {
-                document.body.className = theme;
-                localStorage.setItem('heliosTheme', theme);
-                if(document.getElementById('theme-selector')) {
-                    document.querySelectorAll('#theme-selector .theme-btn').forEach(btn => {
-                        btn.classList.toggle('active', btn.dataset.theme === theme);
-                    });
-                }
-                if (charts.ciws) {
-                    renderCiwsChart(); 
-                }
-            }
-            
-            function renderCiwsChart() {
-                const canvas = document.getElementById('ciwsChart');
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                const weaponData = {
-                    'P-270': [37.50, 62.50, 75.00, null],
-                    'P-1000': [46.88, 65.62, 84.38, 100.00]
-                };
-                
-                if (charts.ciws) charts.ciws.destroy();
-
-                const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--rgb-primary-color').trim();
-                const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--rgb-accent-color').trim();
-                const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
-
-                charts.ciws = new Chart(ctx, {
-                    type: 'radar',
-                    data: {
-                        labels: ['Phalanx', 'Goalkeeper', 'AK-630', 'AK-630-2'],
-                        datasets: [{
-                            label: 'P-270 Success Rate (%)',
-                            data: weaponData['P-270'],
-                            backgroundColor: `rgba(${primaryColor}, 0.2)`,
-                            borderColor: `rgba(${primaryColor}, 1)`,
-                            pointBackgroundColor: `rgba(${primaryColor}, 1)`,
-                            borderWidth: 2,
-                            pointRadius: 4,
-                        }, {
-                            label: 'P-1000 Success Rate (%)',
-                            data: weaponData['P-1000'],
-                            backgroundColor: `rgba(${accentColor}, 0.2)`,
-                            borderColor: `rgba(${accentColor}, 1)`,
-                            pointBackgroundColor: `rgba(${accentColor}, 1)`,
-                            borderWidth: 2,
-                            pointRadius: 4,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            r: {
-                                beginAtZero: true,
-                                max: 100,
-                                grid: { color: 'rgba(255,255,255,0.2)' },
-                                angleLines: { color: 'rgba(255,255,255,0.2)' },
-                                pointLabels: { color: textColor, font: { size: 14 } },
-                                ticks: {
-                                    backdropColor: 'rgba(0,0,0,0.5)',
-                                    color: textColor
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: { labels: { color: textColor } }
-                        }
-                    }
-                });
-            }
-        });
-    </script>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <!-- Your JavaScript -->
+    <script src="main.js"></script>
 </body>
 </html>
