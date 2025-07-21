@@ -49,24 +49,36 @@ document.addEventListener('DOMContentLoaded', function () {
     const sleep = ms => new Promise(res => setTimeout(res, ms));
 
     // --- Firebase Setup ---
+    async function getFirebaseConfig() {
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            console.log("Using injected Firebase config.");
+            return JSON.parse(__firebase_config);
+        }
+        try {
+            console.log("Fetching firebase-config.json...");
+            const response = await fetch('./firebase-config.json');
+            if (!response.ok) {
+                throw new Error('firebase-config.json not found or invalid.');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error(error);
+            throw new Error("Firebase configuration is not available in any known location.");
+        }
+    }
+
     async function initializeFirebase() {
         try {
-            // Use environment variables provided by the platform, which are injected at runtime.
-            if (typeof __firebase_config === 'undefined') {
-                throw new Error("Firebase configuration is not available.");
-            }
-            const firebaseConfig = JSON.parse(__firebase_config);
+            const firebaseConfig = await getFirebaseConfig();
             const app = initializeApp(firebaseConfig);
             state.firebase.db = getFirestore(app);
             state.firebase.auth = getAuth(app);
             console.log("Firebase initialized successfully.");
 
-            // This Promise will resolve once the user is authenticated.
-            return new Promise((resolve) => {
-                // This listener fires whenever the auth state changes.
-                onAuthStateChanged(state.firebase.auth, (user) => {
+            return new Promise((resolve, reject) => {
+                const unsubscribe = onAuthStateChanged(state.firebase.auth, (user) => {
                     if (user) {
-                        // User is signed in.
+                        unsubscribe(); // Stop listening to auth changes
                         state.firebase.userId = user.uid;
                         console.log("Authenticated with user ID:", state.firebase.userId);
                         const userIdDisplay = document.getElementById('user-id-display');
@@ -77,15 +89,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
 
-                // Now, trigger the sign-in process.
-                // Use the provided auth token if it exists, otherwise sign in anonymously.
+                // Trigger the sign-in process
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     signInWithCustomToken(state.firebase.auth, __initial_auth_token).catch(err => {
                         console.error("Custom token sign-in failed, falling back to anonymous", err);
-                        signInAnonymously(state.firebase.auth); // Fallback
+                        signInAnonymously(state.firebase.auth).catch(reject);
                     });
                 } else {
-                    signInAnonymously(state.firebase.auth);
+                    signInAnonymously(state.firebase.auth).catch(reject);
                 }
             });
 
@@ -93,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error("Firebase initialization failed:", error);
             const logonText = document.getElementById('logon-text-container') || document.body;
             logonText.innerHTML = `<p class="text-error">FATAL ERROR: Could not connect to strategic database. Please check Firebase configuration.</p>`;
-            throw error; // This will stop the logon sequence.
+            throw error;
         }
     }
 
@@ -137,7 +148,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const textContainer = document.getElementById('logon-text-container');
         
         initLogonAnimation();
-        await initializeFirebase(); // Initialize and sign in to Firebase
+        
+        try {
+            await initializeFirebase();
+        } catch (error) {
+            return; 
+        }
 
         const typeLine = async (text, color = 'text-white', speed = 25) => {
             const p = document.createElement('p');
@@ -515,6 +531,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // --- Firestore Waypoint Functions ---
     async function addWaypointToFirestore(localPosition) {
+        if (!state.firebase.db) return;
         try {
             const docRef = await addDoc(collection(state.firebase.db, "shared-waypoints"), {
                 position: { x: localPosition.x, y: localPosition.y, z: localPosition.z },
@@ -528,6 +545,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     async function deleteWaypointFromFirestore(docId) {
+        if (!state.firebase.db) return;
         try {
             await deleteDoc(doc(state.firebase.db, "shared-waypoints", docId));
             console.log("Waypoint deleted: ", docId);
@@ -537,6 +555,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function listenForWaypoints() {
+        if (!state.firebase.db) return;
         const q = query(collection(state.firebase.db, "shared-waypoints"));
         state.firebase.unsubscribeWaypoints = onSnapshot(q, (querySnapshot) => {
             const newWaypoints = new Map();
