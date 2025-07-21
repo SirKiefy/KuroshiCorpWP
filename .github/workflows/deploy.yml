@@ -27,7 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      # This step now directly injects the config into index.html
+      # This step directly injects the config into a placeholder in index.html
       - name: Inject Firebase Config
         run: |
           # The 'g' flag ensures all occurrences are replaced if needed
@@ -39,7 +39,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # We no longer need a separate config file, just the modified index.html and other assets
+          # Upload the entire directory, including the modified index.html
           path: '.' 
           
   # Deployment job
