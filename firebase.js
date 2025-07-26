@@ -11,9 +11,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Import application state and UI updaters
+// Import application state and the functions that will re-render UI components
 import { c3iState } from './data.js';
-import { uiUpdaters } from './ui.js';
+import { renderAllWaypoints, renderLog, renderMessages, renderPlans, renderTasks } from './ui.js';
 
 // --- Firebase Configuration and Initialization ---
 // This configuration is provided by the user.
@@ -27,7 +27,6 @@ const firebaseConfig = {
   measurementId: "G-65W3XRX32Y"
 };
 
-
 // Declare variables to hold the initialized Firebase services
 let app;
 export let db;
@@ -38,52 +37,42 @@ export let auth;
  */
 export function initializeFirebase() {
     try {
-        app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-        console.log("Firebase initialized successfully.");
+        if (!app) { // Prevent re-initialization
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            console.log("Firebase initialized successfully.");
+        }
     } catch (error) {
         console.error("Firebase initialization failed. Please check your firebaseConfig in firebase.js.", error);
         alert("Firebase initialization failed. Check the console for details.");
     }
 }
 
-
 // --- Authentication ---
 /**
  * A promise that resolves when the Firebase authentication state has been determined.
- * This is crucial for ensuring we know if a user is logged in or not before proceeding.
  */
 export const authReadyPromise = new Promise(resolve => {
-    if (!auth) {
-        console.error("Auth is not initialized. Cannot set onAuthStateChanged listener.");
-        resolve(null);
-        return;
-    }
-    // This listener triggers whenever the user's sign-in state changes.
-    onAuthStateChanged(auth, user => {
+    const unsubscribe = onAuthStateChanged(auth, user => {
         if (user) {
-            // User is signed in. Store the user object in our central state.
             c3iState.firebaseUser = user;
             console.log("User is signed in:", user.uid);
         } else {
-            // User is signed out. For this app, we'll sign them in anonymously
-            // so they can still interact with public data without a formal account.
             console.log("User is signed out. Attempting anonymous sign-in...");
             signInAnonymously(auth).catch(error => {
                 console.error("Anonymous sign-in failed:", error);
             });
         }
-        // Resolve the promise so the login process can continue.
         resolve(user);
+        unsubscribe(); // We only need this to run once on startup
     });
 });
 
 // --- Firestore Listeners ---
 /**
- * Sets up real-time listeners for various data collections in Firestore.
- * When data changes in the database, these listeners will automatically
- * update the local application state and trigger UI updates.
+ * Sets up real-time listeners for all dynamic data collections.
+ * When data changes, it updates the state and calls the correct UI render function directly.
  */
 export function setupListeners() {
     if (!db) {
@@ -92,71 +81,78 @@ export function setupListeners() {
     }
 
     const collectionsToListen = {
-        waypoints: 'waypointsUpdated',
-        auditLog: 'logUpdated',
-        chat: 'chatUpdated',
-        plans: 'plansUpdated',
-        tasks: 'tasksUpdated'
+        waypoints: renderAllWaypoints,
+        auditLog: renderLog,
+        chat: renderMessages,
+        plans: renderPlans,
+        tasks: renderTasks,
     };
 
-    for (const [collectionName, eventName] of Object.entries(collectionsToListen)) {
-        // Create a query to get the collection and order it by timestamp
-        const collRef = collection(db, collectionName);
-        const q = query(collRef, orderBy("timestamp", "desc"));
+    for (const [collectionName, renderFunction] of Object.entries(collectionsToListen)) {
+        const q = query(collection(db, collectionName), orderBy("timestamp", "desc"));
 
-        // onSnapshot creates a real-time listener
         onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            // Update the central application state
-            c3iState[collectionName] = data;
-            
-            // Dispatch a custom event to notify the UI that data has changed
-            window.dispatchEvent(new CustomEvent(eventName));
-            
+            c3iState[collectionName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Directly call the render function associated with this collection
+            if (renderFunction) {
+                renderFunction();
+            }
         }, (error) => {
             console.error(`Error listening to ${collectionName}:`, error);
-            // This can happen due to Firestore rules or network issues.
         });
     }
 }
 
-// --- Firestore Data Manipulation Functions ---
+// --- Centralized Database Write Functions ---
 
-// Save a new plan to the 'plans' collection
+export async function logAction(action, details = '') {
+    if (!c3iState.currentUser || !c3iState.firebaseUser) return;
+    const logData = {
+        timestamp: serverTimestamp(),
+        operator: c3iState.currentUser.codename,
+        action,
+        details,
+        userId: c3iState.firebaseUser.uid
+    };
+    await addDoc(collection(db, 'auditLog'), logData);
+}
+
+export async function saveWaypoint(waypointData) {
+    await addDoc(collection(db, 'waypoints'), { ...waypointData, timestamp: serverTimestamp() });
+}
+
+export async function updateWaypoint(waypointId, waypointData) {
+    await updateDoc(doc(db, 'waypoints', waypointId), waypointData);
+}
+
+export async function deleteWaypoint(waypointId) {
+    await deleteDoc(doc(db, 'waypoints', waypointId));
+}
+
 export async function savePlan(planData) {
-    await addDoc(collection(db, 'plans'), { ...planData, timestamp: serverTimestamp() });
+    await addDoc(collection(db, 'plans'), { ...planData, author: c3iState.currentUser.codename, timestamp: serverTimestamp() });
 }
 
-// Update an existing plan
 export async function updatePlan(planId, planData) {
-    const planRef = doc(db, 'plans', planId);
-    await updateDoc(planRef, planData);
+    await updateDoc(doc(db, 'plans', planId), planData);
 }
 
-// Delete a plan
 export async function deletePlan(planId) {
     await deleteDoc(doc(db, 'plans', planId));
 }
 
-// Save a new task to the 'tasks' collection
 export async function saveTask(taskData) {
-    await addDoc(collection(db, 'tasks'), { ...taskData, timestamp: serverTimestamp() });
+    await addDoc(collection(db, 'tasks'), { ...taskData, author: c3iState.currentUser.codename, completed: false, timestamp: serverTimestamp() });
 }
 
-// Update an existing task
 export async function updateTask(taskId, taskData) {
-    const taskRef = doc(db, 'tasks', taskId);
-    await updateDoc(taskRef, taskData);
+    await updateDoc(doc(db, 'tasks', taskId), taskData);
 }
 
-// Delete a task
 export async function deleteTask(taskId) {
     await deleteDoc(doc(db, 'tasks', taskId));
 }
 
-// Save a new chat message to the 'chat' collection
 export async function saveChatMessage(messageData) {
     await addDoc(collection(db, 'chat'), { ...messageData, timestamp: serverTimestamp() });
 }
-
