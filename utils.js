@@ -98,7 +98,10 @@ const globeManager = (() => {
 
             // Attach event listeners for map controls
             document.getElementById('rotate-toggle').addEventListener('change', (e) => { globeControls.autoRotate = e.target.checked; });
-            document.getElementById('heightmap-toggle').addEventListener('change', (e) => { material.displacementScale = e.target.checked ? 0.4 : 0; });
+            document.getElementById('heightmap-toggle').addEventListener('change', (e) => { 
+                material.displacementScale = e.target.checked ? 0.4 : 0; 
+                material.needsUpdate = true; // FIX: Tell Three.js to apply the material change
+            });
             document.getElementById('territory-toggle').addEventListener('change', (e) => { overlays.territory.visible = e.target.checked; });
             document.getElementById('resources-toggle').addEventListener('change', (e) => { overlays.resources.visible = e.target.checked; });
             document.getElementById('coord-toggle').addEventListener('change', (e) => { overlays.coord.visible = e.target.checked; });
@@ -123,23 +126,51 @@ const globeManager = (() => {
             renderer.domElement.addEventListener('mousedown', (e) => { mouseDownPos.set(e.clientX, e.clientY); isDragging = false; });
             renderer.domElement.addEventListener('mousemove', (e) => { if (e.buttons > 0 && mouseDownPos.distanceTo(new THREE.Vector2(e.clientX, e.clientY)) > 5) isDragging = true; });
 
-            renderer.domElement.addEventListener('contextmenu', (event) => {
+            // FIX: Added robust error handling and logging to the waypoint placement logic
+            renderer.domElement.addEventListener('contextmenu', async (event) => {
                 event.preventDefault();
+                console.log("Context menu event triggered.");
+
+                if (!globe) {
+                    console.error("Globe object not found for raycasting.");
+                    return;
+                }
+                if (!c3iState.firebaseUser) {
+                    console.error("Firebase user not authenticated. Cannot save waypoint.");
+                    alert("Authentication error. Cannot save waypoint.");
+                    return;
+                }
+
                 const rect = renderer.domElement.getBoundingClientRect();
                 mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
                 mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
                 raycaster.setFromCamera(mouse, camera);
                 const intersects = raycaster.intersectObject(globe);
+
                 if (intersects.length > 0) {
+                    console.log("Raycaster intersected with globe.");
                     const intersectPoint = intersects[0].point;
                     const coords = pointToLatLon(intersectPoint, 5);
-                    Firebase.saveWaypoint({ 
+                    
+                    const waypointData = {
                         name: `WP-${Date.now().toString().slice(-4)}`, 
                         position: { x: intersectPoint.x, y: intersectPoint.y, z: intersectPoint.z },
                         coords, 
                         color: '#f5a623',
                         createdBy: c3iState.firebaseUser.uid
-                    });
+                    };
+
+                    try {
+                        console.log("Attempting to save waypoint:", waypointData);
+                        await Firebase.saveWaypoint(waypointData);
+                        console.log("Waypoint saved successfully.");
+                    } catch (error) {
+                        console.error("Failed to save waypoint to Firebase:", error);
+                        const statusTextEl = document.getElementById('status-text');
+                        if(statusTextEl) statusTextEl.textContent = "Error: Could not save waypoint.";
+                    }
+                } else {
+                    console.log("Raycaster did not intersect with globe.");
                 }
             });
 
