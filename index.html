@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSW-OS [v27.6-FBE]</title>
+    <title>HSW-OS [v27.7-FBE]</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -352,9 +352,9 @@
         <!-- Stages 0-5 for boot sequence -->
         <div id="stage-offline" class="boot-stage active"><div id="stage-offline-text"><h1>SATELLITE CONNECTION OFFLINE</h1><p>STATUS: IDLE</p><p class="text-sm mt-8 text-gray-500">CLICK OR PRESS ANY KEY TO INITIATE LINK</p></div><div class="canvas-container" id="offline-canvas-container"><canvas id="offline-canvas"></canvas></div></div>
         <div id="stage-core-ignition" class="boot-stage"><div class="stage-title">SYSTEM CORE IGNITION</div><div class="canvas-container" id="core-ignition-canvas-container"><canvas id="core-ignition-canvas"></canvas></div></div>
-        <div id="stage-bios" class="boot-stage"><div id="bios-container"><div class="ui-box self-start"><h1 class="text-base font-bold tracking-widest animated-title">WARSAT BIOS v27.6</h1></div><div id="bios-content"><div id="bios-lines-box" class="ui-box"><div id="bios-lines"></div></div><div id="bios-sidebar" class="flex flex-col gap-4"><div class="ui-box flex-grow"><div class="progress-label">QEC Integrity</div><div class="progress-bar-container"><div id="bar-qec" class="progress-bar"></div></div><div class="progress-label mt-2">Heatsink Calibration</div><div class="progress-bar-container"><div id="bar-heat" class="progress-bar"></div></div><div class="progress-label mt-2">Weapon Systems</div><div class="progress-bar-container"><div id="bar-wpn" class="progress-bar"></div></div><div class="progress-label mt-2">Telemetry Link</div><div class="progress-bar-container"><div id="bar-telemetry" class="progress-bar"></div></div><div class="progress-label mt-2">Shield Emitters</div><div class="progress-bar-container"><div id="bar-shield" class="progress-bar"></div></div><div class="progress-label mt-2">Sensor Array</div><div class="progress-bar-container"><div id="bar-sensor" class="progress-bar"></div></div><div class="circular-bars-container mt-4"><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-power" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Power</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-nav" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NAV</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-life" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Life</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-cpu" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">CPU</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-mem" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">MEM</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-net" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NET</div></div></div><div id="bios-sidebar-visual"></div></div></div></div></div></div>
+        <div id="stage-bios" class="boot-stage"><div id="bios-container"><div class="ui-box self-start"><h1 class="text-base font-bold tracking-widest animated-title">WARSAT BIOS v27.7</h1></div><div id="bios-content"><div id="bios-lines-box" class="ui-box"><div id="bios-lines"></div></div><div id="bios-sidebar" class="flex flex-col gap-4"><div class="ui-box flex-grow"><div class="progress-label">QEC Integrity</div><div class="progress-bar-container"><div id="bar-qec" class="progress-bar"></div></div><div class="progress-label mt-2">Heatsink Calibration</div><div class="progress-bar-container"><div id="bar-heat" class="progress-bar"></div></div><div class="progress-label mt-2">Weapon Systems</div><div class="progress-bar-container"><div id="bar-wpn" class="progress-bar"></div></div><div class="progress-label mt-2">Telemetry Link</div><div class="progress-bar-container"><div id="bar-telemetry" class="progress-bar"></div></div><div class="progress-label mt-2">Shield Emitters</div><div class="progress-bar-container"><div id="bar-shield" class="progress-bar"></div></div><div class="progress-label mt-2">Sensor Array</div><div class="progress-bar-container"><div id="bar-sensor" class="progress-bar"></div></div><div class="circular-bars-container mt-4"><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-power" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Power</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-nav" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NAV</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-life" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Life</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-cpu" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">CPU</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-mem" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">MEM</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-net" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NET</div></div></div><div id="bios-sidebar-visual"></div></div></div></div></div></div>
         <div id="stage-threat-analysis" class="boot-stage"><div class="stage-title">THREAT ANALYSIS</div><div class="canvas-container" id="threat-analysis-canvas-container"><canvas id="threat-analysis-canvas"></canvas></div></div>
-        <div id="stage-auth" class="boot-stage"><div class="ui-box"><h1 id="auth-title" class="animated-title">[UPLINK ESTABLISHED]</h1><form id="login-form"><input type="text" id="username" class="input-field" placeholder="OPERATOR ID" required autocomplete="off"><input type="password" id="password" class="input-field" placeholder="PASSCODE" required autocomplete="off"><button type="submit" class="login-btn">AUTHORIZE</button><p id="login-error">AUTH FAILED: INVALID CREDENTIALS</p></form></div></div>
+        <div id="stage-auth" class="boot-stage"><div class="ui-box"><h1 id="auth-title" class="animated-title">[UPLINK ESTABLISHED]</h1><form id="login-form"><input type="text" id="username" class="input-field" placeholder="CODENAME" required autocomplete="off"><input type="password" id="password" class="input-field" placeholder="PASSCODE" required autocomplete="off"><button type="submit" class="login-btn">AUTHORIZE</button><p id="login-error">AUTH FAILED: INVALID CREDENTIALS</p></form></div></div>
     </div>
     
     <!-- Final "desktop" screen after successful login -->
@@ -367,7 +367,7 @@
                     <div data-page="map" class="nav-item p-2 flex items-center gap-4 active"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div><span class="nav-text">Tactical Map</span></div>
                     <div data-page="armoury" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L8.6 3.3A2 2 0 0 0 6.9 2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16z"></path></svg></div><span class="nav-text">Armoury</span></div>
                     <div data-page="codex" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></div><span class="nav-text">Codex</span></div>
-                    <div data-page="intel" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17l10-10 5 5-10 10z"></path><path d="M15 7l5-5"></path><path d="M20 2l-5 5"></path></svg></div><span class="nav-text">Intel</span></div>
+                    <div data-page="intel" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></div><span class="nav-text">Intel</span></div>
                     <div data-page="comms" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><span class="nav-text">Communications</span></div>
                     <div data-page="settings" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg></div><span class="nav-text">Settings</span></div>
                 </div>
@@ -440,7 +440,6 @@
         <div class="h-full flex flex-col p-4">
             <div class="flex justify-between items-center border-b border-primary/20 pb-4">
                  <h2 class="text-xl text-primary">Armoury - Global Asset Registry</h2>
-                 <button id="add-asset-btn" class="c3i-button text-sm">Add New</button>
             </div>
             <div class="flex border-b border-primary/20 mt-4">
                 <div class="sidebar-tab active" data-tab="browser">Browser</div>
@@ -489,7 +488,6 @@
         <div class="h-full flex flex-col p-4">
              <div class="flex justify-between items-center border-b border-primary/20 pb-4">
                 <h2 class="text-xl text-primary">Intelligence Database</h2>
-                <button id="add-faction-btn" class="c3i-button text-sm">Add Faction</button>
             </div>
             <div class="flex border-b border-primary/20 mt-4">
                 <div class="sidebar-tab active" data-tab="factions">Factions</div>
@@ -499,18 +497,25 @@
             </div>
             <div id="intel-content-container" class="flex-grow mt-4 overflow-y-auto">
                 <div id="intel-factions" class="intel-content active">
-                    <div id="faction-dossiers-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- Faction data will be injected here by JS -->
+                    <div id="faction-list-view">
+                        <div id="faction-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- Faction list will be injected here by JS -->
+                        </div>
+                    </div>
+                    <div id="faction-detail-view" class="hidden p-2">
+                        <!-- Faction detail will be injected here by JS -->
                     </div>
                 </div>
                 <div id="intel-plans" class="intel-content">
-                    <p class="text-gray-500">Mission plans and strategic objectives will be displayed here.</p>
+                    <div class="flex justify-end mb-4"><button id="add-plan-btn" class="c3i-button text-sm">Add New Plan</button></div>
+                    <div id="plans-container" class="space-y-4"></div>
                 </div>
                 <div id="intel-tasks" class="intel-content">
-                    <p class="text-gray-500">Assigned tasks and operational priorities will be displayed here.</p>
+                    <div class="flex justify-end mb-4"><button id="add-task-btn" class="c3i-button text-sm">Add New Task</button></div>
+                    <div id="tasks-container" class="space-y-4"></div>
                 </div>
                 <div id="intel-personnel" class="intel-content">
-                    <p class="text-gray-500">Detailed personnel files and assignments will be displayed here.</p>
+                     <div id="personnel-container"></div>
                 </div>
             </div>
         </div>
@@ -584,20 +589,37 @@
 
 
     <!-- Modals -->
-    <div id="faction-modal" class="modal hidden">
-         <div class="ui-box p-6 w-full max-w-2xl space-y-4 max-h-[90vh] flex flex-col">
-            <h3 id="faction-modal-title" class="text-lg text-primary">Faction Dossier</h3>
-            <form id="faction-form" class="flex-grow overflow-y-auto no-scrollbar pr-4 space-y-4">
-                <!-- Form content will be injected by JS -->
+    <div id="plan-modal" class="modal hidden">
+        <div class="ui-box p-6 w-full max-w-lg space-y-4">
+            <h3 class="text-lg text-primary">New Strategic Plan</h3>
+            <form id="plan-form" class="space-y-4">
+                <div><label for="plan-name">Plan Name</label><input type="text" id="plan-name" class="w-full mt-1 c3i-input" required></div>
+                <div><label for="plan-details">Details</label><textarea id="plan-details" rows="4" class="w-full mt-1 c3i-textarea" required></textarea></div>
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button type="button" id="close-plan-modal-btn" class="c3i-button">Cancel</button>
+                    <button type="submit" class="c3i-button">Save Plan</button>
+                </div>
             </form>
         </div>
     </div>
-
-    <div id="asset-modal" class="modal hidden">
-        <div class="ui-box p-6 w-full max-w-lg space-y-4 max-h-[90vh] flex flex-col">
-            <h3 id="asset-modal-title" class="text-lg text-primary">Asset Details</h3>
-            <form id="asset-form" class="flex-grow overflow-y-auto no-scrollbar pr-4 space-y-4">
-                <!-- Form content will be injected by JS -->
+    
+    <div id="task-modal" class="modal hidden">
+        <div class="ui-box p-6 w-full max-w-lg space-y-4">
+            <h3 class="text-lg text-primary">New Operational Task</h3>
+            <form id="task-form" class="space-y-4">
+                <div><label for="task-name">Task Description</label><input type="text" id="task-name" class="w-full mt-1 c3i-input" required></div>
+                <div><label for="task-priority">Priority</label>
+                    <select id="task-priority" class="w-full mt-1 c3i-select">
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>High</option>
+                        <option>Critical</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button type="button" id="close-task-modal-btn" class="c3i-button">Cancel</button>
+                    <button type="submit" class="c3i-button">Assign Task</button>
+                </div>
             </form>
         </div>
     </div>
@@ -693,17 +715,14 @@
             waypoints: [],
             auditLog: [],
             chatMessages: [],
-            factions: [],
-            armoury: {}, // Use an object to represent the file system
+            plans: [],
+            tasks: [],
+            intel: {},
+            armoury: {}, 
             codex: {},
             comparisonAssets: [],
             listeners: [], // To keep track of Firestore listeners
-            users: {
-                'COMMANDER': { password: 'password123', clearance: 'Commander', level: 4 },
-                'OFFICER': { password: 'password123', clearance: 'Officer', level: 3 },
-                'OPERATOR': { password: 'hsw1337', clearance: 'Operator', level: 2 },
-                'RECRUIT': { password: 'password123', clearance: 'Recruit', level: 1 },
-            },
+            users: {}, // Will be populated by loadData
         };
 
         const bootState = {
@@ -720,7 +739,19 @@
         
         // --- DATA PARSED FROM FILE ---
         function loadData() {
-            // This data is parsed from the provided text file.
+            c3iState.users = {
+                'architect':    { username: 'SirKiefy',                password: 'R9x!Vt3Qw#Lp8J', clearance: 7, admin: true },
+                'Vanguard':     { username: 'saticron',                password: 'M7u$Zj1Lb^Nx4R', clearance: 6, admin: false },
+                'FoxbatActual': { username: 'FoxbatActual',            password: '991964',         clearance: 6, admin: false },
+                'Nightstalker': { username: 'nightmare_of_the_living', password: 'B4v*Xg9Hp&Lf2T', clearance: 4, admin: false },
+                'Rocketman':    { username: 'daniel.4031',             password: 'T5q#Ch6Jm%Ws1Y', clearance: 3, admin: false },
+                'Deadeye':      { username: 'sharps54',                password: 'L8n^Vr4Xp!Bd3K', clearance: 3, admin: false },
+                'Reaper':       { username: 'halolad',                 password: 'S1j%Ht7Zk&Qp9N', clearance: 3, admin: false },
+                'Wolfhound':    { username: 'dr_lupus',                password: 'H3p$Gn2Fr#Dz6M', clearance: 3, admin: false },
+                'Overwatch':    { username: 'thejetninja',             password: 'V6m*Kw5Xb!Tf8R', clearance: 3, admin: false },
+                'Ironclad':     { username: 'cowboybama',              password: 'C9t&Ls1Vg@Pr4Q', clearance: 3, admin: false },
+            };
+
             c3iState.intel = {
                 'FSSA': { name: 'FSSA (Federated Sovereign State of Armkava)', threat: 'Hostile', hostility: 'Active', location: 'Unknown', strength: { ground: 'Equal', air: 'Weaker', naval: 'Equal' }, report: 'A hostile state actor.', hierarchy: { leader: 'Day (valcry97)', members: ['jake from statefarm (thisscreenisnuts)'] }, assets: 'Standard military hardware.'},
                 'BSS': { name: 'BSS (Black Sea Syndicate)', threat: 'Neutral', hostility: 'Opportunistic', location: 'Black Sea', strength: { ground: 'Weaker', air: 'Obsolete', naval: 'Superior' }, report: 'A neutral syndicate operating in the Black Sea region.', hierarchy: { leader: 'Quasitedjr.TTV', members: ['Bizmark7 (Admin)', 'dloglo1980', 'Snowwolf (snowwolf1512)'] }, assets: 'Naval assets, smuggling routes.'},
@@ -1062,7 +1093,7 @@
             }
             const logData = {
                 timestamp: serverTimestamp(),
-                operator: c3iState.currentUser.callsign,
+                operator: c3iState.currentUser.codename,
                 action,
                 details,
                 userId: c3iState.firebaseUser.uid
@@ -1075,9 +1106,17 @@
             }
         }
 
+        function getClearanceName(level) {
+            if (level >= 7) return 'System Administrator';
+            if (level >= 6) return 'Command';
+            if (level >= 4) return 'Strategic';
+            if (level >= 3) return 'Operator';
+            return 'Recruit';
+        }
+
         function initializeC3IApp() {
-            document.getElementById('user-callsign').textContent = c3iState.currentUser.callsign;
-            document.getElementById('user-clearance').textContent = `Clearance: ${c3iState.currentUser.clearance}`;
+            document.getElementById('user-callsign').textContent = c3iState.currentUser.codename;
+            document.getElementById('user-clearance').textContent = `Lvl ${c3iState.currentUser.clearance} - ${getClearanceName(c3iState.currentUser.clearance)}`;
             document.getElementById('user-id-display').textContent = c3iState.firebaseUser?.uid || 'ANONYMOUS';
             document.getElementById('logout-button').addEventListener('click', () => {
                 signOut(auth).then(() => {
@@ -1144,8 +1183,8 @@
                 waypoints: 'waypointsUpdated',
                 chatMessages: 'chatUpdated',
                 auditLog: 'logUpdated',
-                factions: 'factionsUpdated',
-                armoury: 'armouryUpdated'
+                plans: 'plansUpdated',
+                tasks: 'tasksUpdated'
             };
 
             for (const [key, eventName] of Object.entries(collectionsToWatch)) {
@@ -1154,32 +1193,11 @@
                     console.log(`Received ${key} snapshot with ${snapshot.docs.length} documents.`);
                     let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                    if (key === 'auditLog' || key === 'chatMessages') {
-                        data.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
-                        if(key === 'auditLog') data.reverse();
+                    if (key === 'auditLog' || key === 'chatMessages' || key === 'plans' || key === 'tasks') {
+                        data.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
                     }
                     
-                    if (key === 'armoury') {
-                        // Process armoury items into a hierarchical structure
-                        const armouryFS = {};
-                        data.forEach(item => {
-                            const pathParts = item.path.split('/').filter(p => p);
-                            let currentLevel = armouryFS;
-                            pathParts.forEach((part, index) => {
-                                if (index === pathParts.length - 1) {
-                                    if (!currentLevel.files) currentLevel.files = [];
-                                    currentLevel.files.push({ ...item, name: part });
-                                } else {
-                                    if (!currentLevel.dirs) currentLevel.dirs = {};
-                                    if (!currentLevel.dirs[part]) currentLevel.dirs[part] = {};
-                                    currentLevel = currentLevel.dirs[part];
-                                }
-                            });
-                        });
-                        c3iState[key] = armouryFS;
-                    } else {
-                       c3iState[key] = data;
-                    }
+                    c3iState[key] = data;
                     
                     window.dispatchEvent(new Event(eventName));
                 }, err => console.error(`${key} listener error: `, err));
@@ -1846,36 +1864,98 @@
         }
 
         function initIntelPage() {
-            const container = document.getElementById('faction-dossiers-container');
+            const listContainer = document.getElementById('faction-list-container');
+            const detailView = document.getElementById('faction-detail-view');
+            const listView = document.getElementById('faction-list-view');
+            const plansContainer = document.getElementById('plans-container');
+            const tasksContainer = document.getElementById('tasks-container');
+            const personnelContainer = document.getElementById('personnel-container');
+
+            function showListView() {
+                listView.classList.remove('hidden');
+                detailView.classList.add('hidden');
+                detailView.innerHTML = '';
+            }
+
+            function showDetailView(factionKey) {
+                const faction = c3iState.intel[factionKey];
+                if (!faction) return;
+
+                listView.classList.add('hidden');
+                detailView.classList.remove('hidden');
+
+                let strengthHTML = `<div class="grid grid-cols-3 gap-2 text-center text-sm p-2 ui-box">
+                    <div>Ground<br><span class="font-bold text-info">${faction.strength.ground}</span></div>
+                    <div>Air<br><span class="font-bold text-info">${faction.strength.air}</span></div>
+                    <div>Naval<br><span class="font-bold text-info">${faction.strength.naval}</span></div>
+                </div>`;
+
+                let hierarchyHTML = `<h5 class="font-bold mt-4 text-secondary">Hierarchy:</h5><ul class="text-sm list-disc list-inside"><li><span class="font-bold">Leader:</span> ${faction.hierarchy.leader}</li>`;
+                if(faction.hierarchy.members) {
+                    faction.hierarchy.members.forEach(m => hierarchyHTML += `<li>${m}</li>`);
+                }
+                hierarchyHTML += '</ul>';
+
+                detailView.innerHTML = `
+                    <button id="back-to-factions-btn" class="c3i-button text-sm mb-4">← Back to List</button>
+                    <h3 class="text-2xl text-primary">${faction.name}</h3>
+                    <div class="flex justify-between text-md my-2"><span>Threat: <span class="text-warning font-bold">${faction.threat}</span></span> <span>Hostility: <span class="text-secondary font-bold">${faction.hostility}</span></span></div>
+                    <p class="text-md italic text-gray-400 my-4 p-2 ui-box">"${faction.report}"</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>${strengthHTML}</div>
+                        <div>${hierarchyHTML}</div>
+                    </div>
+                `;
+                document.getElementById('back-to-factions-btn').addEventListener('click', showListView);
+            }
             
-            function renderFactions() {
-                container.innerHTML = '';
+            function renderFactionList() {
+                listContainer.innerHTML = '';
                 for(const key in c3iState.intel) {
                     const faction = c3iState.intel[key];
-                    const dossier = document.createElement('div');
-                    dossier.className = 'ui-box space-y-2';
-                    
-                    let strengthHTML = `<div class="grid grid-cols-3 gap-2 text-center text-xs">
-                        <div>Ground<br><span class="font-bold text-info">${faction.strength.ground}</span></div>
-                        <div>Air<br><span class="font-bold text-info">${faction.strength.air}</span></div>
-                        <div>Naval<br><span class="font-bold text-info">${faction.strength.naval}</span></div>
-                    </div>`;
-
-                    let hierarchyHTML = `<h5 class="font-bold mt-2">Hierarchy:</h5><ul class="text-xs list-disc list-inside"><li><span class="font-bold">Leader:</span> ${faction.hierarchy.leader}</li>`;
-                    if(faction.hierarchy.members) {
-                        faction.hierarchy.members.forEach(m => hierarchyHTML += `<li>${m}</li>`);
-                    }
-                    hierarchyHTML += '</ul>';
-
-                    dossier.innerHTML = `
-                        <h3 class="text-lg text-primary">${faction.name}</h3>
-                        <div class="flex justify-between text-sm"><span>Threat: <span class="text-warning font-bold">${faction.threat}</span></span> <span>Hostility: <span class="text-secondary font-bold">${faction.hostility}</span></span></div>
-                        <p class="text-sm italic text-gray-400">"${faction.report}"</p>
-                        ${strengthHTML}
-                        ${hierarchyHTML}
+                    const card = document.createElement('div');
+                    card.className = 'ui-box space-y-2 cursor-pointer hover:border-primary transition-all';
+                    card.dataset.factionKey = key;
+                    card.innerHTML = `
+                        <h3 class="text-lg text-primary pointer-events-none">${faction.name}</h3>
+                        <div class="flex justify-between text-sm pointer-events-none"><span>Threat: <span class="text-warning font-bold">${faction.threat}</span></span> <span>Hostility: <span class="text-secondary font-bold">${faction.hostility}</span></span></div>
                     `;
-                    container.appendChild(dossier);
+                    card.addEventListener('click', () => showDetailView(key));
+                    listContainer.appendChild(card);
                 }
+            }
+
+            function renderPlans() {
+                if(!plansContainer) return;
+                plansContainer.innerHTML = c3iState.plans.map(plan => `
+                    <div class="ui-box">
+                        <h4 class="text-primary">${plan.name}</h4>
+                        <p class="text-sm whitespace-pre-wrap">${plan.details}</p>
+                        <p class="text-xs text-gray-500 mt-2">By ${plan.author} on ${plan.timestamp?.toDate().toLocaleDateString()}</p>
+                    </div>
+                `).join('');
+            }
+            
+            function renderTasks() {
+                if(!tasksContainer) return;
+                tasksContainer.innerHTML = c3iState.tasks.map(task => `
+                    <div class="ui-box">
+                        <p>${task.name}</p>
+                        <p class="text-sm mt-1">Priority: <span class="font-bold text-warning">${task.priority}</span></p>
+                        <p class="text-xs text-gray-500 mt-2">Assigned by ${task.author} on ${task.timestamp?.toDate().toLocaleDateString()}</p>
+                    </div>
+                `).join('');
+            }
+
+            function renderPersonnel() {
+                if (!personnelContainer) return;
+                let tableHTML = `<table class="data-table"><thead><tr><th>Codename</th><th>Username</th><th>Clearance Level</th></tr></thead><tbody>`;
+                for (const codename in c3iState.users) {
+                    const user = c3iState.users[codename];
+                    tableHTML += `<tr><td>${codename}</td><td>${user.username}</td><td>${user.clearance} - ${getClearanceName(user.clearance)}</td></tr>`;
+                }
+                tableHTML += `</tbody></table>`;
+                personnelContainer.innerHTML = tableHTML;
             }
 
             const sidebarTabs = document.querySelectorAll('#template-intel .sidebar-tab');
@@ -1888,7 +1968,47 @@
                 });
             });
 
-            renderFactions();
+            // Modals
+            const planModal = document.getElementById('plan-modal');
+            const taskModal = document.getElementById('task-modal');
+            document.getElementById('add-plan-btn')?.addEventListener('click', () => planModal.classList.remove('hidden'));
+            document.getElementById('add-task-btn')?.addEventListener('click', () => taskModal.classList.remove('hidden'));
+            document.getElementById('close-plan-modal-btn')?.addEventListener('click', () => planModal.classList.add('hidden'));
+            document.getElementById('close-task-modal-btn')?.addEventListener('click', () => taskModal.classList.add('hidden'));
+
+            document.getElementById('plan-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const planData = {
+                    name: e.target['plan-name'].value,
+                    details: e.target['plan-details'].value,
+                    author: c3iState.currentUser.codename,
+                    timestamp: serverTimestamp()
+                };
+                await addDoc(collection(db, `artifacts/${appId}/public/data/plans`), planData);
+                planModal.classList.add('hidden');
+                e.target.reset();
+            });
+
+            document.getElementById('task-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const taskData = {
+                    name: e.target['task-name'].value,
+                    priority: e.target['task-priority'].value,
+                    author: c3iState.currentUser.codename,
+                    timestamp: serverTimestamp()
+                };
+                await addDoc(collection(db, `artifacts/${appId}/public/data/tasks`), taskData);
+                taskModal.classList.add('hidden');
+                e.target.reset();
+            });
+
+            window.addEventListener('plansUpdated', renderPlans);
+            window.addEventListener('tasksUpdated', renderTasks);
+
+            renderFactionList();
+            renderPlans();
+            renderTasks();
+            renderPersonnel();
         }
 
         function initCommsPage() {
@@ -1899,14 +2019,14 @@
             function renderMessages() {
                 if (!chatMessagesEl) return;
                 chatMessagesEl.innerHTML = '';
-                c3iState.chatMessages.forEach(msg => {
+                // Create a reversed copy for rendering without mutating state
+                [...c3iState.chatMessages].reverse().forEach(msg => {
                     const msgEl = document.createElement('p');
-                    const sender = msg.user === c3iState.currentUser.callsign ? 'You' : msg.user;
-                    const colorClass = msg.user === c3iState.currentUser.callsign ? 'text-info' : 'text-primary';
+                    const sender = msg.user === c3iState.currentUser.codename ? 'You' : msg.user;
+                    const colorClass = msg.user === c3iState.currentUser.codename ? 'text-info' : 'text-primary';
                     msgEl.innerHTML = `<span class="${colorClass}">${sender}:</span> ${msg.text}`;
                     chatMessagesEl.appendChild(msgEl);
                 });
-                chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
             }
 
             chatForm.addEventListener('submit', async e => {
@@ -1914,7 +2034,7 @@
                 const text = chatInput.value.trim();
                 if (text) {
                     const messageData = {
-                        user: c3iState.currentUser.callsign,
+                        user: c3iState.currentUser.codename,
                         text: text,
                         timestamp: serverTimestamp(),
                         userId: c3iState.firebaseUser.uid
@@ -1923,7 +2043,6 @@
                     try {
                         const chatCollection = collection(db, `artifacts/${appId}/public/data/chatMessages`);
                         await addDoc(chatCollection, messageData);
-                        // logAction('Chat Message Sent'); // Optional: can be noisy
                     } catch (error) {
                         console.error("Error sending message:", error);
                         chatInput.value = text; // Put text back on failure
@@ -2044,11 +2163,11 @@
         bootState.loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             await authReadyPromise; // Wait for firebase to be ready
-            const username = e.target.username.value.toUpperCase();
+            const codename = e.target.username.value;
             const password = e.target.password.value;
-            const user = c3iState.users[username];
+            const user = c3iState.users[codename.toLowerCase()];
             if (user && user.password === password) {
-                c3iState.currentUser = { callsign: username, ...user };
+                c3iState.currentUser = { codename: codename, ...user };
                 await logAction('User Login');
                 showDesktop();
             } else {
