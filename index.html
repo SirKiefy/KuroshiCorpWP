@@ -1,642 +1,332 @@
 <!DOCTYPE html>
 <html lang="en-GB">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSW-OS [v27.7-FBE]</title>
-    <title>HSW-OS [v27.8-FBE]</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-<script type="importmap">
-{
-"imports": {
-"three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
-"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/"
-}
-}
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSW-OS [v27.10-FBE]</title>
+    <!-- Link to the external stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ES Module Shims for importmap support in older browsers -->
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <!-- Importmap for managing JavaScript modules -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/"
+        }
+    }
+    </script>
+    <!-- External libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-@font-face {
-font-family: "PPSupplyMono";
-src: url("https://assets.codepen.io/7558/PPSupplyMono-Regular.ttf") format("truetype");
-font-weight: normal; font-style: normal; font-display: swap;
-}
-
-:root {
---color-bg: #000000;
---color-primary: #ff3c3c; /* Red */
---color-secondary: #ff8c3c; /* Orange-Red */
---color-tertiary: #9C27B0; /* Purple */
---color-warning: #f5a623; /* Orange */
---color-ok: #4caf50; /* Green */
---color-info: #45f3ff; /* Cyan */
---color-text: #cccccc;
---color-border: rgba(255, 60, 60, 0.15);
---font-primary: "PPSupplyMono", "Courier New", monospace;
-}
-
-body.theme-crimson { --color-primary: #DC143C; --color-secondary: #FF4500; --color-tertiary: #9C27B0; --color-border: rgba(220, 20, 60, 0.15); }
-body.theme-helios { --color-primary: #9cd4c4; --color-secondary: #6aa394; --color-tertiary: #87CEEB; --color-border: rgba(156, 212, 196, 0.15); }
-body.theme-cobalt { --color-primary: #1976D2; --color-secondary: #29B6F6; --color-tertiary: #45f3ff; --color-border: rgba(25, 118, 210, 0.15); }
-body.theme-hunter { --color-primary: #2E7D32; --color-secondary: #66BB6A; --color-tertiary: #4CAF50; --color-border: rgba(46, 125, 50, 0.15); }
-body.theme-amber { --color-primary: #FFA000; --color-secondary: #FFCA28; --color-tertiary: #f5a623; --color-border: rgba(255, 160, 0, 0.15); }
-body.theme-orion { --color-primary: #4A90E2; --color-secondary: #50E3C2; --color-tertiary: #45f3ff; --color-border: rgba(74, 144, 226, 0.15); }
-body.theme-void { --color-primary: #9C27B0; --color-secondary: #00BCD4; --color-tertiary: #ba68c8; --color-border: rgba(156, 39, 176, 0.15); }
-body.theme-plasma { --color-primary: #00FF00; --color-secondary: #7FFF00; --color-tertiary: #00FFFF; --color-border: rgba(0, 255, 0, 0.15); }
-body.theme-sunset { --color-primary: #FF4500; --color-secondary: #FF69B4; --color-tertiary: #8A2BE2; --color-border: rgba(255, 69, 0, 0.15); }
-body.theme-glacial { --color-primary: #FFFFFF; --color-secondary: #ADD8E6; --color-tertiary: #E0FFFF; --color-border: rgba(255, 255, 255, 0.15); }
-
-
-body {
-background-color: var(--color-bg);
-color: var(--color-text);
-font-family: var(--font-primary);
-overflow: hidden;
-cursor: none;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-primary); }
-::-webkit-scrollbar-thumb:hover { background: var(--color-secondary); }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-
-
-/* Static noise overlay for CRT effect */
-#noise-overlay {
-position: fixed;
-top: -50%; left: -50%;
-width: 200%; height: 200%;
-background: transparent url("https://assets.codepen.io/7558/noise.png") repeat 0 0;
-background-size: 300px 300px;
-animation: noise-animation 0.2s steps(4) infinite;
-opacity: 0.8;
-will-change: transform;
-z-index: 1000;
-pointer-events: none;
-}
-
-@keyframes noise-animation {
-0% { transform: translate(0, 0); } 10% { transform: translate(-1%, -1%); } 20% { transform: translate(1%, -2%); } 30% { transform: translate(-1%, 2%); } 40% { transform: translate(1%, -1%); } 50% { transform: translate(-1%, 2%); } 60% { transform: translate(-2%, 1%); } 70% { transform: translate(2%, 1%); } 80% { transform: translate(1%, -1%); } 90% { transform: translate(-1%, 2%); } 100% { transform: translate(1%, 0); }
-}
-
-#custom-cursor {
-position: fixed;
-width: 20px; height: 20px;
-pointer-events: none;
-transform: translate(-50%, -50%);
-z-index: 9999;
-}
-#custom-cursor .crosshair { 
-stroke: var(--color-primary); 
-stroke-width: 1.5px; 
-animation: cursor-spin 10s linear infinite; 
-}
-body.color-shift-active #custom-cursor .crosshair {
-animation: cursor-spin 10s linear infinite, color-shift-stroke 8s infinite linear; 
-}
-@keyframes cursor-spin { 100% { transform: rotate(360deg); } }
-
-@keyframes color-shift {
-0%, 100% {
-border-color: var(--color-primary);
-color: var(--color-primary);
-}
-33% {
-border-color: var(--color-secondary);
-color: var(--color-secondary);
-}
-66% {
-border-color: var(--color-tertiary);
-color: var(--color-tertiary);
-}
-}
-
-@keyframes color-shift-stroke {
-0%, 100% { stroke: var(--color-primary); }
-33% { stroke: var(--color-secondary); }
-66% { stroke: var(--color-tertiary); }
-}
-
-@keyframes color-shift-bg {
-0%, 100% { background-color: var(--color-primary); }
-33% { background-color: var(--color-secondary); }
-66% { background-color: var(--color-tertiary); }
-}
-
-.ui-box {
-border: 1px solid var(--color-border);
-background: rgba(10, 10, 10, 0.7);
-padding: 1rem;
-position: relative;
-backdrop-filter: blur(8px);
-}
-.ui-box::before, .ui-box::after, .ui-box .corner-bl, .ui-box .corner-br {
-content: ''; position: absolute; width: 10px; height: 10px; border: 2px solid var(--color-primary);
-}
-body.color-shift-active .ui-box::before, body.color-shift-active .ui-box::after, body.color-shift-active .ui-box .corner-bl, body.color-shift-active .ui-box .corner-br {
-animation: color-shift 8s infinite ease-in-out;
-}
-.ui-box::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
-.ui-box::after { top: -2px; right: -2px; border-left: none; border-bottom: none; }
-.ui-box .corner-bl { bottom: -2px; left: -2px; border-top: none; border-right: none; }
-.ui-box .corner-br { bottom: -2px; right: -2px; border-top: none; border-left: none; }
-
-#boot-container { position: fixed; inset: 0; z-index: 100; }
-.boot-stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.5s, visibility 0.5s; }
-.boot-stage.active { opacity: 1; visibility: visible; }
-
-.stage-title { position: absolute; top: 2rem; left: 50%; transform: translateX(-50%); font-family: var(--font-primary); font-size: 1.5rem; letter-spacing: 5px; color: var(--color-primary); }
-body.color-shift-active .stage-title { animation: color-shift 8s infinite linear; }
-
-#stage-offline-text { z-index: 10; text-align: center; }
-#stage-offline h1 { font-size: 2rem; letter-spacing: 4px; color: var(--color-primary); }
-body.color-shift-active #stage-offline h1 { animation: color-shift 8s infinite linear; }
-#stage-offline p { font-size: 1.2rem; margin-top: 1rem; color: var(--color-warning); animation: slow-blink 2s infinite; }
-@keyframes slow-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-.canvas-container { position: absolute; inset: 0; width: 100%; height: 100%; }
-.canvas-container canvas { width: 100%; height: 100%; display: block; }
-
-#bios-container { width: 95vw; max-width: 1800px; height: 95vh; display: flex; flex-direction: column; gap: 1rem; }
-#bios-content { display: grid; grid-template-columns: 3fr 2fr; gap: 1rem; flex-grow: 1; overflow: hidden;}
-#bios-lines-box { display: flex; flex-direction: column; overflow: hidden; }
-#bios-lines { flex-grow: 1; overflow-y: scroll; font-size: 0.8rem; padding: 1rem; }
-.bios-line { white-space: pre-wrap; margin-bottom: 0.25rem; }
-.keyword-ok { color: var(--color-ok); font-weight: bold; }
-.keyword-error { color: var(--color-primary); font-weight: bold; animation: fast-blink 0.5s infinite; }
-.keyword-warn { color: var(--color-warning); }
-.keyword-info { color: var(--color-info); }
-.keyword-sys { color: #a855f7; }
-.keyword-data { color: #fb923c; }
-.highlight { background: var(--color-border); padding: 0 4px; }
-@keyframes fast-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-#bios-sidebar { display: flex; flex-direction: column; gap: 1rem; }
-.progress-bar-container { border: 1px solid var(--color-border); padding: 2px; margin-top: 0.25rem; background: rgba(0,0,0,0.2); }
-.progress-bar { width: 0%; height: 10px; background: var(--color-primary); transition: width 0.1s linear; }
-body.color-shift-active .progress-bar { animation: color-shift-bg 8s infinite linear; }
-.progress-label { margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; }
-
-.circular-bars-container { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1rem; margin-top: 1rem; }
-.circular-bar { position: relative; width: 100%; padding-top: 100%; }
-.circular-bar svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
-.circular-bar circle { fill: none; stroke-width: 8; }
-.circular-bar .bar-bg { stroke: var(--color-border); }
-.circular-bar .bar-fg { stroke: var(--color-primary); stroke-linecap: round; transition: stroke-dashoffset 0.2s linear; }
-body.color-shift-active .circular-bar .bar-fg { animation: color-shift-stroke 8s infinite linear; }
-.circular-bar-label { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; }
-
-#bios-sidebar-visual { flex-grow: 1; margin-top: 1rem; position: relative; }
-
-.animated-title {
-background: linear-gradient(90deg, var(--color-primary), var(--color-secondary), var(--color-tertiary), var(--color-primary));
-background-size: 400% 100%;
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-animation: gradient-scroll 6s linear infinite;
-}
-@keyframes gradient-scroll {
-0% { background-position: 200% 0; }
-100% { background-position: -200% 0; }
-}
-
-#auth-title { font-family: var(--font-primary); font-size: 2rem; margin-bottom: 2rem; }
-#login-form { width: 400px; }
-.input-field { background: transparent; border: none; border-bottom: 2px solid var(--color-border); width: 100%; padding: 0.5rem 0; font-size: 1.2rem; margin-bottom: 2rem; }
-.input-field:focus { outline: none; border-bottom-color: var(--color-primary); }
-body.color-shift-active .input-field:focus { animation: color-shift 8s infinite linear; }
-.login-btn { font-size: 1.2rem; font-weight: 700; padding: 0.75rem; background: transparent; border: 2px solid var(--color-primary); width: 100%; transition: all 0.3s; }
-body.color-shift-active .login-btn { animation: color-shift 8s infinite linear reverse; }
-.login-btn:hover { background: var(--color-primary); color: var(--color-bg); animation-play-state: paused; }
-#login-error { color: var(--color-primary); text-align: center; margin-top: 1rem; display: none; }
-
-/* C3I Application Styles */
-#desktop { display: none; height: 100vh; }
-.main-grid { display: grid; grid-template-columns: 250px 1fr; grid-template-rows: 1fr; height: 100%; gap: 1rem; padding: 2rem; transition: grid-template-columns 0.3s ease-in-out; }
-.main-grid.collapsed { grid-template-columns: 60px 1fr; }
-
-#main-nav .nav-text { transition: opacity 0.2s ease, width 0.2s ease; width: auto; white-space: nowrap; }
-.main-grid.collapsed #main-nav .nav-text { opacity: 0; pointer-events: none; width: 0; }
-.main-grid.collapsed #main-nav h1 { font-size: 1.5rem; text-align: center; }
-.main-grid.collapsed #main-nav .nav-item { 
-justify-content: center; 
-gap: 0;
-padding-left: 0;
-padding-right: 0;
-}
-
-.nav-item { transition: all 0.3s ease; cursor: pointer; }
-.nav-item .icon-box { background-color: rgba(255,255,255,0.05); border: 1px solid var(--color-border); transition: all 0.3s ease; }
-.nav-item:hover .icon-box { background-color: var(--color-border); }
-.nav-item.active .icon-box { 
-background-color: var(--color-primary); 
-color: var(--color-bg); 
-border-color: var(--color-primary);
-}
-
-#sidebar-toggle { transition: transform 0.3s ease-in-out; }
-.main-grid.collapsed #sidebar-toggle { transform: rotate(180deg); }
-
-#tactical-map-container, #map-plane-container { position: relative; width: 100%; height: 100%; }
-#tactical-map, #map-plane { width: 100%; height: 100%; cursor: grab; }
-#tactical-map:active, #map-plane:active { cursor: grabbing; }
-
-.asset-icon { position: absolute; color: var(--color-primary); transform: translate(-50%, -50%); cursor: pointer; font-size: 24px; }
-.asset-icon:hover .tooltip { display: block; }
-.tooltip { display: none; position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background-color: rgba(10,10,10,0.9); padding: 5px 10px; border-radius: 4px; font-size: 12px; white-space: nowrap; }
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1100; }
-.c3i-input, .c3i-select, .c3i-textarea, .c3i-button { background-color: rgba(255, 60, 60, 0.1); border: 1px solid var(--color-border); padding: 0.5rem; border-radius: 0px; color: var(--color-text); }
-.c3i-button { cursor: pointer; transition: all 0.2s ease; }
-.c3i-button:hover { background-color: rgba(255, 60, 60, 0.3); border-color: var(--color-primary); }
-.c3i-button:disabled { cursor: not-allowed; opacity: 0.5; }
-
-.text-primary { color: var(--color-primary); }
-body.color-shift-active .text-primary { animation: color-shift 8s infinite linear; }
-.text-ok { color: var(--color-ok); }
-.text-warning { color: var(--color-warning); }
-.text-secondary { color: var(--color-secondary); }
-.text-info { color: var(--color-info); }
-
-.control-toggle { display: flex; align-items: center; justify-content: space-between; }
-.toggle-switch { position: relative; display: inline-block; width: 40px; height: 20px; }
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--color-border); transition: .4s; }
-.slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 4px; bottom: 4px; background-color: var(--color-text); transition: .4s; }
-input:checked + .slider { background-color: var(--color-primary); }
-body.color-shift-active input:checked + .slider { animation: color-shift-bg 8s infinite linear; }
-input:checked + .slider:before { transform: translateX(20px); }
-
-.theme-btn { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid var(--color-border); transition: all 0.2s; }
-.theme-btn.active { border-color: var(--color-primary); transform: scale(1.1); }
-
-.sidebar-tab { padding: 0.5rem; border-bottom: 2px solid transparent; cursor: pointer; }
-.sidebar-tab.active { border-bottom-color: var(--color-primary); color: var(--color-primary); }
-body.color-shift-active .sidebar-tab.active { animation: color-shift 8s infinite linear; }
-.sidebar-tab-content { display: none; }
-.sidebar-tab-content.active { display: block; }
-
-input[type="color"] { -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 30px; padding: 0; border: 1px solid var(--color-border); background-color: transparent; cursor: pointer; }
-input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-input[type="color"]::-webkit-color-swatch { border: none; }
-
-.waypoint-2d {
-position: absolute;
-width: 12px;
-height: 12px;
-background-color: var(--color-warning);
-border: 2px solid var(--color-text);
-border-radius: 50%;
-transform: translate(-50%, -50%);
-cursor: pointer;
-box-shadow: 0 0 8px var(--color-warning);
-}
-
-@keyframes status-pulse {
-0%, 100% { opacity: 1; }
-50% { opacity: 0.7; }
-}
-
-#status-text {
-animation: status-pulse 3s infinite ease-in-out;
-}
-
-/* Intel/Codex/Armoury Page Specific Styles */
-.data-nav-item {
-padding: 0.5rem 1rem;
-cursor: pointer;
-border-left: 2px solid transparent;
-transition: all 0.2s ease-in-out;
-display: flex;
-align-items: center;
-gap: 0.5rem;
-}
-.data-nav-item:hover {
-background-color: var(--color-border);
-}
-.data-nav-item.active {
-border-left-color: var(--color-primary);
-color: var(--color-primary);
-background-color: var(--color-border);
-}
-.codex-content, .intel-content, .armoury-content {
-display: none;
-}
-.codex-content.active, .intel-content.active, .armoury-content.active {
-display: block;
-}
-.data-table {
-width: 100%;
-border-collapse: collapse;
-}
-.data-table th, .data-table td {
-border: 1px solid var(--color-border);
-padding: 0.5rem;
-text-align: left;
-}
-.data-table th {
-background-color: rgba(255,255,255,0.05);
-color: var(--color-primary);
-}
-        .codex-content h3 {
-            font-size: 1.25rem;
-            color: var(--color-primary);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--color-border);
-        }
-        .codex-content h4 {
-            font-size: 1.1rem;
-            color: var(--color-secondary);
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-        }
-        .codex-content ul {
-            list-style-type: disc;
-            padding-left: 2rem;
-            margin-bottom: 1rem;
-        }
-
-
-</style>
 </head>
-<body class="color-shift-active theme-crimson">
+<body class="theme-crimson">
 
-<div id="custom-cursor"><svg class="crosshair" width="20" height="20" viewBox="0 0 24 24" style="transform-origin: center;"><path d="M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12" fill="none" /></svg></div>
-<div id="noise-overlay"></div>
+    <!-- Custom cursor and noise overlay for visual effects -->
+    <div id="custom-cursor"><svg class="crosshair" width="20" height="20" viewBox="0 0 24 24" style="transform-origin: center;"><path d="M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12" fill="none" /></svg></div>
+    <div id="noise-overlay"></div>
 
-<div id="boot-container">
-<!-- Stages 0-5 for boot sequence -->
-<div id="stage-offline" class="boot-stage active"><div id="stage-offline-text"><h1>SATELLITE CONNECTION OFFLINE</h1><p>STATUS: IDLE</p><p class="text-sm mt-8 text-gray-500">CLICK OR PRESS ANY KEY TO INITIATE LINK</p></div><div class="canvas-container" id="offline-canvas-container"><canvas id="offline-canvas"></canvas></div></div>
-<div id="stage-core-ignition" class="boot-stage"><div class="stage-title">SYSTEM CORE IGNITION</div><div class="canvas-container" id="core-ignition-canvas-container"><canvas id="core-ignition-canvas"></canvas></div></div>
-        <div id="stage-bios" class="boot-stage"><div id="bios-container"><div class="ui-box self-start"><h1 class="text-base font-bold tracking-widest animated-title">WARSAT BIOS v27.7</h1></div><div id="bios-content"><div id="bios-lines-box" class="ui-box"><div id="bios-lines"></div></div><div id="bios-sidebar" class="flex flex-col gap-4"><div class="ui-box flex-grow"><div class="progress-label">QEC Integrity</div><div class="progress-bar-container"><div id="bar-qec" class="progress-bar"></div></div><div class="progress-label mt-2">Heatsink Calibration</div><div class="progress-bar-container"><div id="bar-heat" class="progress-bar"></div></div><div class="progress-label mt-2">Weapon Systems</div><div class="progress-bar-container"><div id="bar-wpn" class="progress-bar"></div></div><div class="progress-label mt-2">Telemetry Link</div><div class="progress-bar-container"><div id="bar-telemetry" class="progress-bar"></div></div><div class="progress-label mt-2">Shield Emitters</div><div class="progress-bar-container"><div id="bar-shield" class="progress-bar"></div></div><div class="progress-label mt-2">Sensor Array</div><div class="progress-bar-container"><div id="bar-sensor" class="progress-bar"></div></div><div class="circular-bars-container mt-4"><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-power" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Power</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-nav" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NAV</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-life" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Life</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-cpu" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">CPU</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-mem" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">MEM</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-net" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NET</div></div></div><div id="bios-sidebar-visual"></div></div></div></div></div></div>
-        <div id="stage-bios" class="boot-stage"><div id="bios-container"><div class="ui-box self-start"><h1 class="text-base font-bold tracking-widest animated-title">WARSAT BIOS v27.8</h1></div><div id="bios-content"><div id="bios-lines-box" class="ui-box"><div id="bios-lines"></div></div><div id="bios-sidebar" class="flex flex-col gap-4"><div class="ui-box flex-grow"><div class="progress-label">QEC Integrity</div><div class="progress-bar-container"><div id="bar-qec" class="progress-bar"></div></div><div class="progress-label mt-2">Heatsink Calibration</div><div class="progress-bar-container"><div id="bar-heat" class="progress-bar"></div></div><div class="progress-label mt-2">Weapon Systems</div><div class="progress-bar-container"><div id="bar-wpn" class="progress-bar"></div></div><div class="progress-label mt-2">Telemetry Link</div><div class="progress-bar-container"><div id="bar-telemetry" class="progress-bar"></div></div><div class="progress-label mt-2">Shield Emitters</div><div class="progress-bar-container"><div id="bar-shield" class="progress-bar"></div></div><div class="progress-label mt-2">Sensor Array</div><div class="progress-bar-container"><div id="bar-sensor" class="progress-bar"></div></div><div class="circular-bars-container mt-4"><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-power" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Power</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-nav" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NAV</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-life" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Life</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-cpu" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">CPU</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-mem" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">MEM</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-net" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NET</div></div></div><div id="bios-sidebar-visual"></div></div></div></div></div></div>
-<div id="stage-threat-analysis" class="boot-stage"><div class="stage-title">THREAT ANALYSIS</div><div class="canvas-container" id="threat-analysis-canvas-container"><canvas id="threat-analysis-canvas"></canvas></div></div>
-<div id="stage-auth" class="boot-stage"><div class="ui-box"><h1 id="auth-title" class="animated-title">[UPLINK ESTABLISHED]</h1><form id="login-form"><input type="text" id="username" class="input-field" placeholder="CODENAME" required autocomplete="off"><input type="password" id="password" class="input-field" placeholder="PASSCODE" required autocomplete="off"><button type="submit" class="login-btn">AUTHORIZE</button><p id="login-error">AUTH FAILED: INVALID CREDENTIALS</p></form></div></div>
-</div>
+    <!-- Boot sequence container -->
+    <div id="boot-container">
+        <!-- Stages for the boot sequence -->
+        <div id="stage-offline" class="boot-stage active">
+            <div id="stage-offline-text">
+                <h1>SATELLITE CONNECTION OFFLINE</h1>
+                <p>STATUS: IDLE</p>
+                <p class="text-sm mt-8 text-gray-500">CLICK OR PRESS ANY KEY TO INITIATE LINK</p>
+            </div>
+            <div class="canvas-container" id="offline-canvas-container"><canvas id="offline-canvas"></canvas></div>
+        </div>
+        <div id="stage-core-ignition" class="boot-stage">
+            <div class="stage-title">SYSTEM CORE IGNITION</div>
+            <div class="canvas-container" id="core-ignition-canvas-container"><canvas id="core-ignition-canvas"></canvas></div>
+        </div>
+        <div id="stage-bios" class="boot-stage">
+            <div id="bios-container">
+                <div class="ui-box self-start"><h1 class="text-base font-bold tracking-widest animated-title">WARSAT BIOS v27.10</h1></div>
+                <div id="bios-content">
+                    <div id="bios-lines-box" class="ui-box"><div id="bios-lines"></div></div>
+                    <div id="bios-sidebar" class="flex flex-col gap-4">
+                        <div class="ui-box flex-grow">
+                            <!-- Progress bars -->
+                            <div class="progress-label">QEC Integrity</div><div class="progress-bar-container"><div id="bar-qec" class="progress-bar"></div></div>
+                            <div class="progress-label mt-2">Heatsink Calibration</div><div class="progress-bar-container"><div id="bar-heat" class="progress-bar"></div></div>
+                            <div class="progress-label mt-2">Weapon Systems</div><div class="progress-bar-container"><div id="bar-wpn" class="progress-bar"></div></div>
+                            <div class="progress-label mt-2">Telemetry Link</div><div class="progress-bar-container"><div id="bar-telemetry" class="progress-bar"></div></div>
+                            <div class="progress-label mt-2">Shield Emitters</div><div class="progress-bar-container"><div id="bar-shield" class="progress-bar"></div></div>
+                            <div class="progress-label mt-2">Sensor Array</div><div class="progress-bar-container"><div id="bar-sensor" class="progress-bar"></div></div>
+                            <!-- Circular bars -->
+                            <div class="circular-bars-container mt-4">
+                                <div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-power" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Power</div></div>
+                                <div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-nav" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NAV</div></div>
+                                <div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-life" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Life</div></div>
+                                <div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-cpu" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">CPU</div></div>
+                                <div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-mem" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">MEM</div></div>
+                                <div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-net" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NET</div></div>
+                            </div>
+                            <div id="bios-sidebar-visual"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="stage-threat-analysis" class="boot-stage">
+            <div class="stage-title">THREAT ANALYSIS</div>
+            <div class="canvas-container" id="threat-analysis-canvas-container"><canvas id="threat-analysis-canvas"></canvas></div>
+        </div>
+        <div id="stage-auth" class="boot-stage">
+            <div class="ui-box">
+                <h1 id="auth-title" class="animated-title">[UPLINK ESTABLISHED]</h1>
+                <form id="login-form">
+                    <input type="text" id="username" class="input-field" placeholder="CODENAME" required autocomplete="off">
+                    <input type="password" id="password" class="input-field" placeholder="PASSCODE" required autocomplete="off">
+                    <button type="submit" class="login-btn">AUTHORIZE</button>
+                    <p id="login-error">AUTH FAILED: INVALID CREDENTIALS</p>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main application "desktop" screen -->
+    <div id="desktop">
+        <main id="main-interface" class="main-grid">
+            <!-- Main navigation -->
+            <nav id="main-nav" class="ui-box p-4 flex flex-col">
+                <h1 class="font-bold text-2xl text-primary mb-4 transition-all nav-text">HELIOS</h1>
+                <div class="flex-grow space-y-2">
+                    <!-- Navigation items -->
+                    <div data-page="map" class="nav-item p-2 flex items-center gap-4 active"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div><span class="nav-text">Tactical Map</span></div>
+                    <div data-page="armoury" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L8.6 3.3A2 2 0 0 0 6.9 2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16z"></path></svg></div><span class="nav-text">Armoury</span></div>
+                    <div data-page="codex" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></div><span class="nav-text">Codex</span></div>
+                    <div data-page="intel" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></div><span class="nav-text">Intel</span></div>
+                    <div data-page="comms" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><span class="nav-text">Communications</span></div>
+                    <div data-page="settings" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg></div><span class="nav-text">Settings</span></div>
+                </div>
+                <!-- User information and controls -->
+                <div id="user-info" class="text-center border-t border-primary/20 pt-2 mt-auto">
+                    <p id="user-callsign" class="font-bold nav-text"></p>
+                    <p id="user-clearance" class="text-primary nav-text"></p>
+                    <p id="user-id-display" class="text-xs text-gray-500 break-all nav-text" title="User ID"></p>
+                    <button id="logout-button" class="w-full mt-2 text-sm c3i-button nav-text">Logout</button>
+                    <div id="sidebar-toggle" class="mt-2 text-center cursor-pointer hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-left mx-auto"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg></div>
+                </div>
+            </nav>
 
-<!-- Final "desktop" screen after successful login -->
-<div id="desktop">
-<main id="main-interface" class="main-grid">
-<!-- Navigation -->
-<nav id="main-nav" class="ui-box p-4 flex flex-col">
-<h1 class="font-bold text-2xl text-primary mb-4 transition-all nav-text">HELIOS</h1>
-<div class="flex-grow space-y-2">
-<div data-page="map" class="nav-item p-2 flex items-center gap-4 active"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div><span class="nav-text">Tactical Map</span></div>
-<div data-page="armoury" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L8.6 3.3A2 2 0 0 0 6.9 2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16z"></path></svg></div><span class="nav-text">Armoury</span></div>
-<div data-page="codex" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></div><span class="nav-text">Codex</span></div>
-<div data-page="intel" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></div><span class="nav-text">Intel</span></div>
-<div data-page="comms" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><span class="nav-text">Communications</span></div>
-<div data-page="settings" class="nav-item p-2 flex items-center gap-4"><div class="icon-box p-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg></div><span class="nav-text">Settings</span></div>
-</div>
-<div id="user-info" class="text-center border-t border-primary/20 pt-2 mt-auto">
-<p id="user-callsign" class="font-bold nav-text"></p>
-<p id="user-clearance" class="text-primary nav-text"></p>
-<p id="user-id-display" class="text-xs text-gray-500 break-all nav-text" title="User ID"></p>
-<button id="logout-button" class="w-full mt-2 text-sm c3i-button nav-text">Logout</button>
-<div id="sidebar-toggle" class="mt-2 text-center cursor-pointer hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-left mx-auto"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg></div>
-</div>
-</nav>
+            <!-- Main content container -->
+            <div id="desktop-content-container" class="ui-box h-full overflow-hidden p-0 flex flex-col">
+                <!-- Page content will be injected here -->
+            </div>
+        </main>
+    </div>
 
-<!-- Main Content Container -->
-<div id="desktop-content-container" class="ui-box h-full overflow-hidden p-0 flex flex-col">
-<!-- Page content will be injected here -->
-</div>
-</main>
-</div>
+    <!-- Page Templates -->
+    <template id="template-map">
+        <div class="h-full flex flex-col relative p-0">
+             <div id="map-main-panel" class="absolute inset-0">
+                 <div id="tactical-map-container" class="w-full h-full">
+                     <canvas id="tactical-map"></canvas>
+                 </div>
+                 <div id="map-plane-container" class="w-full h-full hidden">
+                     <canvas id="map-plane"></canvas>
+                 </div>
+             </div>
+             <div class="absolute top-4 left-4 w-64 ui-box">
+                 <h3 class="text-lg text-primary mb-2">Globe Controls</h3>
+                 <div class="space-y-2 text-sm">
+                     <div class="control-toggle"><span>Globe / Plane View</span><label class="toggle-switch"><input type="checkbox" id="view-toggle"><span class="slider"></span></label></div>
+                     <div class="control-toggle"><span>Auto-Rotate</span><label class="toggle-switch"><input type="checkbox" id="rotate-toggle" checked><span class="slider"></span></label></div>
+                     <div class="control-toggle"><span>Height Map</span><label class="toggle-switch"><input type="checkbox" id="heightmap-toggle"><span class="slider"></span></label></div>
+                     <div class="control-toggle"><span>Territory</span><label class="toggle-switch"><input type="checkbox" id="territory-toggle"><span class="slider"></span></label></div>
+                     <div class="control-toggle"><span>Resources</span><label class="toggle-switch"><input type="checkbox" id="resources-toggle"><span class="slider"></span></label></div>
+                     <div class="control-toggle"><span>Coordinates</span><label class="toggle-switch"><input type="checkbox" id="coord-toggle"><span class="slider"></span></label></div>
+                 </div>
+             </div>
+              <div class="absolute top-4 right-4 w-80 ui-box max-h-[calc(100%-2rem)] flex flex-col">
+                 <div class="flex border-b border-primary/20 mb-2">
+                     <div class="sidebar-tab active" data-tab="waypoints">Waypoints</div>
+                 </div>
+                 <div class="flex-grow overflow-y-auto no-scrollbar">
+                     <div class="sidebar-tab-content active" id="tab-content-waypoints">
+                         <div id="waypoint-info-content"><p class="text-sm text-gray-500">Right-click map to plot or select a waypoint.</p></div>
+                         <div class="mt-4 pt-4 border-t border-primary/20">
+                             <h3 class="text-lg text-primary mb-2">Manual Plot</h3>
+                             <div class="space-y-2 text-sm">
+                                 <div class="grid grid-cols-2 gap-2">
+                                     <input type="number" id="lat-input" placeholder="Latitude" class="c3i-input">
+                                     <input type="number" id="lon-input" placeholder="Longitude" class="c3i-input">
+                                 </div>
+                                 <button id="plot-waypoint-btn" class="c3i-button w-full">Plot Waypoint</button>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+              <div class="absolute bottom-4 left-4 w-64 ui-box">
+                 <h3 class="text-lg text-primary mb-2">STATUS</h3>
+                 <p id="status-text" class="text-sm"></p>
+             </div>
+        </div>
+    </template>
 
-<!-- Page Templates -->
-<template id="template-map">
-<div class="h-full flex flex-col relative p-0">
-<div id="map-main-panel" class="absolute inset-0">
-<div id="tactical-map-container" class="w-full h-full">
-<canvas id="tactical-map"></canvas>
-</div>
-<div id="map-plane-container" class="w-full h-full hidden">
-<canvas id="map-plane"></canvas>
-</div>
-</div>
-<div class="absolute top-4 left-4 w-64 ui-box">
-<h3 class="text-lg text-primary mb-2">Globe Controls</h3>
-<div class="space-y-2 text-sm">
-<div class="control-toggle"><span>Globe / Plane View</span><label class="toggle-switch"><input type="checkbox" id="view-toggle"><span class="slider"></span></label></div>
-<div class="control-toggle"><span>Auto-Rotate</span><label class="toggle-switch"><input type="checkbox" id="rotate-toggle" checked><span class="slider"></span></label></div>
-<div class="control-toggle"><span>Height Map</span><label class="toggle-switch"><input type="checkbox" id="heightmap-toggle"><span class="slider"></span></label></div>
-<div class="control-toggle"><span>Territory</span><label class="toggle-switch"><input type="checkbox" id="territory-toggle"><span class="slider"></span></label></div>
-<div class="control-toggle"><span>Resources</span><label class="toggle-switch"><input type="checkbox" id="resources-toggle"><span class="slider"></span></label></div>
-<div class="control-toggle"><span>Coordinates</span><label class="toggle-switch"><input type="checkbox" id="coord-toggle"><span class="slider"></span></label></div>
-</div>
-</div>
-<div class="absolute top-4 right-4 w-80 ui-box max-h-[calc(100%-2rem)] flex flex-col">
-<div class="flex border-b border-primary/20 mb-2">
-<div class="sidebar-tab active" data-tab="waypoints">Waypoints</div>
-</div>
-<div class="flex-grow overflow-y-auto no-scrollbar">
-<div class="sidebar-tab-content active" id="tab-content-waypoints">
-<div id="waypoint-info-content"><p class="text-sm text-gray-500">Right-click map to plot or select a waypoint.</p></div>
-<div class="mt-4 pt-4 border-t border-primary/20">
-<h3 class="text-lg text-primary mb-2">Manual Plot</h3>
-<div class="space-y-2 text-sm">
-<div class="grid grid-cols-2 gap-2">
-<input type="number" id="lat-input" placeholder="Latitude" class="c3i-input">
-<input type="number" id="lon-input" placeholder="Longitude" class="c3i-input">
-</div>
-<button id="plot-waypoint-btn" class="c3i-button w-full">Plot Waypoint</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="absolute bottom-4 left-4 w-64 ui-box">
-<h3 class="text-lg text-primary mb-2">STATUS</h3>
-<p id="status-text" class="text-sm"></p>
-</div>
-</div>
-</template>
-
-<template id="template-armoury">
-<div class="h-full flex flex-col p-4">
-<div class="flex justify-between items-center border-b border-primary/20 pb-4">
-<h2 class="text-xl text-primary">Armoury - Global Asset Registry</h2>
-</div>
-<div class="flex border-b border-primary/20 mt-4">
-<div class="sidebar-tab active" data-tab="browser">Browser</div>
-<div class="sidebar-tab" data-tab="comparison">Comparison</div>
-</div>
-<div class="flex-grow overflow-hidden mt-4">
-<div id="armoury-browser" class="sidebar-tab-content active h-full">
-<div class="grid grid-cols-3 gap-4 h-full">
-<div id="armoury-nav" class="ui-box col-span-1 flex flex-col h-full">
-                            <div id="armoury-breadcrumbs" class="text-sm text-gray-400 mb-2 flex-shrink-0"></div>
+    <template id="template-armoury">
+        <div class="h-full flex flex-col p-4">
+            <div class="flex justify-between items-center border-b border-primary/20 pb-4">
+                 <h2 class="text-xl text-primary">Armoury - Global Asset Registry</h2>
+            </div>
+            <div class="flex border-b border-primary/20 mt-4">
+                <div class="sidebar-tab active" data-tab="browser">Browser</div>
+                <div class="sidebar-tab" data-tab="comparison">Comparison</div>
+            </div>
+            <div class="flex-grow overflow-hidden mt-4">
+                <div id="armoury-browser" class="sidebar-tab-content active h-full">
+                    <div class="grid grid-cols-3 gap-4 h-full">
+                        <div id="armoury-nav" class="ui-box col-span-1 flex flex-col h-full">
                             <div class="flex justify-between items-center mb-2">
                                 <div id="armoury-breadcrumbs" class="text-sm text-gray-400 flex-grow"></div>
                                 <button id="add-asset-btn" class="c3i-button text-xs hidden">+</button>
                             </div>
-<div id="armoury-file-list" class="flex-grow overflow-y-auto"></div>
-</div>
-<div id="armoury-detail" class="ui-box col-span-2 overflow-y-auto h-full">
-<p class="text-gray-500">Select an asset to view details.</p>
-</div>
-</div>
-</div>
-<div id="armoury-comparison" class="sidebar-tab-content h-full overflow-y-auto">
-<div class="flex justify-between items-center mb-2">
-<h3 class="text-lg text-primary">Asset Comparison</h3>
-<button id="clear-comparison-btn" class="c3i-button text-xs">Clear</button>
-</div>
-<div id="armoury-comparison-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-<p class="text-gray-500 col-span-full">Add up to 3 assets to compare from the browser.</p>
-</div>
-</div>
-</div>
-</div>
-</template>
-
-<template id="template-codex">
-<div class="h-full flex flex-col p-4">
-<h2 class="text-xl text-primary border-b border-primary/20 pb-4">Codex</h2>
-<div class="grid grid-cols-4 gap-4 mt-4 flex-grow overflow-hidden">
-<div id="codex-nav" class="col-span-1 ui-box overflow-y-auto">
-<!-- Navigation items will be populated by JS -->
-</div>
-<div id="codex-content-container" class="col-span-3 ui-box overflow-y-auto pr-2">
-<!-- Codex content will be injected here -->
-</div>
-</div>
-</div>
-</template>
-
-<template id="template-intel">
-<div class="h-full flex flex-col p-4">
-<div class="flex justify-between items-center border-b border-primary/20 pb-4">
-<h2 class="text-xl text-primary">Intelligence Database</h2>
-</div>
-<div class="flex border-b border-primary/20 mt-4">
-<div class="sidebar-tab active" data-tab="factions">Factions</div>
-<div class="sidebar-tab" data-tab="plans">Plans</div>
-<div class="sidebar-tab" data-tab="tasks">Tasks</div>
-<div class="sidebar-tab" data-tab="personnel">Personnel</div>
-</div>
-<div id="intel-content-container" class="flex-grow mt-4 overflow-y-auto">
-<div id="intel-factions" class="intel-content active">
-<div id="faction-list-view">
-<div id="faction-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-<!-- Faction list will be injected here by JS -->
-</div>
-</div>
-<div id="faction-detail-view" class="hidden p-2">
-<!-- Faction detail will be injected here by JS -->
-</div>
-</div>
-<div id="intel-plans" class="intel-content">
-<div class="flex justify-end mb-4"><button id="add-plan-btn" class="c3i-button text-sm">Add New Plan</button></div>
-<div id="plans-container" class="space-y-4"></div>
-</div>
-<div id="intel-tasks" class="intel-content">
-<div class="flex justify-end mb-4"><button id="add-task-btn" class="c3i-button text-sm">Add New Task</button></div>
-<div id="tasks-container" class="space-y-4"></div>
-</div>
-<div id="intel-personnel" class="intel-content">
-<div id="personnel-container"></div>
-</div>
-</div>
-</div>
-</template>
-
-<template id="template-comms">
-<div class="h-full flex flex-col p-4">
-<h2 class="text-xl text-primary border-b border-primary/20 pb-4">Communications - Channel 7</h2>
-<div id="chat-messages" class="flex-grow my-4 overflow-y-auto pr-2"></div>
-<form id="chat-form" class="flex gap-2">
-<input type="text" id="chat-input" class="c3i-input flex-grow" placeholder="Type message...">
-<button type="submit" class="c3i-button">Send</button>
-</form>
-</div>
-</template>
-
-<template id="template-settings">
-<div class="h-full flex flex-col p-4">
-<h2 class="text-xl text-primary border-b border-primary/20 pb-4">System Settings</h2>
-<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-y-auto pr-2">
-<div class="ui-box">
-<h3 class="text-lg text-primary mb-2">Audio</h3>
-<div class="control-toggle">
-<span>Enable UI Sounds</span>
-<label class="toggle-switch">
-<input type="checkbox" id="sound-toggle" checked>
-<span class="slider"></span>
-</label>
-</div>
-</div>
-<div class="ui-box">
-<h3 class="text-lg text-primary mb-2">Visual Theme</h3>
-<div id="theme-selector" class="flex flex-wrap gap-4 mt-2">
-<button class="theme-btn" data-theme="theme-crimson" style="background-color: #DC143C;"></button>
-<button class="theme-btn" data-theme="theme-helios" style="background-color: #9cd4c4;"></button>
-<button class="theme-btn" data-theme="theme-cobalt" style="background-color: #1976D2;"></button>
-<button class="theme-btn" data-theme="theme-hunter" style="background-color: #2E7D32;"></button>
-<button class="theme-btn" data-theme="theme-amber" style="background-color: #FFA000;"></button>
-<button class="theme-btn" data-theme="theme-orion" style="background-color: #4A90E2;"></button>
-<button class="theme-btn" data-theme="theme-void" style="background-color: #9C27B0;"></button>
-<button class="theme-btn" data-theme="theme-plasma" style="background-color: #00FF00;"></button>
-<button class="theme-btn" data-theme="theme-sunset" style="background-color: #FF4500;"></button>
-<button class="theme-btn" data-theme="theme-glacial" style="background-color: #FFFFFF;"></button>
-</div>
-</div>
-<div class="ui-box">
-<h3 class="text-lg text-primary mb-2">UI Density</h3>
-<div class="flex gap-2">
-<button class="c3i-button flex-1 text-sm">Compact</button>
-<button class="c3i-button flex-1 text-sm">Default</button>
-<button class="c3i-button flex-1 text-sm">Comfortable</button>
-</div>
-</div>
-<div class="ui-box">
-<h3 class="text-lg text-primary mb-2">Effects</h3>
-<div class="control-toggle">
-<span>Color Shift UI</span>
-<label class="toggle-switch">
-<input type="checkbox" id="color-shift-toggle" checked>
-<span class="slider"></span>
-</label>
-</div>
-</div>
-<div class="ui-box md:col-span-2">
-<h3 class="text-lg text-primary mb-2">System Audit Log</h3>
-<div id="audit-log-container" class="mt-4 overflow-y-auto max-h-96"></div>
-</div>
-</div>
-</div>
-</template>
-
-
-<!-- Modals -->
-    <div id="plan-modal" class="modal hidden">
-        <div class="ui-box p-6 w-full max-w-lg space-y-4">
-            <h3 class="text-lg text-primary">New Strategic Plan</h3>
-            <form id="plan-form" class="space-y-4">
-                <div><label for="plan-name">Plan Name</label><input type="text" id="plan-name" class="w-full mt-1 c3i-input" required></div>
-                <div><label for="plan-details">Details</label><textarea id="plan-details" rows="4" class="w-full mt-1 c3i-textarea" required></textarea></div>
-                <div class="flex justify-end space-x-2 mt-4">
-                    <button type="button" id="close-plan-modal-btn" class="c3i-button">Cancel</button>
-                    <button type="submit" class="c3i-button">Save Plan</button>
+                            <div id="armoury-file-list" class="flex-grow overflow-y-auto"></div>
+                        </div>
+                        <div id="armoury-detail" class="ui-box col-span-2 overflow-y-auto h-full">
+                            <p class="text-gray-500">Select an asset to view details.</p>
+                        </div>
+                    </div>
                 </div>
+                <div id="armoury-comparison" class="sidebar-tab-content h-full overflow-y-auto">
+                     <div class="flex justify-between items-center mb-2">
+                         <h3 class="text-lg text-primary">Asset Comparison</h3>
+                         <button id="clear-comparison-btn" class="c3i-button text-xs">Clear</button>
+                     </div>
+                     <div id="armoury-comparison-grid">
+                         <p class="text-gray-500 col-span-full">Add up to 3 assets to compare from the browser.</p>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="template-codex">
+        <div class="h-full flex flex-col p-4">
+            <h2 class="text-xl text-primary border-b border-primary/20 pb-4">Codex</h2>
+            <div class="grid grid-cols-4 gap-4 mt-4 flex-grow overflow-hidden">
+                <div id="codex-nav" class="col-span-1 ui-box overflow-y-auto">
+                    <!-- Navigation items will be populated by JS -->
+                </div>
+                <div id="codex-content-container" class="col-span-3 ui-box overflow-y-auto pr-2">
+                    <!-- Codex content will be injected here -->
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="template-intel">
+        <div class="h-full flex flex-col p-4">
+             <div class="flex justify-between items-center border-b border-primary/20 pb-4">
+                <h2 class="text-xl text-primary">Intelligence Database</h2>
+            </div>
+            <div class="flex border-b border-primary/20 mt-4">
+                <div class="sidebar-tab active" data-tab="factions">Factions</div>
+                <div class="sidebar-tab" data-tab="plans">Plans</div>
+                <div class="sidebar-tab" data-tab="tasks">Tasks</div>
+                <div class="sidebar-tab" data-tab="personnel">Personnel</div>
+            </div>
+            <div id="intel-content-container" class="flex-grow mt-4 overflow-y-auto">
+                <div id="intel-factions" class="intel-content active h-full">
+                    <div class="grid grid-cols-3 gap-4 h-full">
+                        <div id="faction-list-container" class="col-span-1 ui-box overflow-y-auto">
+                            <!-- Faction list will be injected here by JS -->
+                        </div>
+                        <div id="faction-detail-view" class="col-span-2 ui-box overflow-y-auto">
+                             <p class="text-gray-500">Select a faction to view details.</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="intel-plans" class="intel-content">
+                    <div class="flex justify-end mb-4"><button id="add-plan-btn" class="c3i-button text-sm">Add New Plan</button></div>
+                    <div id="plans-container" class="space-y-4"></div>
+                </div>
+                <div id="intel-tasks" class="intel-content">
+                    <div class="flex justify-end mb-4"><button id="add-task-btn" class="c3i-button text-sm">Add New Task</button></div>
+                    <div id="tasks-container" class="space-y-4"></div>
+                </div>
+                <div id="intel-personnel" class="intel-content">
+                     <div id="personnel-container"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="template-comms">
+        <div class="h-full flex flex-col p-4">
+            <h2 class="text-xl text-primary border-b border-primary/20 pb-4">Communications - Channel 7</h2>
+            <div id="chat-messages" class="flex-grow my-4 overflow-y-auto pr-2"></div>
+            <form id="chat-form" class="flex gap-2">
+                <input type="text" id="chat-input" class="c3i-input flex-grow" placeholder="Type message...">
+                <button type="submit" class="c3i-button">Send</button>
             </form>
         </div>
-    </div>
+    </template>
     
-    <div id="task-modal" class="modal hidden">
+    <template id="template-settings">
+        <div class="h-full flex flex-col p-4">
+            <h2 class="text-xl text-primary border-b border-primary/20 pb-4">System Settings</h2>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-y-auto pr-2">
+                <div class="ui-box">
+                    <h3 class="text-lg text-primary mb-2">Audio</h3>
+                    <div class="control-toggle">
+                        <span>Enable UI Sounds</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="sound-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="ui-box">
+                    <h3 class="text-lg text-primary mb-2">Visual Theme</h3>
+                     <div id="theme-selector" class="flex flex-wrap gap-4 mt-2">
+                         <button class="theme-btn" data-theme="theme-crimson" style="background-color: #DC143C;"></button>
+                         <button class="theme-btn" data-theme="theme-helios" style="background-color: #9cd4c4;"></button>
+                         <button class="theme-btn" data-theme="theme-cobalt" style="background-color: #1976D2;"></button>
+                         <button class="theme-btn" data-theme="theme-hunter" style="background-color: #2E7D32;"></button>
+                         <button class="theme-btn" data-theme="theme-amber" style="background-color: #FFA000;"></button>
+                         <button class="theme-btn" data-theme="theme-orion" style="background-color: #4A90E2;"></button>
+                         <button class="theme-btn" data-theme="theme-void" style="background-color: #9C27B0;"></button>
+                         <button class="theme-btn" data-theme="theme-plasma" style="background-color: #00FF00;"></button>
+                         <button class="theme-btn" data-theme="theme-sunset" style="background-color: #FF4500;"></button>
+                         <button class="theme-btn" data-theme="theme-glacial" style="background-color: #FFFFFF;"></button>
+                     </div>
+                </div>
+                 <div class="ui-box">
+                    <h3 class="text-lg text-primary mb-2">UI Density</h3>
+                     <div class="flex gap-2">
+                         <button class="c3i-button flex-1 text-sm">Compact</button>
+                         <button class="c3i-button flex-1 text-sm">Default</button>
+                         <button class="c3i-button flex-1 text-sm">Comfortable</button>
+                     </div>
+                </div>
+                <div class="ui-box">
+                    <h3 class="text-lg text-primary mb-2">Effects</h3>
+                    <div class="control-toggle">
+                        <span>Color Shift UI</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="color-shift-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="ui-box md:col-span-2">
+                    <h3 class="text-lg text-primary mb-2">System Audit Log</h3>
+                    <div id="audit-log-container" class="mt-4 overflow-y-auto max-h-96"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Modals -->
     <div id="plan-task-modal" class="modal hidden">
-<div class="ui-box p-6 w-full max-w-lg space-y-4">
-            <h3 class="text-lg text-primary">New Operational Task</h3>
-            <form id="task-form" class="space-y-4">
-                <div><label for="task-name">Task Description</label><input type="text" id="task-name" class="w-full mt-1 c3i-input" required></div>
-                <div><label for="task-priority">Priority</label>
-                    <select id="task-priority" class="w-full mt-1 c3i-select">
+        <div class="ui-box p-6 w-full max-w-lg space-y-4">
             <h3 id="plan-task-modal-title" class="text-lg text-primary">Modal</h3>
             <form id="plan-task-form" class="space-y-4">
                 <input type="hidden" id="edit-id">
@@ -644,1793 +334,21 @@ color: var(--color-primary);
                 <div id="details-field"><label for="item-details">Details</label><textarea id="item-details" rows="4" class="w-full mt-1 c3i-textarea" required></textarea></div>
                 <div id="priority-field"><label for="item-priority">Priority</label>
                     <select id="item-priority" class="w-full mt-1 c3i-select">
-<option>Low</option>
-<option>Medium</option>
-<option>High</option>
-<option>Critical</option>
-</select>
-</div>
-<div class="flex justify-end space-x-2 mt-4">
-                    <button type="button" id="close-task-modal-btn" class="c3i-button">Cancel</button>
-                    <button type="submit" class="c3i-button">Assign Task</button>
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>High</option>
+                        <option>Critical</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-2 mt-4">
                     <button type="button" id="close-plan-task-modal-btn" class="c3i-button">Cancel</button>
                     <button type="submit" class="c3i-button">Save</button>
-</div>
-</form>
-</div>
-</div>
-
-    <div id="mission-modal" class="modal hidden">
-        <div class="ui-box p-6 w-full max-w-lg space-y-4">
-             <h3 class="text-lg text-primary">Mission Details</h3>
-             <form id="mission-form">
-                 <input type="hidden" id="mission-id">
-                 <div><label for="mission-name">Mission Name</label><input type="text" id="mission-name" class="w-full mt-1 c3i-input" required></div>
-                 <div><label for="mission-objectives">Objectives</label><textarea id="mission-objectives" rows="3" class="w-full mt-1 c3i-textarea"></textarea></div>
-                 <div><label for="mission-roe">Rules of Engagement</label><textarea id="mission-roe" rows="3" class="w-full mt-1 c3i-textarea"></textarea></div>
-                 <div><label for="mission-status">Status</label><select id="mission-status" class="w-full mt-1 c3i-select"><option>Draft</option><option>Pending Approval</option><option>Active</option><option>Archived</option></select></div>
-                 <div class="flex justify-end space-x-2 mt-4"><button type="button" id="close-mission-modal-btn" class="c3i-button">Cancel</button><button type="submit" class="c3i-button">Save Mission</button></div>
-             </form>
+                </div>
+            </form>
         </div>
     </div>
-
-<script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-
-// --- Firebase SDK Imports ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, setLogLevel, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, serverTimestamp, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-// --- Firebase & App Initialization ---
-let db, auth;
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-// Promise to ensure Firebase auth is ready before proceeding
-let authReadyResolver;
-const authReadyPromise = new Promise(resolve => { authReadyResolver = resolve; });
-
-async function initializeFirebase() {
-try {
-                // Use the global __firebase_config if available, otherwise fallback to a default or error
-if (typeof __firebase_config === 'undefined') {
-console.error("Firebase config is not available.");
-document.getElementById('stage-offline-text').innerHTML = '<h1>CONFIG ERROR</h1><p>Firebase configuration not found.</p>';
-return;
-}
-const firebaseConfig = JSON.parse(__firebase_config);
-
-const app = initializeApp(firebaseConfig);
-db = getFirestore(app);
-auth = getAuth(app);
-setLogLevel('debug');
-
-                // Handle Authentication State Changes
-onAuthStateChanged(auth, (user) => {
-if (user) {
-console.log("Firebase user signed in:", user.uid);
-c3iState.firebaseUser = user;
-if (authReadyResolver) {
-                            authReadyResolver(user); // Resolve with the user object
-                            authReadyResolver = null; // Prevent multiple resolutions
-                            authReadyResolver(user);
-                            authReadyResolver = null;
-}
-                        setupFirestoreListeners(); // Set up listeners once authenticated
-                        setupFirestoreListeners();
-} else {
-console.log("No user signed in.");
-c3iState.firebaseUser = null;
-}
-});
-
-                // Attempt to sign in
-try {
-if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-await signInWithCustomToken(auth, __initial_auth_token);
-} else {
-await signInAnonymously(auth);
-}
-} catch (error) {
-console.error("Authentication failed, trying anonymous sign-in:", error);
-await signInAnonymously(auth);
-}
-
-} catch (error) {
-console.error("Firebase Initialization Failed:", error);
-document.getElementById('stage-offline-text').innerHTML = '<h1>INITIALIZATION FAILED</h1><p>Please check console for details.</p>';
-}
-}
-
-
-// --- Global State ---
-const c3iState = {
-currentUser: null,
-firebaseUser: null,
-waypoints: [],
-auditLog: [],
-chatMessages: [],
-plans: [],
-tasks: [],
-intel: {},
-armoury: {}, 
-codex: {},
-comparisonAssets: [],
-            listeners: [], // To keep track of Firestore listeners
-            users: {}, // Will be populated by loadData
-            listeners: [],
-            users: {},
-};
-
-const bootState = {
-stages: document.querySelectorAll('.boot-stage'),
-cursor: document.getElementById('custom-cursor'),
-loginForm: document.getElementById('login-form'),
-loginError: document.getElementById('login-error'),
-mousePos: { x: 0, y: 0 },
-currentStage: 0,
-soundInitialized: false,
-uiSynth: null, failSynth: null, successSynth: null, deploySynth: null, matrixSynth: null, flowSynth: null,
-threeInstances: []
-};
-
-// --- DATA PARSED FROM FILE ---
-function loadData() {
-c3iState.users = {
-'architect':    { username: 'SirKiefy',                password: 'R9x!Vt3Qw#Lp8J', clearance: 7, admin: true },
-                'Vanguard':     { username: 'saticron',                password: 'M7u$Zj1Lb^Nx4R', clearance: 6, admin: false },
-                'FoxbatActual': { username: 'FoxbatActual',            password: '991964',         clearance: 6, admin: false },
-                'Nightstalker': { username: 'nightmare_of_the_living', password: 'B4v*Xg9Hp&Lf2T', clearance: 4, admin: false },
-                'Rocketman':    { username: 'daniel.4031',             password: 'T5q#Ch6Jm%Ws1Y', clearance: 3, admin: false },
-                'Deadeye':      { username: 'sharps54',                password: 'L8n^Vr4Xp!Bd3K', clearance: 3, admin: false },
-                'Reaper':       { username: 'halolad',                 password: 'S1j%Ht7Zk&Qp9N', clearance: 3, admin: false },
-                'Wolfhound':    { username: 'dr_lupus',                password: 'H3p$Gn2Fr#Dz6M', clearance: 3, admin: false },
-                'Overwatch':    { username: 'thejetninja',             password: 'V6m*Kw5Xb!Tf8R', clearance: 3, admin: false },
-                'Ironclad':     { username: 'cowboybama',              password: 'C9t&Ls1Vg@Pr4Q', clearance: 3, admin: false },
-                'vanguard':     { username: 'saticron',                password: 'M7u$Zj1Lb^Nx4R', clearance: 6, admin: false },
-                'foxbatactual': { username: 'FoxbatActual',            password: '991964',         clearance: 6, admin: false },
-                'nightstalker': { username: 'nightmare_of_the_living', password: 'B4v*Xg9Hp&Lf2T', clearance: 4, admin: false },
-                'rocketman':    { username: 'daniel.4031',             password: 'T5q#Ch6Jm%Ws1Y', clearance: 3, admin: false },
-                'deadeye':      { username: 'sharps54',                password: 'L8n^Vr4Xp!Bd3K', clearance: 3, admin: false },
-                'reaper':       { username: 'halolad',                 password: 'S1j%Ht7Zk&Qp9N', clearance: 3, admin: false },
-                'wolfhound':    { username: 'dr_lupus',                password: 'H3p$Gn2Fr#Dz6M', clearance: 3, admin: false },
-                'overwatch':    { username: 'thejetninja',             password: 'V6m*Kw5Xb!Tf8R', clearance: 3, admin: false },
-                'ironclad':     { username: 'cowboybama',              password: 'C9t&Ls1Vg@Pr4Q', clearance: 3, admin: false },
-};
-
-c3iState.intel = {
-'FSSA': { name: 'FSSA (Federated Sovereign State of Armkava)', threat: 'Hostile', hostility: 'Active', location: 'Unknown', strength: { ground: 'Equal', air: 'Weaker', naval: 'Equal' }, report: 'A hostile state actor.', hierarchy: { leader: 'Day (valcry97)', members: ['jake from statefarm (thisscreenisnuts)'] }, assets: 'Standard military hardware.'},
-'BSS': { name: 'BSS (Black Sea Syndicate)', threat: 'Neutral', hostility: 'Opportunistic', location: 'Black Sea', strength: { ground: 'Weaker', air: 'Obsolete', naval: 'Superior' }, report: 'A neutral syndicate operating in the Black Sea region.', hierarchy: { leader: 'Quasitedjr.TTV', members: ['Bizmark7 (Admin)', 'dloglo1980', 'Snowwolf (snowwolf1512)'] }, assets: 'Naval assets, smuggling routes.'},
-'NIM': { name: 'NIM (Nordman Industries & Manufacturing)', threat: 'Neutral', hostility: 'Aggressive', location: 'Northern Territories', strength: { ground: 'Superior', air: 'Equal', naval: 'Weaker' }, report: 'A neutral but aggressive industrial corporation. Hostility is advised in interactions.', hierarchy: { leader: 'Fred (fredaibot, Admin/Overseer)', members: ['KesseL (kessel5657)', 'Kokonoe (kokonoe2280)', 'NorthWind (north.wind772)'] }, assets: 'Advanced manufacturing facilities, prototype weaponry.'},
-'T-T': { name: 'T-T (Terra Titans)', threat: 'Avoid', hostility: 'Dominant', location: 'Global', strength: { ground: 'Overwhelming', air: 'Overwhelming', naval: 'Overwhelming' }, report: 'A powerful faction that should be avoided. Holds significant influence.', hierarchy: { leader: 'DarkXeRoX (darkxerox, Server Owner)', members: ['K4rma (k4rmaletracteur)', 'Rudi/Noah (ruaidhri.noah, Admin)', 'Delfred353', 'PossibleHacker', 'Gifted Lion', 'Aragath', 'Tellyhead'] }, assets: 'High-tier military assets, server administrative control.'},
-'BBC': { name: 'BBC (Bean Bois Corporation)', threat: 'Unknown', hostility: 'Unknown', location: 'Unknown', strength: { ground: 'Unknown', air: 'Unknown', naval: 'Unknown' }, report: 'An organization with unknown motives and capabilities.', hierarchy: { leader: 'syreX (bessechurger)' }, assets: 'Unknown.'},
-'C0UM': { name: 'C0UM (Confederation Of Uniform Members)', threat: 'Unknown', hostility: 'Unknown', location: 'Unknown', strength: { ground: 'Unknown', air: 'Unknown', naval: 'Unknown' }, report: 'A confederation with unknown motives.', hierarchy: { leader: 'Agent Brick (thunderbord)' }, assets: 'Unknown.'},
-'OCF': { name: 'OCF (Oceania Coalition Force)', threat: 'Neutral', hostility: 'Passive', location: 'Oceania', strength: { ground: 'Equal', air: 'Equal', naval: 'Superior' }, report: 'A non-hostile coalition with claims of passive behavior.', hierarchy: { leader: 'TheJetNinja' }, assets: 'Regional defensive forces.'}
-};
-
-c3iState.codex = {
-                'Naval Server Rules': `<h3>General</h3><ul><li>All grids are to remain within the planet atmosphere.</li><li>Naval Warships and Structures are large grids only.</li><li>Aircraft and ground vehicles are small grids only.</li><li>Each Grid requires the correct GridCore for that class, Structure GridCores must be above voxels and water.(cleanup deletes grids without a gridcore)</li></ul><h3>Block Limits</h3><p>GridCores will automatically limit the amount of certain blocks, but here is a general list for specific blocks:</p><ul><li>All ships can fit a max of 2 vents.</li><li>O2 GENERATORS ARE ONLY ALLOWED ON BASES AND SMALL GRIDS TO PRODUCE FUEL AND ONLY 1 PER GRID IS ALLOWED.</li><li>Ships will be able to fit 2 navigation computer blocks & 3 rudder blocks.</li><li>ONLY BASES CAN HAVE A MAXIMUM OF 1 FUEL BLOCK REFINERY. SHIPS MAY HAVE 1 EMERGENCY FUEL Converter.</li></ul><h3>Jet Pack Usage</h3><p>JETPACKS ARE ONLY TO BE USED AROUND FRIENDLY GRIDS FOR LOGISTICAL PURPOSES. DO NOT FLY AROUND ENEMY GRIDS. THEY WILL ONLY OPERATE WITHIN A 1KM RANGE OF A FRIENDLY GRIDCORE.</p>`,
-                'Naval Server Rules': `<h3>General</h3><ul><li>All grids are to remain within the planet atmosphere.</li><li>Naval Warships and Structures are large grids only.</li><li>Aircraft and ground vehicles are small grids only.</li><li>Each Grid requires the correct GridCore for that class, Structure GridCores must be above voxels and water.(cleanup deletes grids without a gridcore)</li></ul><h4>Block Limits</h4><p>GridCores will automatically limit the amount of certain blocks, but here is a general list for specific blocks:</p><ul><li>All ships can fit a max of 2 vents.</li><li>O2 GENERATORS ARE ONLY ALLOWED ON BASES AND SMALL GRIDS TO PRODUCE FUEL AND ONLY 1 PER GRID IS ALLOWED.</li><li>Ships will be able to fit 2 navigation computer blocks & 3 rudder blocks.</li><li>ONLY BASES CAN HAVE A MAXIMUM OF 1 FUEL BLOCK REFINERY. SHIPS MAY HAVE 1 EMERGENCY FUEL Converter.</li></ul><h4>Jet Pack Usage</h4><p>JETPACKS ARE ONLY TO BE USED AROUND FRIENDLY GRIDS FOR LOGISTICAL PURPOSES. DO NOT FLY AROUND ENEMY GRIDS. THEY WILL ONLY OPERATE WITHIN A 1KM RANGE OF A FRIENDLY GRIDCORE.</p>`,
-'War & Sieges': `<h3>Declaring War</h3><p>WAR IS THE METHOD BY WHICH NATIONS FIGHT OVER TERRITORY. TO MAINTAIN GOOD GAMEPLAY ANY FACTION WISHING TO ENGAGE WAR MUST FOLLOW THESE RULES.</p><ul><li>Factions who wish to declare war on another faction must declare their intentions in diplomacy 48hrs prior to initiating a siege.</li><li>An admin must approve the war. Admins reserve the right to decline a war if it is warranted.</li><li>War declarations must be for a reason.</li><li>Attackers must define a target for the war and the closest attacker structure will be their FOB.</li><li>After a war is completed the declaring faction is on a cooldown of 7 days before they can declare another war.</li></ul><h3>Siege</h3><ul><li>Once war is declared and an admin approves it you may start sieging 48 hrs after the declaration message.</li><li>Efforts should be made to make sure both sides are able to be on for the fight.</li><li>Attackers must initiate the siege by moving within 15km of the Structure they wish to attack.</li><li>Once the siege is initiated Defenders have 10 minutes to push the attackers out of the Territory Capture zone. If they fail, their SZ will drop.</li><li>Attackers have 2 hours to siege the base and destroy the Defender's Base Grid Core.</li><li>If the Defenders survive for 2 hours their SZ will be restored and a cooldown of 6 hours will start before a new Siege can begin.</li><li>Wars last for 5 days. Defenders can attack the Attackers FOB to end the war early.</li></ul>`,
-'Faction & Grid Limits': `<h3>Factions</h3><p>A faction is a group of players working together towards a common goal. Only have grids out in the world that are actively being used. Exploiting factions to increase fleet cap will result in a ban.</p><h3>Ship and Structure limits</h3><table class="data-table"><thead><tr><th>Structure Type</th><th>Amount</th><th>Ship Class Name</th><th>Amount</th></tr></thead><tbody><tr><td>Main Base</td><td>1</td><td>Corvette</td><td>4</td></tr><tr><td>Fort</td><td>5</td><td>Frigate</td><td>3</td></tr><tr><td>Outpost</td><td>10</td><td>Destroyer</td><td>3</td></tr><tr><td>Total Structures</td><td>16</td><td>Cruiser</td><td>2</td></tr><tr><td></td><td></td><td>Submarine</td><td>1</td></tr><tr><td></td><td></td><td>Logistics Ship</td><td>2</td></tr><tr><td></td><td></td><td>Battleship</td><td>1</td></tr><tr><td></td><td></td><td>Aircraft Carrier</td><td>1</td></tr><tr><td></td><td></td><td>Max FleetSize</td><td>18</td></tr></tbody></table>`,
-'Resource Acquisition': `<h3>Common Ores (Iron, Silicon, Nickel)</h3><p>Mined with Resource Claim Pylons (Light, Medium, Heavy). Yields can be improved with modules. Interference radii apply.</p><h3>Uncommon Ores (Cobalt, Magnesium, Silver, Gold)</h3><p>Found in Resource Zones in water. Require a mining rig and Fuel Blocks. Zones deplete over time.</p><h3>Rare Ores (Platinum, Uranium)</h3><p>Found in random NPC bunkers or from King of the Hill style events.</p>`
-};
-
-c3iState.armoury = {
-'Naval': {
-'Support': {
-                        'Corvette': { type: 'Ship Class', data: { 'Max Dry Mass': '1,000 T', 'Offensive Points': 20, 'Defensive Points': 10, 'Propulsion': 850, 'Notes': 'TBA' } },
-                        'Frigate': { type: 'Ship Class', data: { 'Max Dry Mass': '2,500 T', 'Offensive Points': 35, 'Defensive Points': 20, 'Propulsion': 1100, 'Notes': 'TBA' } },
-                        'Logistics Ship': { type: 'Ship Class', data: { 'Max Dry Mass': '2,250 T', 'Offensive Points': 'N/A', 'Defensive Points': 12, 'Propulsion': 2000, 'Notes': 'Mainly used to transport vehicles or supplies' } },
-                        'Corvette': { type: 'Ship Class', data: { 'Max Dry Mass': '1000', 'Offensive Points': 20, 'Defensive Points': 10, 'Propulsion': 850, 'Notes': 'TBA' } },
-                        'Frigate': { type: 'Ship Class', data: { 'Max Dry Mass': '2500', 'Offensive Points': 35, 'Defensive Points': 20, 'Propulsion': 1100, 'Notes': 'TBA' } },
-                        'Logistics Ship': { type: 'Ship Class', data: { 'Max Dry Mass': '2250', 'Offensive Points': '0', 'Defensive Points': 12, 'Propulsion': 2000, 'Notes': 'Mainly used to transport vehicles or supplies' } },
-},
-'MultiRole': {
-                        'Destroyer': { type: 'Ship Class', data: { 'Max Dry Mass': '5,500 T', 'Offensive Points': 45, 'Defensive Points': 30, 'Propulsion': 2000, 'Notes': 'TBA' } },
-                        'Cruiser': { type: 'Ship Class', data: { 'Max Dry Mass': '10,000 T', 'Offensive Points': 60, 'Defensive Points': 35, 'Propulsion': 3000, 'Notes': 'TBA' } },
-                        'Destroyer': { type: 'Ship Class', data: { 'Max Dry Mass': '5500', 'Offensive Points': 45, 'Defensive Points': 30, 'Propulsion': 2000, 'Notes': 'TBA' } },
-                        'Cruiser': { type: 'Ship Class', data: { 'Max Dry Mass': '10000', 'Offensive Points': 60, 'Defensive Points': 35, 'Propulsion': 3000, 'Notes': 'TBA' } },
-},
-'Capital': {
-                        'Battleship': { type: 'Ship Class', data: { 'Max Dry Mass': '20,000 T', 'Offensive Points': 80, 'Defensive Points': 40, 'Propulsion': 4000, 'Notes': 'Cannot field torpedo' } },
-                        'Carrier': { type: 'Ship Class', data: { 'Max Dry Mass': '14,000 T', 'Offensive Points': 16, 'Defensive Points': 30, 'Propulsion': 3000, 'Notes': 'Can be used as a mobile airfield' } },
-                        'Battleship': { type: 'Ship Class', data: { 'Max Dry Mass': '20000', 'Offensive Points': 80, 'Defensive Points': 40, 'Propulsion': 4000, 'Notes': 'Cannot field torpedo' } },
-                        'Carrier': { type: 'Ship Class', data: { 'Max Dry Mass': '14000', 'Offensive Points': 16, 'Defensive Points': 30, 'Propulsion': 3000, 'Notes': 'Can be used as a mobile airfield' } },
-},
-'Submersible': {
-                        'Submarine': { type: 'Ship Class', data: { 'Max Dry Mass': '3,500 T', 'Offensive Points': 12, 'Defensive Points': 4, 'Propulsion': 2000, 'Notes': 'Can fit submarine torpedo tubes' } },
-                        'Submarine': { type: 'Ship Class', data: { 'Max Dry Mass': '3500', 'Offensive Points': 12, 'Defensive Points': 4, 'Propulsion': 2000, 'Notes': 'Can fit submarine torpedo tubes' } },
-},
-},
-'Air': {
-                    'Fighter': { type: 'Aircraft Class', data: { 'Min Weight (T)': 10, 'Max Weight (T)': 20, 'Max Thrust (T)': 30, 'L Hardpoints': 4, 'M Hardpoints': 4, 'Gun Systems': 2, 'Counter Measures': 2, 'Notes': 'Specialised in air dominance. Cannot field Medium A2G Ordinance Hardpoints.' } },
-                    'Strike Fighter': { type: 'Aircraft Class', data: { 'Min Weight (T)': 20, 'Max Weight (T)': 32.5, 'Max Thrust (T)': 60, 'L Hardpoints': 4, 'M Hardpoints': 6, 'H Hardpoints': 2, 'Gun Systems': 2, 'Counter Measures': 2, 'Notes': 'Multi-role based aircraft. Cannot field Medium A2A Ordinance Hardpoints.' } },
-                    'Bomber': { type: 'Aircraft Class', data: { 'Min Weight (T)': 32.5, 'Max Weight (T)': 'N/A', 'Max Thrust (T)': 80, 'H Hardpoints': 6, 'HY Hardpoints': 15, 'Counter Measures': 4, 'Notes': 'Main air to ground class. Cannot fit any A2A missile systems.' } },
-                    'Fighter': { type: 'Aircraft Class', data: { 'Min Weight': 10, 'Max Weight': 20, 'Max Thrust': 30, 'L Hardpoints': 4, 'M Hardpoints': 4, 'Gun Systems': 2, 'Counter Measures': 2, 'Notes': 'Specialised in air dominance. Cannot field Medium A2G Ordinance Hardpoints.' } },
-                    'Strike Fighter': { type: 'Aircraft Class', data: { 'Min Weight': 20, 'Max Weight': 32.5, 'Max Thrust': 60, 'L Hardpoints': 4, 'M Hardpoints': 6, 'H Hardpoints': 2, 'Gun Systems': 2, 'Counter Measures': 2, 'Notes': 'Multi-role based aircraft. Cannot field Medium A2A Ordinance Hardpoints.' } },
-                    'Bomber': { type: 'Aircraft Class', data: { 'Min Weight': 32.5, 'Max Weight': '0', 'Max Thrust': 80, 'H Hardpoints': 6, 'HY Hardpoints': 15, 'Counter Measures': 4, 'Notes': 'Main air to ground class. Cannot fit any A2A missile systems.' } },
-},
-'Ground': {
-                    'MBT': { type: 'Vehicle Class', data: { 'Class': 'Main Battle Tank', 'Max Weight': '80T', 'Speed': '80KM/H', 'Hardpoints': 8, 'Notes': 'Limited to one primary barrel.' } },
-                    'AAV': { type: 'Vehicle Class', data: { 'Class': 'Anti Aircraft Vehicle', 'Max Weight': '60T', 'Speed': '80KM/H', 'Hardpoints': 8, 'Notes': 'Only allowed anti-aircraft barrels. Cannot engage other ground vehicles.' } },
-                    'Artillery': { type: 'Vehicle Class', data: { 'Class': 'Artillery', 'Max Weight': '50T', 'Speed': '50KM/H', 'Hardpoints': 8, 'Notes': 'Can only use artillery barrels.' } },
-                    'MBT': { type: 'Vehicle Class', data: { 'Max Weight': '80', 'Speed': '80', 'Hardpoints': 8, 'Notes': 'Limited to one primary barrel.' } },
-                    'AAV': { type: 'Vehicle Class', data: { 'Max Weight': '60', 'Speed': '80', 'Hardpoints': 8, 'Notes': 'Only allowed anti-aircraft barrels. Cannot engage other ground vehicles.' } },
-                    'Artillery': { type: 'Vehicle Class', data: { 'Max Weight': '50', 'Speed': '50', 'Hardpoints': 8, 'Notes': 'Can only use artillery barrels.' } },
-},
-'Analysis': {
-'CIWS Performance': { type: 'Report', data: [
-{ 'Missile Threat': '4x P-250 launchers', 'CIWS Defense': '4x AK-630-2', 'CIWS Success Rate': '96.88%', 'Missile Penetration Rate': '3.12%' },
-{ 'Missile Threat': '4x P-270 launchers', 'CIWS Defense': '4x Phalanx CIWS', 'CIWS Success Rate': '37.50%', 'Missile Penetration Rate': '62.50%' },
-{ 'Missile Threat': '4x P-270 launchers', 'CIWS Defense': '4x Goalkeeper CIWS', 'CIWS Success Rate': '62.50%', 'Missile Penetration Rate': '37.50%' },
-{ 'Missile Threat': '4x P-270 launchers', 'CIWS Defense': '4x AK-630', 'CIWS Success Rate': '75.00%', 'Missile Penetration Rate': '25.00%' },
-{ 'Missile Threat': '4x Slava launchers (P-1000)', 'CIWS Defense': '4x Phalanx CIWS', 'CIWS Success Rate': '46.88%', 'Missile Penetration Rate': '53.12%' },
-{ 'Missile Threat': '4x Slava launchers (P-1000)', 'CIWS Defense': '4x Goalkeeper CIWS', 'CIWS Success Rate': '65.62%', 'Missile Penetration Rate': '34.38%' },
-{ 'Missile Threat': '4x Slava launchers (P-1000)', 'CIWS Defense': '4x AK-630', 'CIWS Success Rate': '84.38%', 'Missile Penetration Rate': '15.62%' },
-{ 'Missile Threat': '4x Slava launchers (P-1000)', 'CIWS Defense': '4x AK-630-2', 'CIWS Success Rate': '100.00%', 'Missile Penetration Rate': '0.00%' },
-]}
-}
-};
-}
-
-// --- Event Listeners ---
-window.addEventListener('mousemove', e => {
-bootState.mousePos = { x: e.clientX, y: e.clientY };
-bootState.cursor.style.left = e.clientX + 'px';
-bootState.cursor.style.top = e.clientY + 'px';
-});
-
-// --- Boot Sequence Logic (unchanged) ---
-async function runBootSequence() {
-await switchStage(1); initCoreIgnition(); await new Promise(res => setTimeout(res, 7000));
-await switchStage(2); await runBios();
-await switchStage(3); initThreatAnalysis(); await new Promise(res => setTimeout(res, 8000));
-await switchStage(4);
-}
-
-function switchStage(stageIndex) {
-return new Promise(resolve => {
-if(bootState.soundInitialized) bootState.uiSynth.triggerAttackRelease("C#2", "8n");
-bootState.stages[bootState.currentStage].classList.remove('active');
-setTimeout(() => {
-bootState.currentStage = stageIndex;
-bootState.stages[bootState.currentStage].classList.add('active');
-resolve();
-}, 500);
-});
-}
-
-function initSound() {
-if (bootState.soundInitialized) return;
-Tone.start();
-const reverb = new Tone.Reverb(3).toDestination();
-bootState.deploySynth = new Tone.MonoSynth({ oscillator: { type: "fatsawtooth" }, envelope: { attack: 1, decay: 2, sustain: 0.5, release: 2 } }).connect(reverb);
-bootState.deploySynth.volume.value = -20;
-bootState.matrixSynth = new Tone.AMSynth({ harmonicity: 1.5, oscillator: { type: "fatsine" }, envelope: { attack: 0.01, decay: 0.5, sustain: 0.1, release: 0.5 } }).connect(reverb);
-bootState.matrixSynth.volume.value = -22;
-bootState.flowSynth = new Tone.PluckSynth({ attackNoise: 0.5, dampening: 6000, resonance: 0.95 }).connect(reverb);
-bootState.flowSynth.volume.value = -15;
-bootState.uiSynth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
-bootState.uiSynth.volume.value = -18;
-bootState.failSynth = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.8, sustain: 0, release: 0.2 } }).toDestination();
-bootState.failSynth.volume.value = -12;
-bootState.successSynth = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.5, sustain: 0.1, release: 0.2 } }).toDestination();
-bootState.successSynth.volume.value = -10;
-bootState.soundInitialized = true;
-}
-
-function initOffline() {
-const canvas = document.getElementById('offline-canvas');
-const container = canvas.parentElement;
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-camera.position.z = 5;
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setSize(container.clientWidth, container.clientHeight);
-bootState.threeInstances.push({ renderer, scene, camera, container });
-scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-sun.position.set(5, 5, 5);
-scene.add(sun);
-const textureLoader = new THREE.TextureLoader();
-const earthTextureUrl = 'https://i.postimg.cc/RVT0S56x/earthmap1k.jpg';
-const earth = new THREE.Mesh( new THREE.SphereGeometry(2, 64, 64), new THREE.MeshStandardMaterial({ map: textureLoader.load(earthTextureUrl, undefined, undefined, () => {
-earth.material.map = null;
-earth.material.color.set(0x4A90E2);
-earth.material.needsUpdate = true;
-}), metalness: 0.2, roughness: 0.7 }) );
-scene.add(earth);
-const sat = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.3, 0.2), new THREE.MeshStandardMaterial({color: 0xcccccc}));
-scene.add(sat);
-let clock = new THREE.Clock();
-function animate() {
-if (bootState.currentStage !== 0) return;
-const t = clock.getElapsedTime();
-earth.rotation.y = t * 0.1;
-sat.position.x = Math.cos(t * 0.5) * 3;
-sat.position.z = Math.sin(t * 0.5) * 3;
-sat.lookAt(earth.position);
-requestAnimationFrame(animate);
-renderer.render(scene, camera);
-}
-animate();
-}
-
-function initCoreIgnition() {
-if(bootState.soundInitialized) bootState.deploySynth.triggerAttack("C2");
-const canvas = document.getElementById('core-ignition-canvas');
-const container = canvas.parentElement;
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-camera.position.z = 8;
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setSize(container.clientWidth, container.clientHeight);
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0, 0, 0);
-composer.addPass(bloomPass);
-bootState.threeInstances.push({ renderer, scene, camera, container, composer });
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-const pointLight = new THREE.PointLight(0xff5555, 0, 100);
-scene.add(pointLight);
-const gyro = new THREE.Group();
-scene.add(gyro);
-const ringMat = new THREE.MeshStandardMaterial({color: 0xaaaaaa, metalness: 0.9, roughness: 0.2});
-const ring1 = new THREE.Mesh(new THREE.TorusGeometry(3, 0.1, 16, 100), ringMat);
-const ring2 = new THREE.Mesh(new THREE.TorusGeometry(2.5, 0.1, 16, 100), ringMat);
-ring2.rotation.x = Math.PI / 2;
-const ring3 = new THREE.Mesh(new THREE.TorusGeometry(2, 0.1, 16, 100), ringMat);
-ring3.rotation.y = Math.PI / 2;
-gyro.add(ring1, ring2, ring3);
-const coreMat = new THREE.MeshStandardMaterial({color: 0xff3c3c, emissive: 0xff3c3c, emissiveIntensity: 0});
-const core = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), coreMat);
-gyro.add(core);
-let clock = new THREE.Clock();
-function animate() {
-if (bootState.currentStage !== 1) {
-if(bootState.soundInitialized) bootState.deploySynth.triggerRelease();
-return;
-}
-const t = clock.getElapsedTime();
-gyro.rotation.x += 0.01;
-gyro.rotation.y += 0.015;
-const ignitionProgress = Math.min(t / 5, 1);
-bloomPass.strength = ignitionProgress * 1.5;
-pointLight.intensity = ignitionProgress * 5;
-coreMat.emissiveIntensity = ignitionProgress * 2;
-requestAnimationFrame(animate);
-composer.render();
-}
-animate();
-}
-
-async function runBios() {
-initBiosSidebarVisual();
-const biosLinesEl = document.getElementById('bios-lines');
-const jargon = ["Initializing WARSAT Core...", "Loading K-SAT Trajectory Data... <span class='keyword-data'>[ENCRYPTED]</span>", "Calibrating Phased Array... <span class='keyword-info'>[AZ: 178.4, EL: 45.2]</span>", "Verifying <span class='keyword-sys'>Quantum Entanglement Comms</span>... <span class='keyword-ok'>[LOCKED]</span>", "Stealth Plasma Venting... <span class='keyword-ok'>[NOMINAL]</span>", "Initializing <span class='keyword-sys'>FTLN Beacon</span>... <span class='keyword-ok'>[OK]</span>", "Reticulating Splines... <span class='highlight'>ID: 88-5B-1A</span>", "Checking <span class='keyword-warn'>Kinetic Rod Deployment System</span>... <span class='keyword-warn'>[STANDBY]</span>", "Cryo-Coolant Flow... <span class='keyword-info'>[2.4 L/s]</span>", "Bootstrapping <span class='keyword-sys'>AI Threat Matrix</span>...", "Decompressing Targeting Archives... <span class='keyword-data'>[7.2 ZB]</span>", "Spoofing NORAD Identifiers... <span class='keyword-ok'>[OK]</span>", "<span class='keyword-sys'>Cyclic Redundancy Check</span>: <span class='highlight'>0x5f3759df</span>... <span class='keyword-ok'>[PASS]</span>", "Engaging Gravimetric Distortion Field... <span class='keyword-warn'>[LOW POWER]</span>", "Syncing Chronometers... <span class='keyword-info'>[UTC-0]</span>", "Sub-light Engine Test... <span class='keyword-ok'>[PASS]</span>", "Loading Heuristic Profiles... <span class='keyword-data'>[9.1M PROFILES]</span>", "Final Pre-flight Check... All systems nominal."];
-const errorJargon = ["Memory Address <span class='highlight'>0xFF813A0</span>... <span class='keyword-error'>[FAULT]</span>", "Subspace Comm Array... <span class='keyword-error'>[NO CARRIER]</span>", "Plasma Injector <span class='highlight'>#3</span>... <span class='keyword-error'>[MISALIGNED]</span>", "QEC Channel <span class='highlight'>7</span>... <span class='keyword-error'>[DECOHERENCE]</span>"];
-const bars = { qec: document.getElementById('bar-qec'), heat: document.getElementById('bar-heat'), wpn: document.getElementById('bar-wpn'), telemetry: document.getElementById('bar-telemetry'), shield: document.getElementById('bar-shield'), sensor: document.getElementById('bar-sensor') };
-const cbars = { power: document.getElementById('cbar-power'), nav: document.getElementById('cbar-nav'), life: document.getElementById('cbar-life'), cpu: document.getElementById('cbar-cpu'), mem: document.getElementById('cbar-mem'), net: document.getElementById('cbar-net') };
-const cbarCircumference = 2 * Math.PI * 45;
-Object.values(cbars).forEach(c => { c.style.strokeDasharray = cbarCircumference; c.style.strokeDashoffset = cbarCircumference; });
-for (let i = 0; i < jargon.length; i++) {
-if (bootState.currentStage !== 2) return;
-if (Math.random() < 0.1 && i > 3 && i < jargon.length - 2) {
-const p = document.createElement('p'); p.classList.add('bios-line'); p.innerHTML = `${errorJargon[Math.floor(Math.random() * errorJargon.length)]} Retrying...`; biosLinesEl.appendChild(p); biosLinesEl.scrollTop = biosLinesEl.scrollHeight;
-if(bootState.soundInitialized) bootState.failSynth.triggerAttackRelease("G1", "2n");
-await new Promise(res => setTimeout(res, 1500));
-const p2 = document.createElement('p'); p2.classList.add('bios-line'); p2.innerHTML = `Retry successful... <span class='keyword-ok'>[OK]</span>`; biosLinesEl.appendChild(p2); biosLinesEl.scrollTop = biosLinesEl.scrollHeight;
-}
-const p = document.createElement('p'); p.classList.add('bios-line'); p.innerHTML = jargon[i]; biosLinesEl.appendChild(p); biosLinesEl.scrollTop = biosLinesEl.scrollHeight;
-const progress = (i + 1) / jargon.length;
-window.dispatchEvent(new CustomEvent('bios_progress', { detail: { progress } }));
-bars.qec.style.width = `${Math.min(100, progress * 120)}%`;
-if (i > 2) bars.heat.style.width = `${Math.min(100, ((i - 2) / (jargon.length - 3)) * 110)}%`;
-if (i > 4) bars.shield.style.width = `${Math.min(100, ((i - 4) / (jargon.length - 5)) * 95)}%`;
-if (i > 5) bars.wpn.style.width = `${Math.min(100, ((i - 5) / (jargon.length - 6)) * 130)}%`;
-if (i > 6) bars.sensor.style.width = `${Math.min(100, ((i - 6) / (jargon.length - 7)) * 115)}%`;
-if (i > 8) bars.telemetry.style.width = `${Math.min(100, ((i - 8) / (jargon.length - 8)) * 105)}%`;
-
-cbars.power.style.strokeDashoffset = cbarCircumference * (1 - Math.min(1, progress * 1.1));
-if (i > 1) cbars.cpu.style.strokeDashoffset = cbarCircumference * (1 - Math.min(1, ((i - 1) / (jargon.length - 2)) * 1.0));
-if (i > 3) cbars.mem.style.strokeDashoffset = cbarCircumference * (1 - Math.min(1, ((i - 3) / (jargon.length - 4)) * 1.1));
-if (i > 4) cbars.nav.style.strokeDashoffset = cbarCircumference * (1 - Math.min(1, ((i - 4) / (jargon.length - 5)) * 1.2));
-if (i > 5) cbars.net.style.strokeDashoffset = cbarCircumference * (1 - Math.min(1, ((i - 5) / (jargon.length - 6)) * 0.9));
-if (i > 7) cbars.life.style.strokeDashoffset = cbarCircumference * (1 - Math.min(1, ((i - 7) / (jargon.length - 8)) * 1.0));
-
-if(bootState.soundInitialized) bootState.uiSynth.triggerAttackRelease("C1", "32n", Tone.now() + i * 0.01);
-await new Promise(res => setTimeout(res, 250 + Math.random() * 150));
-}
-await new Promise(res => setTimeout(res, 1000));
-}
-function initBiosSidebarVisual() {
-const container = document.getElementById('bios-sidebar-visual');
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-camera.position.z = 3;
-const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-renderer.setSize(container.clientWidth, container.clientHeight);
-container.appendChild(renderer.domElement);
-bootState.threeInstances.push({ renderer, scene, camera, container });
-const coreGroup = new THREE.Group();
-scene.add(coreGroup);
-const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 1), new THREE.MeshBasicMaterial({ color: 0xff3c3c, wireframe: true }));
-coreGroup.add(core);
-let rings = [];
-window.addEventListener('bios_progress', (e) => {
-const progress = e.detail.progress;
-const targetRings = Math.floor(progress * 5);
-if (targetRings > rings.length) {
-const ring = new THREE.Mesh( new THREE.TorusGeometry(0.8 + rings.length * 0.2, 0.02, 16, 100), new THREE.MeshBasicMaterial({ color: 0x45f3ff, transparent: true, opacity: 0 }) );
-ring.rotation.x = Math.random() * Math.PI;
-ring.rotation.y = Math.random() * Math.PI;
-coreGroup.add(ring);
-rings.push(ring);
-}
-});
-function animate() {
-if (bootState.currentStage !== 2) return;
-coreGroup.rotation.y += 0.005;
-rings.forEach((ring, i) => {
-ring.rotation.z += 0.01 * (i % 2 === 0 ? 1 : -1);
-if (ring.material.opacity < 0.5) ring.material.opacity += 0.01;
-});
-requestAnimationFrame(animate);
-renderer.render(scene, camera);
-}
-animate();
-}
-
-function initThreatAnalysis() {
-if(bootState.soundInitialized) bootState.matrixSynth.triggerAttackRelease("A2", "2n");
-const canvas = document.getElementById('threat-analysis-canvas');
-const container = canvas.parentElement;
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-camera.position.z = 15;
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setSize(container.clientWidth, container.clientHeight);
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.0, 0.6, 0.2));
-bootState.threeInstances.push({ renderer, scene, camera, container, composer });
-scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-dirLight.position.set(5, 10, 7.5);
-scene.add(dirLight);
-const threat = new THREE.Mesh(new THREE.IcosahedronGeometry(4, 1), new THREE.MeshStandardMaterial({color: 0xff3c3c, metalness: 0.7, roughness: 0.4, wireframe: true}));
-scene.add(threat);
-const analysisGroup = new THREE.Group();
-scene.add(analysisGroup);
-const pointMat = new THREE.PointsMaterial({color: 0xf5a623, size: 0.3});
-const lineMat = new THREE.LineBasicMaterial({color: 0x45f3ff});
-let clock = new THREE.Clock();
-let lastSoundTime = 0;
-const soundCooldown = 0.05;
-function animate() {
-if (bootState.currentStage !== 3) return;
-const t = clock.getElapsedTime();
-threat.rotation.x = t * 0.2;
-threat.rotation.y = t * 0.3;
-analysisGroup.rotation.copy(threat.rotation);
-
-const now = Tone.now();
-if (now - lastSoundTime > soundCooldown && Math.random() > 0.97 && analysisGroup.children.length < 50) {
-const pointGeo = new THREE.BufferGeometry();
-const vertices = threat.geometry.attributes.position.array;
-const randomIndex = Math.floor(Math.random() * vertices.length / 3) * 3;
-const p = new THREE.Vector3(vertices[randomIndex], vertices[randomIndex+1], vertices[randomIndex+2]);
-pointGeo.setAttribute('position', new THREE.Float32BufferAttribute([p.x, p.y, p.z], 3));
-const analysisPoint = new THREE.Points(pointGeo, pointMat);
-analysisGroup.add(analysisPoint);
-
-const lineGeo = new THREE.BufferGeometry().setFromPoints([p, p.clone().multiplyScalar(1.5)]);
-const analysisLine = new THREE.Line(lineGeo, lineMat);
-analysisGroup.add(analysisLine);
-if(bootState.soundInitialized) {
-bootState.matrixSynth.triggerAttackRelease("G4", "16n");
-lastSoundTime = now;
-}
-}
-requestAnimationFrame(animate);
-composer.render();
-}
-animate();
-}
-
-// --- C3I Application Logic ---
-function showDesktop() {
-if(bootState.soundInitialized) bootState.successSynth.triggerAttackRelease("C4", "2n");
-document.getElementById('boot-container').style.display = 'none';
-document.getElementById('desktop').style.display = 'block';
-initializeC3IApp();
-}
-
-async function logAction(action, details = '') {
-if (!c3iState.currentUser || !c3iState.firebaseUser) {
-console.warn("Cannot log action, user not fully authenticated.");
-return;
-}
-const logData = {
-timestamp: serverTimestamp(),
-operator: c3iState.currentUser.codename,
-action,
-details,
-userId: c3iState.firebaseUser.uid
-};
-try {
-const logCollection = collection(db, `artifacts/${appId}/public/data/auditLog`);
-await addDoc(logCollection, logData);
-} catch (error) {
-console.error("Error writing to audit log:", error);
-}
-}
-
-function getClearanceName(level) {
-if (level >= 7) return 'System Administrator';
-if (level >= 6) return 'Command';
-if (level >= 4) return 'Strategic';
-if (level >= 3) return 'Operator';
-return 'Recruit';
-}
-
-function initializeC3IApp() {
-document.getElementById('user-callsign').textContent = c3iState.currentUser.codename;
-document.getElementById('user-clearance').textContent = `Lvl ${c3iState.currentUser.clearance} - ${getClearanceName(c3iState.currentUser.clearance)}`;
-document.getElementById('user-id-display').textContent = c3iState.firebaseUser?.uid || 'ANONYMOUS';
-document.getElementById('logout-button').addEventListener('click', () => {
-signOut(auth).then(() => {
-location.reload();
-});
-});
-
-const navItems = document.querySelectorAll('#main-interface .nav-item');
-const pageContainer = document.getElementById('desktop-content-container');
-const mainInterface = document.getElementById('main-interface');
-const sidebarToggle = document.getElementById('sidebar-toggle');
-
-sidebarToggle.addEventListener('click', () => {
-mainInterface.classList.toggle('collapsed');
-setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
-});
-
-const pageInitializers = {
-map: initTacticalMapPage,
-armoury: initArmouryPage,
-codex: initCodexPage,
-intel: initIntelPage,
-comms: initCommsPage,
-settings: initSettingsPage,
-};
-
-function loadPage(pageName) {
-if(bootState.soundInitialized) bootState.uiSynth.triggerAttackRelease("E4", "8n");
-pageContainer.innerHTML = '';
-bootState.threeInstances = []; // Clear previous three.js instances
-const template = document.getElementById(`template-${pageName}`);
-if (template) {
-pageContainer.appendChild(template.content.cloneNode(true));
-}
-if (pageInitializers[pageName]) {
-pageInitializers[pageName]();
-}
-navItems.forEach(item => {
-item.classList.toggle('active', item.dataset.page === pageName);
-});
-logAction('Page Navigation', `Navigated to ${pageName}`);
-}
-
-navItems.forEach(item => {
-item.addEventListener('click', () => loadPage(item.dataset.page));
-});
-
-loadPage('map'); // Load initial page
-}
-
-// --- Firestore Listeners ---
-function setupFirestoreListeners() {
-if (!c3iState.firebaseUser) {
-console.log("Waiting for user authentication to set up listeners.");
-return;
-}
-// Clear existing listeners to prevent duplicates on re-auth
-c3iState.listeners.forEach(unsubscribe => unsubscribe());
-c3iState.listeners = [];
-
-console.log("User authenticated, setting up Firestore listeners.");
-
-const collectionsToWatch = {
-waypoints: 'waypointsUpdated',
-chatMessages: 'chatUpdated',
-auditLog: 'logUpdated',
-plans: 'plansUpdated',
-tasks: 'tasksUpdated'
-};
-
-for (const [key, eventName] of Object.entries(collectionsToWatch)) {
-const q = query(collection(db, `artifacts/${appId}/public/data/${key}`));
-const unsubscribe = onSnapshot(q, (snapshot) => {
-console.log(`Received ${key} snapshot with ${snapshot.docs.length} documents.`);
-let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-if (key === 'auditLog' || key === 'chatMessages' || key === 'plans' || key === 'tasks') {
-data.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
-}
-
-c3iState[key] = data;
-
-window.dispatchEvent(new Event(eventName));
-}, err => console.error(`${key} listener error: `, err));
-c3iState.listeners.push(unsubscribe);
-}
-}
-
-// --- Page Initializers ---
-function initTacticalMapPage() {
-let globe, waypointsGroup, waypointsGroupPlane, planeMesh;
-const tacticalMapContainer = document.getElementById('tactical-map-container');
-const mapPlaneContainer = document.getElementById('map-plane-container');
-const mapPlaneCanvas = document.getElementById('map-plane');
-const tacticalMap = document.getElementById('tactical-map');
-const statusTextEl = document.getElementById('status-text');
-
-if (!tacticalMap) return;
-
-const defaultStatusText = 'Awaiting command. Hover over map for coordinates.';
-statusTextEl.textContent = defaultStatusText;
-
-// Use a small timeout to ensure the canvas is in the DOM and has dimensions
-setTimeout(() => {
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-const textureLoader = new THREE.TextureLoader();
-textureLoader.setCrossOrigin('anonymous');
-
-const mapTexture = textureLoader.load('https://i.imgur.com/CeviL2x.png', 
-() => {}, undefined, () => {
-console.error('Failed to load biome map texture.');
-statusTextEl.textContent = 'WARN: Biome texture failed to load.';
-});
-
-const territoryTexture = textureLoader.load('https://i.postimg.cc/6Q7f2MhN/territory-map-overlay.png');
-const resourcesTexture = textureLoader.load('https://i.postimg.cc/d1wz2YQG/resource-map-overlay.png');
-
-// --- Globe Scene ---
-const globeScene = new THREE.Scene();
-const globeCamera = new THREE.PerspectiveCamera(75, tacticalMap.clientWidth / tacticalMap.clientHeight, 0.1, 1000);
-const globeRenderer = new THREE.WebGLRenderer({ canvas: tacticalMap, antialias: true, alpha: true });
-globeRenderer.setSize(tacticalMap.clientWidth, tacticalMap.clientHeight);
-bootState.threeInstances.push({ renderer: globeRenderer, camera: globeCamera, container: tacticalMapContainer });
-
-const geometry = new THREE.SphereGeometry(5, 128, 128);
-
-const globeControls = new OrbitControls(globeCamera, globeRenderer.domElement);
-globeControls.enableDamping = true;
-globeControls.dampingFactor = 0.03;
-globeControls.screenSpacePanning = false;
-globeControls.minDistance = 6;
-globeControls.maxDistance = 20;
-globeControls.autoRotate = true;
-globeControls.autoRotateSpeed = 0.2;
-
-// Load heightmap and create material in callback
-textureLoader.load('https://i.imgur.com/vlYiAdX.png', (heightMapTexture) => {
-heightMapTexture.wrapS = THREE.RepeatWrapping;
-heightMapTexture.wrapT = THREE.RepeatWrapping;
-
-const material = new THREE.MeshPhongMaterial({ 
-map: mapTexture, 
-shininess: 20, 
-specular: 0x333333,
-bumpMap: heightMapTexture,
-bumpScale: 0.15,
-displacementMap: heightMapTexture,
-displacementScale: 0, // Initially off
-});
-
-// Inject custom shader for outline effect
-material.onBeforeCompile = (shader) => {
-shader.uniforms.u_outline_enabled = { value: false };
-shader.uniforms.u_outline_color = { value: new THREE.Color(getComputedStyle(document.body).getPropertyValue('--color-info')) };
-shader.uniforms.u_outline_threshold = { value: 0.05 }; // Adjusted threshold
-shader.uniforms.heightMap = { value: heightMapTexture };
-
-shader.vertexShader = `
-                           varying vec2 vUv;
-                       ` + shader.vertexShader;
-
-shader.vertexShader = shader.vertexShader.replace(
-'#include <begin_vertex>',
-`
-                           #include <begin_vertex>
-                           vUv = uv;
-                           `
-);
-
-shader.fragmentShader = `
-                           uniform bool u_outline_enabled;
-                           uniform vec3 u_outline_color;
-                           uniform float u_outline_threshold;
-                           uniform sampler2D heightMap;
-                           varying vec2 vUv;
-
-                           float get_height(vec2 uv) {
-                               return texture2D(heightMap, uv).r;
-                           }
-
-                       ` + shader.fragmentShader;
-
-shader.fragmentShader = shader.fragmentShader.replace(
-'#include <dithering_fragment>',
-`
-                           #include <dithering_fragment>
-                           if (u_outline_enabled) {
-                               float height = get_height(vUv);
-                               if (height > 0.01) { // Only apply sobel above water level
-                                   vec2 d = fwidth(vUv);
-                                   float sobel_x = get_height(vUv + vec2(d.x, 0.0)) - get_height(vUv - vec2(d.x, 0.0));
-                                   float sobel_y = get_height(vUv + vec2(0.0, d.y)) - get_height(vUv - vec2(0.0, d.y));
-                                   float edge = sqrt(sobel_x * sobel_x + sobel_y * sobel_y);
-                                   gl_FragColor.rgb = mix(gl_FragColor.rgb, u_outline_color, step(u_outline_threshold, edge));
-                               }
-                           }
-                           `
-);
-
-globe.userData.shader = shader; // Store shader reference
-};
-
-globe = new THREE.Mesh(geometry, material);
-globeScene.add(globe);
-
-// Add other elements that depend on the globe here
-waypointsGroup = new THREE.Group();
-globe.add(waypointsGroup);
-const gridGeo = new THREE.SphereGeometry(5.05, 32, 16);
-const gridMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.1 });
-const coordinateGrid = new THREE.Mesh(gridGeo, gridMat);
-coordinateGrid.visible = false;
-globe.add(coordinateGrid);
-const territoryMat = new THREE.MeshBasicMaterial({ map: territoryTexture, transparent: true, opacity: 0.7 });
-const territoryOverlay = new THREE.Mesh(new THREE.SphereGeometry(5.01, 128, 128), territoryMat);
-territoryOverlay.visible = false;
-globe.add(territoryOverlay);
-const resourcesMat = new THREE.MeshBasicMaterial({ map: resourcesTexture, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
-const resourcesOverlay = new THREE.Mesh(new THREE.SphereGeometry(5.02, 128, 128), resourcesMat);
-resourcesOverlay.visible = false;
-globe.add(resourcesOverlay);
-
-// Re-bind controls and listeners that need the globe
-document.getElementById('heightmap-toggle').dispatchEvent(new Event('change'));
-document.getElementById('territory-toggle').addEventListener('change', (e) => { territoryOverlay.visible = e.target.checked; });
-document.getElementById('resources-toggle').addEventListener('change', (e) => { resourcesOverlay.visible = e.target.checked; });
-document.getElementById('coord-toggle').addEventListener('change', (e) => { coordinateGrid.visible = e.target.checked; });
-
-}, undefined, () => {
-console.error('Failed to load height map texture.');
-statusTextEl.textContent = 'WARN: Heightmap texture failed to load.';
-});
-
-// --- Plane Scene ---
-const planeScene = new THREE.Scene();
-const planeCamera = new THREE.PerspectiveCamera(75, mapPlaneCanvas.clientWidth / mapPlaneCanvas.clientHeight, 0.1, 1000);
-const planeRenderer = new THREE.WebGLRenderer({ canvas: mapPlaneCanvas, antialias: true, alpha: true });
-planeRenderer.setSize(mapPlaneCanvas.clientWidth, mapPlaneCanvas.clientHeight);
-bootState.threeInstances.push({ renderer: planeRenderer, camera: planeCamera, container: mapPlaneContainer });
-
-const planeControls = new OrbitControls(planeCamera, planeRenderer.domElement);
-planeControls.enableDamping = true;
-planeControls.dampingFactor = 0.05;
-planeControls.minDistance = 2;
-planeControls.maxDistance = 40;
-planeControls.enableRotate = false;
-planeControls.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
-
-const gridHelper = new THREE.GridHelper(20, 20, 0xaaaaaa, 0x555555);
-planeScene.add(gridHelper);
-
-const raycastPlaneGeo = new THREE.PlaneGeometry(20, 20);
-const raycastPlane = new THREE.Mesh(raycastPlaneGeo, new THREE.MeshBasicMaterial({ visible: false }));
-raycastPlane.rotation.x = -Math.PI / 2;
-planeScene.add(raycastPlane);
-
-let heightData = null;
-const terrainSize = 256;
-
-textureLoader.load('https://i.imgur.com/vlYiAdX.png', (texture) => {
-const canvas = document.createElement('canvas');
-const img = texture.image;
-canvas.width = img.width;
-canvas.height = img.height;
-const context = canvas.getContext('2d');
-context.drawImage(img, 0, 0);
-const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-heightData = imageData.data;
-
-const planeGeo = new THREE.PlaneGeometry(20, 20, terrainSize - 1, terrainSize - 1);
-const vertices = planeGeo.attributes.position.array;
-
-for (let i = 0; i < vertices.length / 3; i++) {
-const x = Math.floor((vertices[i * 3] + 10) / 20 * (canvas.width - 1));
-const y = Math.floor((vertices[i * 3 + 1] + 10) / 20 * (canvas.height - 1));
-const pixelIndex = (y * canvas.width + x) * 4;
-const height = heightData[pixelIndex] / 255;
-vertices[i * 3 + 2] = height * 2.0;
-}
-planeGeo.attributes.position.needsUpdate = true;
-planeGeo.computeVertexNormals();
-
-const planeMat = new THREE.MeshPhongMaterial({
-color: 0xcccccc,
-wireframe: true,
-opacity: 0.5,
-transparent: true
-});
-planeMesh = new THREE.Mesh(planeGeo, planeMat);
-planeMesh.rotation.x = -Math.PI / 2;
-planeScene.add(planeMesh);
-});
-
-// --- Common Elements ---
-waypointsGroupPlane = new THREE.Group();
-planeScene.add(waypointsGroupPlane);
-
-globeScene.add(new THREE.AmbientLight(0xffffff, 2.0));
-planeScene.add(new THREE.AmbientLight(0xffffff, 2.0));
-const pointLight = new THREE.PointLight(0xffffff, 2.5);
-pointLight.position.set(15, 15, 15);
-globeScene.add(pointLight);
-planeScene.add(pointLight.clone());
-
-globeCamera.position.z = 10;
-planeCamera.position.set(0, 15, 0);
-planeCamera.lookAt(0,0,0);
-
-function animate() {
-if (document.getElementById('tactical-map')) {
-globeControls.update();
-planeControls.update();
-requestAnimationFrame(animate); 
-globeRenderer.render(globeScene, globeCamera);
-planeRenderer.render(planeScene, planeCamera);
-}
-}
-animate();
-
-function renderAllWaypoints() {
-if (waypointsGroup) renderWaypointsOnGlobe();
-renderWaypointsOnPlane();
-}
-
-function renderWaypointsOnGlobe() {
-waypointsGroup.clear();
-c3iState.waypoints.forEach(wp => {
-const wpGeo = new THREE.ConeGeometry(0.1, 0.8, 8);
-const wpMat = new THREE.MeshBasicMaterial({ color: wp.color });
-const waypointMesh = new THREE.Mesh(wpGeo, wpMat);
-waypointMesh.position.copy(new THREE.Vector3(wp.position.x, wp.position.y, wp.position.z));
-waypointMesh.lookAt(new THREE.Vector3(0,0,0));
-waypointMesh.rotateX(Math.PI / 2);
-waypointMesh.userData.id = wp.id;
-waypointsGroup.add(waypointMesh);
-});
-}
-
-function renderWaypointsOnPlane() {
-waypointsGroupPlane.clear();
-c3iState.waypoints.forEach(wp => {
-const pos = latLonToPlaneCoords(wp.coords.lat, wp.coords.lon);
-const wpGeo = new THREE.ConeGeometry(0.15, 1.2, 8);
-const wpMat = new THREE.MeshBasicMaterial({ color: wp.color });
-const waypointMesh = new THREE.Mesh(wpGeo, wpMat);
-
-let yPos = 0.6;
-if (heightData) {
-const canvasWidth = Math.sqrt(heightData.length / 4);
-const canvasHeight = canvasWidth;
-const x = Math.floor((pos.x + 10) / 20 * (canvasWidth - 1));
-const z = Math.floor((-pos.z + 10) / 20 * (canvasHeight - 1));
-const pixelIndex = (z * canvasWidth + x) * 4;
-if (pixelIndex < heightData.length) {
-const height = heightData[pixelIndex] / 255;
-yPos = height * 2.0 + 0.6;
-}
-}
-
-waypointMesh.position.set(pos.x, yPos, pos.z);
-waypointMesh.userData.id = wp.id;
-waypointsGroupPlane.add(waypointMesh);
-});
-}
-
-async function plotNewWaypoint(position, coords) {
-const newWaypoint = { 
-name: `WP-${Date.now().toString().slice(-4)}`, 
-position: { x: position.x, y: position.y, z: position.z },
-coords, 
-color: '#f5a623',
-createdBy: c3iState.firebaseUser.uid,
-timestamp: serverTimestamp()
-};
-try {
-const waypointsCollection = collection(db, `artifacts/${appId}/public/data/waypoints`);
-const docRef = await addDoc(waypointsCollection, newWaypoint);
-logAction('Waypoint Plotted', `[${coords.lat.toFixed(2)}, ${coords.lon.toFixed(2)}] ID: ${docRef.id}`);
-if(bootState.soundInitialized) bootState.uiSynth.triggerAttackRelease("A4", "16n");
-statusTextEl.textContent = `Waypoint ${newWaypoint.name} plotted.`;
-} catch (e) {
-console.error("Error adding waypoint: ", e);
-statusTextEl.textContent = `ERROR: Failed to plot waypoint.`;
-}
-}
-
-function showWaypointInfo(waypointId) {
-const waypoint = c3iState.waypoints.find(w => w.id === waypointId);
-if (!waypoint) return;
-
-statusTextEl.textContent = `Selected waypoint: ${waypoint.name}`;
-document.querySelector('.sidebar-tab[data-tab="waypoints"]').click();
-
-const infoContent = document.getElementById('waypoint-info-content');
-infoContent.innerHTML = `
-                       <input id="waypoint-name-input" class="c3i-input w-full" value="${waypoint.name}">
-                       <div class="text-xs mt-2">
-                           <p>LAT: <span class="text-primary">${waypoint.coords.lat.toFixed(4)}</span></p>
-                           <p>LON: <span class="text-primary">${waypoint.coords.lon.toFixed(4)}</span></p>
-                       </div>
-                       <div class="mt-2"><label class="text-xs">Colour</label><input type="color" id="waypoint-color-input" class="w-full h-8" value="${waypoint.color}"></div>
-                       <button id="delete-waypoint-btn" class="c3i-button w-full mt-2 text-sm">Delete Waypoint</button>
-                   `;
-
-const waypointDocRef = doc(db, `artifacts/${appId}/public/data/waypoints`, waypointId);
-
-document.getElementById('waypoint-name-input').addEventListener('change', async (e) => { 
-await updateDoc(waypointDocRef, { name: e.target.value });
-logAction('Waypoint Updated', `Name changed for ID: ${waypointId}`);
-});
-document.getElementById('waypoint-color-input').addEventListener('input', async (e) => { 
-await updateDoc(waypointDocRef, { color: e.target.value });
-});
-document.getElementById('delete-waypoint-btn').addEventListener('click', async () => {
-await deleteDoc(waypointDocRef);
-logAction('Waypoint Deleted', `ID: ${waypointId}`);
-infoContent.innerHTML = `<p class="text-sm text-gray-500">Click a waypoint on the map.</p>`;
-statusTextEl.textContent = `Waypoint deleted.`;
-});
-}
-
-// --- Event Listeners for Interaction ---
-let mouseDownPos = new THREE.Vector2();
-let isDragging = false;
-
-function setupDragCheck(element) {
-element.addEventListener('mousedown', (event) => {
-mouseDownPos.set(event.clientX, event.clientY);
-isDragging = false;
-});
-element.addEventListener('mousemove', (event) => {
-if (event.buttons === 0) return; // only check if mouse button is down
-const currentPos = new THREE.Vector2(event.clientX, event.clientY);
-if (mouseDownPos.distanceTo(currentPos) > 5) {
-isDragging = true;
-}
-});
-}
-
-setupDragCheck(globeRenderer.domElement);
-setupDragCheck(planeRenderer.domElement);
-
-globeRenderer.domElement.addEventListener('contextmenu', (event) => {
-event.preventDefault();
-if (!globe) return;
-const rect = globeRenderer.domElement.getBoundingClientRect();
-mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-raycaster.setFromCamera(mouse, globeCamera);
-const intersects = raycaster.intersectObject(globe);
-if (intersects.length > 0) {
-const intersectPoint = intersects[0].point;
-const coords = pointToLatLon(intersectPoint, 5);
-plotNewWaypoint(intersectPoint, coords);
-}
-});
-
-globeRenderer.domElement.addEventListener('click', (event) => {
-if(isDragging || !waypointsGroup) return;
-const rect = globeRenderer.domElement.getBoundingClientRect();
-mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-raycaster.setFromCamera(mouse, globeCamera);
-const intersects = raycaster.intersectObjects(waypointsGroup.children);
-if (intersects.length > 0) {
-const waypointId = intersects[0].object.userData.id;
-if (waypointId) showWaypointInfo(waypointId);
-}
-});
-
-globeRenderer.domElement.addEventListener('mousemove', (event) => {
-if (!globe) return;
-const rect = globeRenderer.domElement.getBoundingClientRect();
-mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-raycaster.setFromCamera(mouse, globeCamera);
-const intersects = raycaster.intersectObject(globe);
-if (intersects.length > 0) {
-const point = intersects[0].point;
-const coords = pointToLatLon(point, 5);
-statusTextEl.innerHTML = `COORDS: <span class="text-info">${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}</span>`;
-}
-});
-
-planeRenderer.domElement.addEventListener('contextmenu', (event) => {
-event.preventDefault();
-const rect = planeRenderer.domElement.getBoundingClientRect();
-mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-raycaster.setFromCamera(mouse, planeCamera);
-const intersects = raycaster.intersectObject(raycastPlane);
-if (intersects.length > 0) {
-const planePoint = intersects[0].point;
-const coords = planeCoordsToLatLon(planePoint.x, planePoint.z);
-const globePoint = latLonToPoint(coords.lat, coords.lon, 5);
-plotNewWaypoint(globePoint, coords);
-}
-});
-
-planeRenderer.domElement.addEventListener('click', (event) => {
-if(isDragging) return;
-const rect = planeRenderer.domElement.getBoundingClientRect();
-mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-raycaster.setFromCamera(mouse, planeCamera);
-const intersects = raycaster.intersectObjects(waypointsGroupPlane.children);
-if (intersects.length > 0) {
-const waypointId = intersects[0].object.userData.id;
-if (waypointId) showWaypointInfo(waypointId);
-}
-});
-
-planeRenderer.domElement.addEventListener('mousemove', (event) => {
-const rect = planeRenderer.domElement.getBoundingClientRect();
-mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-raycaster.setFromCamera(mouse, planeCamera);
-const intersects = raycaster.intersectObject(raycastPlane);
-if (intersects.length > 0) {
-const point = intersects[0].point;
-const coords = planeCoordsToLatLon(point.x, point.z);
-statusTextEl.innerHTML = `COORDS: <span class="text-info">${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}</span>`;
-}
-});
-
-globeRenderer.domElement.addEventListener('mouseleave', () => { statusTextEl.textContent = defaultStatusText; });
-planeRenderer.domElement.addEventListener('mouseleave', () => { statusTextEl.textContent = defaultStatusText; });
-
-document.getElementById('view-toggle').addEventListener('change', (e) => {
-tacticalMapContainer.classList.toggle('hidden', e.target.checked);
-mapPlaneContainer.classList.toggle('hidden', !e.target.checked);
-});
-document.getElementById('rotate-toggle').addEventListener('change', (e) => { globeControls.autoRotate = e.target.checked; });
-document.getElementById('heightmap-toggle').addEventListener('change', (e) => { 
-const isEnabled = e.target.checked;
-if (globe && globe.material) {
-globe.material.displacementScale = isEnabled ? 0.3 : 0;
-if (globe.userData.shader) {
-globe.userData.shader.uniforms.u_outline_enabled.value = isEnabled;
-}
-globe.material.needsUpdate = true;
-}
-if (planeMesh && heightData) {
-const vertices = planeMesh.geometry.attributes.position.array;
-for (let i = 0; i < vertices.length / 3; i++) {
-const x = Math.floor((vertices[i * 3] + 10) / 20 * (terrainSize - 1));
-const y = Math.floor((vertices[i * 3 + 1] + 10) / 20 * (terrainSize - 1));
-const pixelIndex = (y * terrainSize + x) * 4;
-const height = heightData[pixelIndex] / 255;
-vertices[i * 3 + 2] = height * 2.0 * (isEnabled ? 1 : 0);
-}
-planeMesh.geometry.attributes.position.needsUpdate = true;
-planeMesh.geometry.computeVertexNormals();
-}
-});
-
-const sidebarTabs = document.querySelectorAll('#map-main-panel ~ .ui-box .sidebar-tab');
-const sidebarTabContents = document.querySelectorAll('#map-main-panel ~ .ui-box .sidebar-tab-content');
-sidebarTabs.forEach(tab => {
-tab.addEventListener('click', () => {
-sidebarTabs.forEach(t => t.classList.remove('active'));
-tab.classList.add('active');
-sidebarTabContents.forEach(c => c.classList.remove('active'));
-document.getElementById(`tab-content-${tab.dataset.tab}`).classList.add('active');
-});
-});
-
-document.getElementById('plot-waypoint-btn').addEventListener('click', () => {
-const lat = parseFloat(document.getElementById('lat-input').value);
-const lon = parseFloat(document.getElementById('lon-input').value);
-if (isNaN(lat) || isNaN(lon) || !globe) return;
-const position = latLonToPoint(lat, lon, 5);
-plotNewWaypoint(position, {lat, lon});
-statusTextEl.textContent = `Waypoint plotted manually.`;
-});
-
-window.addEventListener('waypointsUpdated', renderAllWaypoints);
-renderAllWaypoints();
-}, 10);
-}
-
-function initArmouryPage() {
-const fileListEl = document.getElementById('armoury-file-list');
-const detailEl = document.getElementById('armoury-detail');
-const breadcrumbsEl = document.getElementById('armoury-breadcrumbs');
-const comparisonGridEl = document.getElementById('armoury-comparison-grid');
-            const addAssetBtn = document.getElementById('add-asset-btn');
-
-let currentPath = [];
-            let chartInstances = [];
-
-            if (c3iState.currentUser.clearance >= 4) {
-                addAssetBtn.classList.remove('hidden');
-            }
-
-function renderBrowser() {
-let currentLevel = c3iState.armoury;
-for (const part of currentPath) {
-currentLevel = currentLevel[part];
-}
-
-fileListEl.innerHTML = '';
-breadcrumbsEl.innerHTML = `<span class="cursor-pointer hover:text-primary" data-path="">ROOT</span>` + currentPath.map((p, i) => ` / <span class="cursor-pointer hover:text-primary" data-path="${currentPath.slice(0, i + 1).join('/')}">${p}</span>`).join('');
-
-if (currentLevel) {
-for (const dirName in currentLevel) {
-if (typeof currentLevel[dirName] === 'object' && !currentLevel[dirName].type) { // It's a directory
-const dirEl = document.createElement('div');
-dirEl.className = 'data-nav-item';
-dirEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> <span>${dirName}</span>`;
-dirEl.addEventListener('click', () => {
-currentPath.push(dirName);
-renderBrowser();
-});
-fileListEl.appendChild(dirEl);
-}
-}
-for (const fileName in currentLevel) {
-if (currentLevel[fileName].type) { // It's a file
-const fileEl = document.createElement('div');
-fileEl.className = 'data-nav-item';
-fileEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg> <span>${fileName}</span>`;
-fileEl.addEventListener('click', () => showAssetDetail(currentLevel[fileName], fileName));
-fileListEl.appendChild(fileEl);
-}
-}
-}
-
-breadcrumbsEl.querySelectorAll('span').forEach(span => {
-span.addEventListener('click', (e) => {
-const path = e.target.dataset.path;
-currentPath = path ? path.split('/') : [];
-renderBrowser();
-});
-});
-}
-
-function showAssetDetail(asset, name) {
-detailEl.innerHTML = `<h3 class="text-lg text-primary mb-2">${name}</h3><p class="text-sm text-gray-400 mb-4">${asset.type}</p>`;
-
-if (asset.type === 'Report') {
-let tableHTML = '<table class="data-table text-xs"><thead><tr>';
-const headers = Object.keys(asset.data[0]);
-headers.forEach(h => tableHTML += `<th>${h}</th>`);
-tableHTML += '</tr></thead><tbody>';
-asset.data.forEach(row => {
-tableHTML += '<tr>';
-headers.forEach(h => tableHTML += `<td>${row[h]}</td>`);
-tableHTML += '</tr>';
-});
-tableHTML += '</tbody></table>';
-detailEl.innerHTML += tableHTML;
-} else {
-let listHTML = '<ul class="space-y-1 text-sm">';
-for (const [key, value] of Object.entries(asset.data)) {
-listHTML += `<li><strong>${key}:</strong> <span class="text-info">${value}</span></li>`;
-}
-listHTML += '</ul>';
-detailEl.innerHTML += listHTML;
-}
-
-                const buttonGroup = document.createElement('div');
-                buttonGroup.className = 'flex gap-2 mt-4';
-
-const compareBtn = document.createElement('button');
-                compareBtn.className = 'c3i-button text-sm mt-4';
-                compareBtn.className = 'c3i-button text-sm';
-compareBtn.textContent = 'Add to Comparison';
-compareBtn.onclick = () => addToComparison({name, ...asset});
-                detailEl.appendChild(compareBtn);
-                buttonGroup.appendChild(compareBtn);
-                
-                if (c3iState.currentUser.clearance >= 4) {
-                    const editBtn = document.createElement('button');
-                    editBtn.className = 'c3i-button text-sm';
-                    editBtn.textContent = 'Edit';
-                    editBtn.onclick = () => alert('Edit functionality for Armoury is a future implementation.');
-                    buttonGroup.appendChild(editBtn);
-                }
-
-                detailEl.appendChild(buttonGroup);
-}
-
-function addToComparison(asset) {
-if (c3iState.comparisonAssets.length < 3 && !c3iState.comparisonAssets.find(a => a.name === asset.name)) {
-c3iState.comparisonAssets.push(asset);
-renderComparison();
-if(bootState.soundInitialized) bootState.uiSynth.triggerAttackRelease("C5", "16n");
-} else {
-if(bootState.soundInitialized) bootState.failSynth.triggerAttackRelease("A2", "16n");
-}
-}
-
-function renderComparison() {
-                chartInstances.forEach(chart => chart.destroy());
-                chartInstances = [];
-
-if (c3iState.comparisonAssets.length === 0) {
-comparisonGridEl.innerHTML = `<p class="text-gray-500 col-span-full">Add up to 3 assets to compare from the browser.</p>`;
-return;
-}
-comparisonGridEl.innerHTML = '';
-                
-                const numericKeys = new Set();
-c3iState.comparisonAssets.forEach(asset => {
-                    Object.keys(asset.data).forEach(key => {
-                        if (!isNaN(parseFloat(asset.data[key]))) {
-                            numericKeys.add(key);
-                        }
-                    });
-                });
-                const labels = Array.from(numericKeys);
-
-                c3iState.comparisonAssets.forEach((asset, index) => {
-const card = document.createElement('div');
-card.className = 'ui-box';
-                    let cardHTML = `<h4 class="text-md text-primary mb-2">${asset.name}</h4><p class="text-xs text-gray-400 mb-2">${asset.type}</p>`;
-                    cardHTML += '<ul class="space-y-1 text-xs">';
-                    for (const [key, value] of Object.entries(asset.data)) {
-                        cardHTML += `<li><strong>${key}:</strong> <span class="text-info">${value}</span></li>`;
-                    }
-                    cardHTML += '</ul>';
-                    card.innerHTML = cardHTML;
-                    const data = labels.map(key => parseFloat(asset.data[key]) || 0);
-
-                    card.innerHTML = `
-                        <h4 class="text-md text-primary mb-2">${asset.name}</h4>
-                        <canvas id="compare-chart-${index}"></canvas>
-                    `;
-comparisonGridEl.appendChild(card);
-
-                    const ctx = document.getElementById(`compare-chart-${index}`).getContext('2d');
-                    const chart = new Chart(ctx, {
-                        type: 'radar',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: asset.name,
-                                data: data,
-                                backgroundColor: 'rgba(255, 60, 60, 0.2)',
-                                borderColor: 'rgba(255, 60, 60, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            scales: {
-                                r: {
-                                    angleLines: { color: 'rgba(255,255,255,0.2)' },
-                                    grid: { color: 'rgba(255,255,255,0.2)' },
-                                    pointLabels: { color: 'white', font: { family: "'PPSupplyMono', monospace" } },
-                                    ticks: {
-                                        color: 'black',
-                                        backdropColor: 'rgba(255,255,255,0.8)',
-                                        font: { family: "'PPSupplyMono', monospace" }
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: { display: false }
-                            },
-                            maintainAspectRatio: true,
-                        }
-                    });
-                    chartInstances.push(chart);
-});
-}
-
-document.getElementById('clear-comparison-btn').addEventListener('click', () => {
-c3iState.comparisonAssets = [];
-renderComparison();
-});
-
-const sidebarTabs = document.querySelectorAll('#template-armoury .sidebar-tab');
-sidebarTabs.forEach(tab => {
-tab.addEventListener('click', () => {
-sidebarTabs.forEach(t => t.classList.remove('active'));
-tab.classList.add('active');
-document.getElementById('armoury-browser').classList.toggle('active', tab.dataset.tab === 'browser');
-document.getElementById('armoury-comparison').classList.toggle('active', tab.dataset.tab === 'comparison');
-});
-});
-
-renderBrowser();
-renderComparison();
-}
-
-function initCodexPage() {
-const navEl = document.getElementById('codex-nav');
-const contentEl = document.getElementById('codex-content-container');
-
-function renderCodex() {
-navEl.innerHTML = '';
-Object.keys(c3iState.codex).forEach((key, index) => {
-const navItem = document.createElement('div');
-navItem.className = 'data-nav-item';
-if (index === 0) navItem.classList.add('active');
-navItem.textContent = key;
-navItem.dataset.key = key;
-navEl.appendChild(navItem);
-});
-
-navEl.querySelectorAll('.data-nav-item').forEach(item => {
-item.addEventListener('click', (e) => {
-const key = e.target.dataset.key;
-navEl.querySelectorAll('.data-nav-item').forEach(i => i.classList.remove('active'));
-e.target.classList.add('active');
-                        contentEl.innerHTML = `<h3 class="text-lg text-primary mb-4">${key}</h3><div>${c3iState.codex[key]}</div>`;
-                        contentEl.innerHTML = `<div class="prose prose-invert">${c3iState.codex[key]}</div>`;
-});
-});
-
-                // Load first item
-const firstKey = Object.keys(c3iState.codex)[0];
-if(firstKey) {
-                    contentEl.innerHTML = `<h3 class="text-lg text-primary mb-4">${firstKey}</h3><div>${c3iState.codex[firstKey]}</div>`;
-                    contentEl.innerHTML = `${c3iState.codex[firstKey]}`;
-}
-}
-renderCodex();
-}
-
-function initIntelPage() {
-const listContainer = document.getElementById('faction-list-container');
-const detailView = document.getElementById('faction-detail-view');
-const listView = document.getElementById('faction-list-view');
-const plansContainer = document.getElementById('plans-container');
-const tasksContainer = document.getElementById('tasks-container');
-const personnelContainer = document.getElementById('personnel-container');
-
-function showListView() {
-listView.classList.remove('hidden');
-detailView.classList.add('hidden');
-detailView.innerHTML = '';
-}
-
-function showDetailView(factionKey) {
-const faction = c3iState.intel[factionKey];
-if (!faction) return;
-
-listView.classList.add('hidden');
-detailView.classList.remove('hidden');
-
-let strengthHTML = `<div class="grid grid-cols-3 gap-2 text-center text-sm p-2 ui-box">
-                   <div>Ground<br><span class="font-bold text-info">${faction.strength.ground}</span></div>
-                   <div>Air<br><span class="font-bold text-info">${faction.strength.air}</span></div>
-                   <div>Naval<br><span class="font-bold text-info">${faction.strength.naval}</span></div>
-               </div>`;
-
-let hierarchyHTML = `<h5 class="font-bold mt-4 text-secondary">Hierarchy:</h5><ul class="text-sm list-disc list-inside"><li><span class="font-bold">Leader:</span> ${faction.hierarchy.leader}</li>`;
-if(faction.hierarchy.members) {
-faction.hierarchy.members.forEach(m => hierarchyHTML += `<li>${m}</li>`);
-}
-hierarchyHTML += '</ul>';
-
-detailView.innerHTML = `
-                   <button id="back-to-factions-btn" class="c3i-button text-sm mb-4">← Back to List</button>
-                   <h3 class="text-2xl text-primary">${faction.name}</h3>
-                   <div class="flex justify-between text-md my-2"><span>Threat: <span class="text-warning font-bold">${faction.threat}</span></span> <span>Hostility: <span class="text-secondary font-bold">${faction.hostility}</span></span></div>
-                   <p class="text-md italic text-gray-400 my-4 p-2 ui-box">"${faction.report}"</p>
-                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                       <div>${strengthHTML}</div>
-                       <div>${hierarchyHTML}</div>
-                   </div>
-               `;
-document.getElementById('back-to-factions-btn').addEventListener('click', showListView);
-}
-
-function renderFactionList() {
-listContainer.innerHTML = '';
-for(const key in c3iState.intel) {
-const faction = c3iState.intel[key];
-const card = document.createElement('div');
-card.className = 'ui-box space-y-2 cursor-pointer hover:border-primary transition-all';
-card.dataset.factionKey = key;
-card.innerHTML = `
-                       <h3 class="text-lg text-primary pointer-events-none">${faction.name}</h3>
-                       <div class="flex justify-between text-sm pointer-events-none"><span>Threat: <span class="text-warning font-bold">${faction.threat}</span></span> <span>Hostility: <span class="text-secondary font-bold">${faction.hostility}</span></span></div>
-                   `;
-card.addEventListener('click', () => showDetailView(key));
-listContainer.appendChild(card);
-}
-}
-
-function renderPlans() {
-if(!plansContainer) return;
-plansContainer.innerHTML = c3iState.plans.map(plan => `
-                   <div class="ui-box">
-                        <h4 class="text-primary">${plan.name}</h4>
-                        <p class="text-sm whitespace-pre-wrap">${plan.details}</p>
-                        <p class="text-xs text-gray-500 mt-2">By ${plan.author} on ${plan.timestamp?.toDate().toLocaleDateString()}</p>
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="text-primary">${plan.name}</h4>
-                                <p class="text-sm whitespace-pre-wrap">${plan.details}</p>
-                                <p class="text-xs text-gray-500 mt-2">By ${plan.author} on ${plan.timestamp?.toDate().toLocaleDateString()}</p>
-                            </div>
-                            ${c3iState.currentUser.clearance >= 4 ? `<div class="flex gap-2">
-                                <button class="c3i-button text-xs edit-plan-btn" data-id="${plan.id}">Edit</button>
-                                <button class="c3i-button text-xs delete-plan-btn" data-id="${plan.id}">X</button>
-                            </div>` : ''}
-                        </div>
-                   </div>
-               `).join('');
-                document.querySelectorAll('.edit-plan-btn').forEach(btn => btn.addEventListener('click', (e) => openPlanTaskModal('plan', e.target.dataset.id)));
-                document.querySelectorAll('.delete-plan-btn').forEach(btn => btn.addEventListener('click', (e) => deleteItem('plans', e.target.dataset.id)));
-}
-
-function renderTasks() {
-if(!tasksContainer) return;
-tasksContainer.innerHTML = c3iState.tasks.map(task => `
-                    <div class="ui-box">
-                        <p>${task.name}</p>
-                        <p class="text-sm mt-1">Priority: <span class="font-bold text-warning">${task.priority}</span></p>
-                        <p class="text-xs text-gray-500 mt-2">Assigned by ${task.author} on ${task.timestamp?.toDate().toLocaleDateString()}</p>
-                    <div class="ui-box ${task.completed ? 'opacity-50' : ''}">
-                         <div class="flex justify-between items-start">
-                            <div class="flex items-center gap-4">
-                                ${c3iState.currentUser.clearance >= 4 ? `<input type="checkbox" class="task-complete-check" data-id="${task.id}" ${task.completed ? 'checked' : ''}>` : ''}
-                                <div>
-                                    <p class="${task.completed ? 'line-through' : ''}">${task.name}</p>
-                                    <p class="text-sm mt-1">Priority: <span class="font-bold text-warning">${task.priority}</span></p>
-                                    <p class="text-xs text-gray-500 mt-2">Assigned by ${task.author} on ${task.timestamp?.toDate().toLocaleDateString()}</p>
-                                </div>
-                            </div>
-                            ${c3iState.currentUser.clearance >= 4 ? `<div class="flex gap-2">
-                                <button class="c3i-button text-xs edit-task-btn" data-id="${task.id}">Edit</button>
-                                <button class="c3i-button text-xs delete-task-btn" data-id="${task.id}">X</button>
-                            </div>` : ''}
-                        </div>
-                   </div>
-               `).join('');
-                document.querySelectorAll('.edit-task-btn').forEach(btn => btn.addEventListener('click', (e) => openPlanTaskModal('task', e.target.dataset.id)));
-                document.querySelectorAll('.delete-task-btn').forEach(btn => btn.addEventListener('click', (e) => deleteItem('tasks', e.target.dataset.id)));
-                document.querySelectorAll('.task-complete-check').forEach(box => box.addEventListener('change', (e) => toggleTaskComplete(e.target.dataset.id, e.target.checked)));
-}
-
-function renderPersonnel() {
-if (!personnelContainer) return;
-let tableHTML = `<table class="data-table"><thead><tr><th>Codename</th><th>Username</th><th>Clearance Level</th></tr></thead><tbody>`;
-for (const codename in c3iState.users) {
-const user = c3iState.users[codename];
-tableHTML += `<tr><td>${codename}</td><td>${user.username}</td><td>${user.clearance} - ${getClearanceName(user.clearance)}</td></tr>`;
-}
-tableHTML += `</tbody></table>`;
-personnelContainer.innerHTML = tableHTML;
-}
-
-const sidebarTabs = document.querySelectorAll('#template-intel .sidebar-tab');
-sidebarTabs.forEach(tab => {
-tab.addEventListener('click', () => {
-sidebarTabs.forEach(t => t.classList.remove('active'));
-tab.classList.add('active');
-document.querySelectorAll('#intel-content-container .intel-content').forEach(c => c.classList.remove('active'));
-document.getElementById(`intel-${tab.dataset.tab}`).classList.add('active');
-});
-});
-
-            // Modals
-            const planModal = document.getElementById('plan-modal');
-            const taskModal = document.getElementById('task-modal');
-            document.getElementById('add-plan-btn')?.addEventListener('click', () => planModal.classList.remove('hidden'));
-            document.getElementById('add-task-btn')?.addEventListener('click', () => taskModal.classList.remove('hidden'));
-            document.getElementById('close-plan-modal-btn')?.addEventListener('click', () => planModal.classList.add('hidden'));
-            document.getElementById('close-task-modal-btn')?.addEventListener('click', () => taskModal.classList.add('hidden'));
-            // --- Modals and Forms ---
-            const modal = document.getElementById('plan-task-modal');
-            const modalTitle = document.getElementById('plan-task-modal-title');
-            const form = document.getElementById('plan-task-form');
-            const editIdInput = document.getElementById('edit-id');
-            const itemNameInput = document.getElementById('item-name');
-            const itemDetailsInput = document.getElementById('item-details');
-            const itemPriorityInput = document.getElementById('item-priority');
-            const detailsField = document.getElementById('details-field');
-            const priorityField = document.getElementById('priority-field');
-            const labelName = document.getElementById('label-name');
-
-            let currentModalType = '';
-
-            function openPlanTaskModal(type, id = null) {
-                form.reset();
-                currentModalType = type;
-                editIdInput.value = id || '';
-
-                if (type === 'plan') {
-                    modalTitle.textContent = id ? 'Edit Strategic Plan' : 'New Strategic Plan';
-                    labelName.textContent = 'Plan Name';
-                    detailsField.style.display = 'block';
-                    priorityField.style.display = 'none';
-                    if (id) {
-                        const plan = c3iState.plans.find(p => p.id === id);
-                        itemNameInput.value = plan.name;
-                        itemDetailsInput.value = plan.details;
-                    }
-                } else { // task
-                    modalTitle.textContent = id ? 'Edit Operational Task' : 'New Operational Task';
-                    labelName.textContent = 'Task Description';
-                    detailsField.style.display = 'none';
-                    priorityField.style.display = 'block';
-                    if (id) {
-                        const task = c3iState.tasks.find(t => t.id === id);
-                        itemNameInput.value = task.name;
-                        itemPriorityInput.value = task.priority;
-                    }
-                }
-                modal.classList.remove('hidden');
-            }
-
-            document.getElementById('plan-form')?.addEventListener('submit', async (e) => {
-            form.addEventListener('submit', async (e) => {
-e.preventDefault();
-                const planData = {
-                    name: e.target['plan-name'].value,
-                    details: e.target['plan-details'].value,
-                const id = editIdInput.value;
-                const collectionName = currentModalType === 'plan' ? 'plans' : 'tasks';
-                
-                let data = {
-                    name: itemNameInput.value,
-author: c3iState.currentUser.codename,
-timestamp: serverTimestamp()
-};
-                await addDoc(collection(db, `artifacts/${appId}/public/data/plans`), planData);
-                planModal.classList.add('hidden');
-                e.target.reset();
-            });
-
-            document.getElementById('task-form')?.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const taskData = {
-                    name: e.target['task-name'].value,
-                    priority: e.target['task-priority'].value,
-                    author: c3iState.currentUser.codename,
-                    timestamp: serverTimestamp()
-                };
-                await addDoc(collection(db, `artifacts/${appId}/public/data/tasks`), taskData);
-                taskModal.classList.add('hidden');
-                e.target.reset();
-                if (currentModalType === 'plan') {
-                    data.details = itemDetailsInput.value;
-                } else {
-                    data.priority = itemPriorityInput.value;
-                    if (!id) data.completed = false; // Only set on creation
-                }
-
-                if (id) {
-                    await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, id), data);
-                } else {
-                    await addDoc(collection(db, `artifacts/${appId}/public/data/${collectionName}`), data);
-                }
-                modal.classList.add('hidden');
-});
-
-            async function deleteItem(collectionName, id) {
-                if (confirm('Are you sure you want to delete this item?')) {
-                    await deleteDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, id));
-                }
-            }
-            
-            async function toggleTaskComplete(id, completed) {
-                await updateDoc(doc(db, `artifacts/${appId}/public/data/tasks`, id), { completed });
-            }
-
-            document.getElementById('add-plan-btn')?.addEventListener('click', () => openPlanTaskModal('plan'));
-            document.getElementById('add-task-btn')?.addEventListener('click', () => openPlanTaskModal('task'));
-            document.getElementById('close-plan-task-modal-btn')?.addEventListener('click', () => modal.classList.add('hidden'));
-
-window.addEventListener('plansUpdated', renderPlans);
-window.addEventListener('tasksUpdated', renderTasks);
-
-renderFactionList();
-renderPlans();
-renderTasks();
-renderPersonnel();
-}
-
-function initCommsPage() {
-const chatMessagesEl = document.getElementById('chat-messages');
-const chatForm = document.getElementById('chat-form');
-const chatInput = document.getElementById('chat-input');
-
-function renderMessages() {
-if (!chatMessagesEl) return;
-chatMessagesEl.innerHTML = '';
-// Create a reversed copy for rendering without mutating state
-[...c3iState.chatMessages].reverse().forEach(msg => {
-const msgEl = document.createElement('p');
-const sender = msg.user === c3iState.currentUser.codename ? 'You' : msg.user;
-const colorClass = msg.user === c3iState.currentUser.codename ? 'text-info' : 'text-primary';
-msgEl.innerHTML = `<span class="${colorClass}">${sender}:</span> ${msg.text}`;
-chatMessagesEl.appendChild(msgEl);
-});
-}
-
-chatForm.addEventListener('submit', async e => {
-e.preventDefault();
-const text = chatInput.value.trim();
-if (text) {
-const messageData = {
-user: c3iState.currentUser.codename,
-text: text,
-timestamp: serverTimestamp(),
-userId: c3iState.firebaseUser.uid
-};
-chatInput.value = '';
-try {
-const chatCollection = collection(db, `artifacts/${appId}/public/data/chatMessages`);
-await addDoc(chatCollection, messageData);
-} catch (error) {
-console.error("Error sending message:", error);
-chatInput.value = text; // Put text back on failure
-}
-}
-});
-
-window.addEventListener('chatUpdated', renderMessages);
-renderMessages(); // Initial render
-}
-
-function renderAuditLogInSettings() {
-const container = document.getElementById('audit-log-container');
-
-function renderLog() {
-if (!container) return;
-let logHtml = `<table class="w-full text-left text-sm"><thead><tr class="border-b border-primary/20"><th class="p-2">Timestamp</th><th class="p-2">Operator</th><th class="p-2">Action</th><th class="p-2">Details</th></tr></thead><tbody>`;
-c3iState.auditLog.forEach(log => {
-logHtml += `<tr class="border-b border-gray-800"><td class="p-2">${log.timestamp?.toDate().toLocaleString() || '...'}</td><td class="p-2 text-primary">${log.operator}</td><td class="p-2">${log.action}</td><td class="p-2">${log.details}</td></tr>`;
-});
-logHtml += `</tbody></table>`;
-container.innerHTML = logHtml;
-}
-
-window.addEventListener('logUpdated', renderLog);
-renderLog(); // Initial render
-}
-
-function initSettingsPage() {
-const soundToggle = document.getElementById('sound-toggle');
-soundToggle.checked = bootState.soundInitialized && !Tone.getDestination().mute;
-soundToggle.addEventListener('change', (e) => {
-if (e.target.checked && !bootState.soundInitialized) {
-initSound();
-}
-Tone.getDestination().mute = !e.target.checked;
-});
-
-const themeSelector = document.getElementById('theme-selector');
-themeSelector.addEventListener('click', e => {
-if (e.target.dataset.theme) {
-document.body.className = document.body.classList.contains('color-shift-active') ? `color-shift-active ${e.target.dataset.theme}` : e.target.dataset.theme;
-updateActiveThemeButton();
-}
-});
-
-function updateActiveThemeButton() {
-const currentTheme = document.body.className.split(' ').find(c => c.startsWith('theme-'));
-document.querySelectorAll('.theme-btn').forEach(btn => {
-btn.classList.toggle('active', btn.dataset.theme === currentTheme);
-});
-}
-updateActiveThemeButton();
-
-const colorShiftToggle = document.getElementById('color-shift-toggle');
-colorShiftToggle.checked = document.body.classList.contains('color-shift-active');
-colorShiftToggle.addEventListener('change', (e) => {
-document.body.classList.toggle('color-shift-active', e.target.checked);
-});
-
-renderAuditLogInSettings();
-}
-
-// --- Coordinate Conversion Utilities ---
-function pointToLatLon(point, radius) {
-const lat = 90 - (Math.acos(point.y / radius)) * 180 / Math.PI;
-const lon = ((270 + (Math.atan2(point.x, point.z)) * 180 / Math.PI) % 360) - 180;
-return { lat, lon };
-}
-
-function latLonToPoint(lat, lon, radius) {
-const phi = (90 - lat) * (Math.PI / 180);
-const theta = (lon + 180) * (Math.PI / 180);
-const x = -(radius * Math.sin(phi) * Math.cos(theta));
-const z = (radius * Math.sin(phi) * Math.sin(theta));
-const y = (radius * Math.cos(phi));
-return new THREE.Vector3(x, y, z);
-}
-
-function latLonToPlaneCoords(lat, lon) {
-const x = lon / 360 * 20;
-const z = -lat / 180 * 10;
-return {x, z};
-}
-
-function planeCoordsToLatLon(x, z) {
-const lon = x / 20 * 360;
-const lat = -z / 10 * 180;
-return {lat, lon};
-}
-
-// --- Application Start ---
-function startHandler() {
-initSound();
-runBootSequence();
-window.removeEventListener('keydown', startHandler);
-window.removeEventListener('click', startHandler);
-}
-window.addEventListener('keydown', startHandler);
-window.addEventListener('click', startHandler);
-
-window.addEventListener('resize', () => {
-for (const instance of bootState.threeInstances) {
-const { renderer, camera, container, composer } = instance;
-if (container && document.contains(container)) {
-const width = container.clientWidth;
-const height = container.clientHeight;
-if (width > 0 && height > 0) {
-camera.aspect = width / height;
-camera.updateProjectionMatrix();
-renderer.setSize(width, height);
-if (composer) composer.setSize(width, height);
-}
-}
-}
-});
-
-bootState.loginForm.addEventListener('submit', async (e) => {
-e.preventDefault();
-await authReadyPromise; // Wait for firebase to be ready
-            const codename = e.target.username.value;
-            const codename = e.target.username.value.toLowerCase();
-const password = e.target.password.value;
-            const user = c3iState.users[codename.toLowerCase()];
-            const user = c3iState.users[codename];
-if (user && user.password === password) {
-c3iState.currentUser = { codename: codename, ...user };
-await logAction('User Login');
-showDesktop();
-} else {
-if(bootState.soundInitialized) bootState.failSynth.triggerAttackRelease("G2", "1n");
-bootState.loginError.style.display = 'block';
-setTimeout(() => { bootState.loginError.style.display = 'none'; }, 1500);
-}
-});
-
-// Initialize Data, then Firebase, then the visual boot sequence
-loadData();
-initializeFirebase();
-initOffline();
-</script>
+    
+    <!-- Main application entry point -->
+    <script src="main.js" type="module"></script>
 </body>
 </html>
