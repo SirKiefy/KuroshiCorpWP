@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, setLogLevel, onSnapshot, collection, query, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { c3iState } from './data.js';
+import { uiUpdaters } from './ui.js';
 
 export let db, auth;
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -12,7 +13,7 @@ export const authReadyPromise = new Promise(resolve => { authReadyResolver = res
 export async function initializeFirebase() {
     try {
         let firebaseConfig;
-        if (typeof __firebase_config !== 'undefined') {
+        if (typeof __firebase_config !== 'undefined' && __firebase_config.trim() !== '') {
             firebaseConfig = JSON.parse(__firebase_config);
         } else {
             console.warn("Using fallback Firebase config.");
@@ -63,14 +64,14 @@ export function setupFirestoreListeners() {
     c3iState.listeners = [];
 
     const collectionsToWatch = {
-        waypoints: 'waypointsUpdated',
-        chatMessages: 'chatUpdated',
-        auditLog: 'logUpdated',
-        plans: 'plansUpdated',
-        tasks: 'tasksUpdated'
+        waypoints: 'waypoints',
+        chatMessages: 'chatMessages',
+        auditLog: 'auditLog',
+        plans: 'plans',
+        tasks: 'tasks'
     };
 
-    for (const [key, eventName] of Object.entries(collectionsToWatch)) {
+    for (const [key, updaterKey] of Object.entries(collectionsToWatch)) {
         const q = query(collection(db, `artifacts/${appId}/public/data/${key}`));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -78,7 +79,12 @@ export function setupFirestoreListeners() {
                 data.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
             }
             c3iState[key] = data;
-            window.dispatchEvent(new Event(eventName));
+            
+            // Directly call the registered UI updater function
+            if (uiUpdaters[updaterKey]) {
+                uiUpdaters[updaterKey]();
+            }
+
         }, err => console.error(`${key} listener error: `, err));
         c3iState.listeners.push(unsubscribe);
     }
@@ -118,17 +124,17 @@ async function deleteData(collectionName, docId) {
 }
 
 // Export specific functions for each data type
-export const saveWaypoint = (data) => saveData('waypoints', data);
+export const saveWaypoint = (data) => saveData('waypoints', { ...data, timestamp: serverTimestamp() });
 export const updateWaypoint = (id, data) => updateData('waypoints', id, data);
 export const deleteWaypoint = (id) => deleteData('waypoints', id);
 
-export const savePlan = (data) => saveData('plans', data);
-export const updatePlan = (id, data) => updateData('plans', id, data);
+export const savePlan = (data) => saveData('plans', { ...data, timestamp: serverTimestamp() });
+export const updatePlan = (id, data) => updateData('plans', id, { ...data, timestamp: serverTimestamp() });
 export const deletePlan = (id) => deleteData('plans', id);
 
-export const saveTask = (data) => saveData('tasks', data);
+export const saveTask = (data) => saveData('tasks', { ...data, timestamp: serverTimestamp() });
 export const updateTask = (id, data) => updateData('tasks', id, data);
 export const deleteTask = (id) => deleteData('tasks', id);
 
-export const saveChatMessage = (data) => saveData('chatMessages', data);
-export const saveAuditLog = (data) => saveData('auditLog', data);
+export const saveChatMessage = (data) => saveData('chatMessages', { ...data, timestamp: serverTimestamp() });
+export const saveAuditLog = (data) => saveData('auditLog', { ...data, timestamp: serverTimestamp() });
