@@ -42,7 +42,6 @@ export function loadData() {
         'altair':       { username: 'saticron',                password: 'M7u$Zj1Lb^Nx4R', clearance: 6, admin: false },
         'foxbatactual': { username: 'FoxbatActual',            password: '991964',         clearance: 6, admin: false },
         'nightstalker': { username: 'nightmare_of_the_living', password: 'B4v*Xg9Hp&Lf2T', clearance: 4, admin: false },
-        'rocketman':    { username: 'daniel.4031',             password: 'T5q#Ch6Jm%Ws1Y', clearance: 3, admin: false },
         'deadeye':      { username: 'sharps54',                password: 'L8n^Vr4Xp!Bd3K', clearance: 3, admin: false },
         'reaper':       { username: 'halolad',                 password: 'S1j%Ht7Zk&Qp9N', clearance: 3, admin: false },
         'wolfhound':    { username: 'dr_lupus',                password: 'H3p$Gn2Fr#Dz6M', clearance: 3, admin: false },
