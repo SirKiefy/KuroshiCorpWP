@@ -1,21 +1,18 @@
 import { initCoreIgnition, initOfflineVisuals, initThreatAnalysis, initBiosSidebarVisual } from './three-scenes.js';
-
-export const bootState = {
-    stages: document.querySelectorAll('.boot-stage'),
-    cursor: document.getElementById('custom-cursor'),
-    loginForm: document.getElementById('login-form'),
-    loginError: document.getElementById('login-error'),
-    mousePos: { x: 0, y: 0 },
-    currentStage: 0,
-    soundInitialized: false,
-    uiSynth: null, failSynth: null, successSynth: null, deploySynth: null, matrixSynth: null, flowSynth: null,
-    threeInstances: []
-};
+import { bootState } from './data.js';
 
 export async function runBootSequence() {
-    await switchStage(1); initCoreIgnition(); await new Promise(res => setTimeout(res, 7000));
-    await switchStage(2); await runBios();
-    await switchStage(3); initThreatAnalysis(); await new Promise(res => setTimeout(res, 8000));
+    await switchStage(1); 
+    initCoreIgnition(); 
+    await new Promise(res => setTimeout(res, 7000));
+    
+    await switchStage(2); 
+    await runBios();
+    
+    await switchStage(3); 
+    initThreatAnalysis(); 
+    await new Promise(res => setTimeout(res, 8000));
+    
     await switchStage(4);
 }
 
