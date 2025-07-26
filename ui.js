@@ -269,6 +269,11 @@ function initCodexPage() {
 }
 
 function initIntelPage() {
+    // Add event listeners that will re-render the content when data changes
+    window.addEventListener('plansUpdated', renderPlans);
+    window.addEventListener('tasksUpdated', renderTasks);
+
+    // Initial render of all components on this page
     renderFactionList();
     renderPlans();
     renderTasks();
@@ -291,7 +296,11 @@ function initIntelPage() {
 }
 
 function initCommsPage() {
+    // Add event listener to re-render messages when new ones arrive
+    window.addEventListener('chatUpdated', renderMessages);
+    // Initial render of messages
     renderMessages();
+
     const chatForm = document.getElementById('chat-form');
     chatForm.addEventListener('submit', async e => {
         e.preventDefault();
@@ -309,6 +318,9 @@ function initCommsPage() {
 }
         
 function initSettingsPage() {
+    // Add event listener to re-render the log when it updates
+    window.addEventListener('logUpdated', renderLog);
+    // Initial render of the log
     renderLog();
     
     const soundToggle = document.getElementById('sound-toggle');
@@ -343,14 +355,10 @@ function initSettingsPage() {
     });
 }
 
-// --- EXPORTED RENDER FUNCTIONS ---
-// These functions are called by firebase.js when data updates
+// --- RENDER FUNCTIONS ---
+// These functions update the DOM when called. They are triggered by the event listeners.
 
-export function renderAllWaypoints() {
-    Utils.getGlobeInstance()?.renderWaypoints();
-}
-
-export function renderLog() {
+function renderLog() {
     const container = document.getElementById('audit-log-container');
     if (!container) return;
     let logHtml = `<table class="data-table"><thead><tr class="border-b border-primary/20"><th class="p-2">Timestamp</th><th class="p-2">Operator</th><th class="p-2">Action</th><th class="p-2">Details</th></tr></thead><tbody>`;
@@ -361,7 +369,7 @@ export function renderLog() {
     container.innerHTML = logHtml;
 }
 
-export function renderMessages() {
+function renderMessages() {
     const chatMessagesEl = document.getElementById('chat-messages');
     if (!chatMessagesEl) return;
     chatMessagesEl.innerHTML = '';
@@ -374,7 +382,7 @@ export function renderMessages() {
     });
 }
 
-export function renderPlans() {
+function renderPlans() {
     const plansContainer = document.getElementById('plans-container');
     if(!plansContainer) return;
     plansContainer.innerHTML = c3iState.plans.map(plan => `
@@ -396,7 +404,7 @@ export function renderPlans() {
     plansContainer.querySelectorAll('.delete-plan-btn').forEach(btn => btn.addEventListener('click', (e) => Firebase.deletePlan(e.target.dataset.id)));
 }
 
-export function renderTasks() {
+function renderTasks() {
     const tasksContainer = document.getElementById('tasks-container');
     if(!tasksContainer) return;
     tasksContainer.innerHTML = c3iState.tasks.map(task => `
