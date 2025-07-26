@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSW-OS [v49.9.12-FBE]</title>
+    <title>HSW-OS [v27.10-FBE]</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -16,7 +16,350 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        @font-face {
+            font-family: "PPSupplyMono";
+            src: url("https://assets.codepen.io/7558/PPSupplyMono-Regular.ttf") format("truetype");
+            font-weight: normal; font-style: normal; font-display: swap;
+        }
+
+        :root {
+            --color-bg: #000000;
+            --color-primary: #ff3c3c; /* Red */
+            --color-secondary: #ff8c3c; /* Orange-Red */
+            --color-tertiary: #9C27B0; /* Purple */
+            --color-warning: #f5a623; /* Orange */
+            --color-ok: #4caf50; /* Green */
+            --color-info: #45f3ff; /* Cyan */
+            --color-text: #cccccc;
+            --color-border: rgba(255, 60, 60, 0.15);
+            --font-primary: "PPSupplyMono", "Courier New", monospace;
+        }
+        
+        body.theme-crimson { --color-primary: #DC143C; --color-secondary: #FF4500; --color-tertiary: #9C27B0; --color-border: rgba(220, 20, 60, 0.15); }
+        body.theme-helios { --color-primary: #9cd4c4; --color-secondary: #6aa394; --color-tertiary: #87CEEB; --color-border: rgba(156, 212, 196, 0.15); }
+        body.theme-cobalt { --color-primary: #1976D2; --color-secondary: #29B6F6; --color-tertiary: #45f3ff; --color-border: rgba(25, 118, 210, 0.15); }
+        body.theme-hunter { --color-primary: #2E7D32; --color-secondary: #66BB6A; --color-tertiary: #4CAF50; --color-border: rgba(46, 125, 50, 0.15); }
+        body.theme-amber { --color-primary: #FFA000; --color-secondary: #FFCA28; --color-tertiary: #f5a623; --color-border: rgba(255, 160, 0, 0.15); }
+        body.theme-orion { --color-primary: #4A90E2; --color-secondary: #50E3C2; --color-tertiary: #45f3ff; --color-border: rgba(74, 144, 226, 0.15); }
+        body.theme-void { --color-primary: #9C27B0; --color-secondary: #00BCD4; --color-tertiary: #ba68c8; --color-border: rgba(156, 39, 176, 0.15); }
+        body.theme-plasma { --color-primary: #00FF00; --color-secondary: #7FFF00; --color-tertiary: #00FFFF; --color-border: rgba(0, 255, 0, 0.15); }
+        body.theme-sunset { --color-primary: #FF4500; --color-secondary: #FF69B4; --color-tertiary: #8A2BE2; --color-border: rgba(255, 69, 0, 0.15); }
+        body.theme-glacial { --color-primary: #FFFFFF; --color-secondary: #ADD8E6; --color-tertiary: #E0FFFF; --color-border: rgba(255, 255, 255, 0.15); }
+
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-primary);
+            overflow: hidden;
+            cursor: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--color-primary); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--color-secondary); }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+
+        /* Static noise overlay for CRT effect */
+        #noise-overlay {
+            position: fixed;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: transparent url("https://assets.codepen.io/7558/noise.png") repeat 0 0;
+            background-size: 300px 300px;
+            animation: noise-animation 0.2s steps(4) infinite;
+            opacity: 0.8;
+            will-change: transform;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        @keyframes noise-animation {
+            0% { transform: translate(0, 0); } 10% { transform: translate(-1%, -1%); } 20% { transform: translate(1%, -2%); } 30% { transform: translate(-1%, 2%); } 40% { transform: translate(1%, -1%); } 50% { transform: translate(-1%, 2%); } 60% { transform: translate(-2%, 1%); } 70% { transform: translate(2%, 1%); } 80% { transform: translate(1%, -1%); } 90% { transform: translate(-1%, 2%); } 100% { transform: translate(1%, 0); }
+        }
+
+        #custom-cursor {
+            position: fixed;
+            width: 20px; height: 20px;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+        #custom-cursor .crosshair { 
+            stroke: var(--color-primary); 
+            stroke-width: 1.5px; 
+            animation: cursor-spin 10s linear infinite; 
+        }
+        body.color-shift-active #custom-cursor .crosshair {
+            animation: cursor-spin 10s linear infinite, color-shift-stroke 8s infinite linear; 
+        }
+        @keyframes cursor-spin { 100% { transform: rotate(360deg); } }
+
+        @keyframes color-shift {
+            0%, 100% {
+                border-color: var(--color-primary);
+                color: var(--color-primary);
+            }
+            33% {
+                border-color: var(--color-secondary);
+                color: var(--color-secondary);
+            }
+            66% {
+                border-color: var(--color-tertiary);
+                color: var(--color-tertiary);
+            }
+        }
+        
+        @keyframes color-shift-stroke {
+             0%, 100% { stroke: var(--color-primary); }
+             33% { stroke: var(--color-secondary); }
+             66% { stroke: var(--color-tertiary); }
+        }
+        
+        @keyframes color-shift-bg {
+             0%, 100% { background-color: var(--color-primary); }
+             33% { background-color: var(--color-secondary); }
+             66% { background-color: var(--color-tertiary); }
+        }
+
+        .ui-box {
+            border: 1px solid var(--color-border);
+            background: rgba(10, 10, 10, 0.7);
+            padding: 1rem;
+            position: relative;
+            backdrop-filter: blur(8px);
+        }
+        .ui-box::before, .ui-box::after, .ui-box .corner-bl, .ui-box .corner-br {
+            content: ''; position: absolute; width: 10px; height: 10px; border: 2px solid var(--color-primary);
+        }
+        body.color-shift-active .ui-box::before, body.color-shift-active .ui-box::after, body.color-shift-active .ui-box .corner-bl, body.color-shift-active .ui-box .corner-br {
+            animation: color-shift 8s infinite ease-in-out;
+        }
+        .ui-box::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+        .ui-box::after { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+        .ui-box .corner-bl { bottom: -2px; left: -2px; border-top: none; border-right: none; }
+        .ui-box .corner-br { bottom: -2px; right: -2px; border-top: none; border-left: none; }
+        
+        #boot-container { position: fixed; inset: 0; z-index: 100; }
+        .boot-stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.5s, visibility 0.5s; }
+        .boot-stage.active { opacity: 1; visibility: visible; }
+        
+        .stage-title { position: absolute; top: 2rem; left: 50%; transform: translateX(-50%); font-family: var(--font-primary); font-size: 1.5rem; letter-spacing: 5px; color: var(--color-primary); }
+        body.color-shift-active .stage-title { animation: color-shift 8s infinite linear; }
+        
+        #stage-offline-text { z-index: 10; text-align: center; }
+        #stage-offline h1 { font-size: 2rem; letter-spacing: 4px; color: var(--color-primary); }
+        body.color-shift-active #stage-offline h1 { animation: color-shift 8s infinite linear; }
+        #stage-offline p { font-size: 1.2rem; margin-top: 1rem; color: var(--color-warning); animation: slow-blink 2s infinite; }
+        @keyframes slow-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .canvas-container { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .canvas-container canvas { width: 100%; height: 100%; display: block; }
+
+        #bios-container { width: 95vw; max-width: 1800px; height: 95vh; display: flex; flex-direction: column; gap: 1rem; }
+        #bios-content { display: grid; grid-template-columns: 3fr 2fr; gap: 1rem; flex-grow: 1; overflow: hidden;}
+        #bios-lines-box { display: flex; flex-direction: column; overflow: hidden; }
+        #bios-lines { flex-grow: 1; overflow-y: scroll; font-size: 0.8rem; padding: 1rem; }
+        .bios-line { white-space: pre-wrap; margin-bottom: 0.25rem; }
+        .keyword-ok { color: var(--color-ok); font-weight: bold; }
+        .keyword-error { color: var(--color-primary); font-weight: bold; animation: fast-blink 0.5s infinite; }
+        .keyword-warn { color: var(--color-warning); }
+        .keyword-info { color: var(--color-info); }
+        .keyword-sys { color: #a855f7; }
+        .keyword-data { color: #fb923c; }
+        .highlight { background: var(--color-border); padding: 0 4px; }
+        @keyframes fast-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+        #bios-sidebar { display: flex; flex-direction: column; gap: 1rem; }
+        .progress-bar-container { border: 1px solid var(--color-border); padding: 2px; margin-top: 0.25rem; background: rgba(0,0,0,0.2); }
+        .progress-bar { width: 0%; height: 10px; background: var(--color-primary); transition: width 0.1s linear; }
+        body.color-shift-active .progress-bar { animation: color-shift-bg 8s infinite linear; }
+        .progress-label { margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; }
+        
+        .circular-bars-container { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1rem; margin-top: 1rem; }
+        .circular-bar { position: relative; width: 100%; padding-top: 100%; }
+        .circular-bar svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+        .circular-bar circle { fill: none; stroke-width: 8; }
+        .circular-bar .bar-bg { stroke: var(--color-border); }
+        .circular-bar .bar-fg { stroke: var(--color-primary); stroke-linecap: round; transition: stroke-dashoffset 0.2s linear; }
+        body.color-shift-active .circular-bar .bar-fg { animation: color-shift-stroke 8s infinite linear; }
+        .circular-bar-label { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        #bios-sidebar-visual { flex-grow: 1; margin-top: 1rem; position: relative; }
+
+        .animated-title {
+            background: linear-gradient(90deg, var(--color-primary), var(--color-secondary), var(--color-tertiary), var(--color-primary));
+            background-size: 400% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-scroll 6s linear infinite;
+        }
+        @keyframes gradient-scroll {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        #auth-title { font-family: var(--font-primary); font-size: 2rem; margin-bottom: 2rem; }
+        #login-form { width: 400px; }
+        .input-field { background: transparent; border: none; border-bottom: 2px solid var(--color-border); width: 100%; padding: 0.5rem 0; font-size: 1.2rem; margin-bottom: 2rem; }
+        .input-field:focus { outline: none; border-bottom-color: var(--color-primary); }
+        body.color-shift-active .input-field:focus { animation: color-shift 8s infinite linear; }
+        .login-btn { font-size: 1.2rem; font-weight: 700; padding: 0.75rem; background: transparent; border: 2px solid var(--color-primary); width: 100%; transition: all 0.3s; }
+        body.color-shift-active .login-btn { animation: color-shift 8s infinite linear reverse; }
+        .login-btn:hover { background: var(--color-primary); color: var(--color-bg); animation-play-state: paused; }
+        #login-error { color: var(--color-primary); text-align: center; margin-top: 1rem; display: none; }
+
+        /* C3I Application Styles */
+        #desktop { display: none; height: 100vh; }
+        .main-grid { display: grid; grid-template-columns: 250px 1fr; grid-template-rows: 1fr; height: 100%; gap: 1rem; padding: 2rem; transition: grid-template-columns 0.3s ease-in-out; }
+        .main-grid.collapsed { grid-template-columns: 60px 1fr; }
+
+        #main-nav .nav-text { transition: opacity 0.2s ease, width 0.2s ease; width: auto; white-space: nowrap; }
+        .main-grid.collapsed #main-nav .nav-text { opacity: 0; pointer-events: none; width: 0; }
+        .main-grid.collapsed #main-nav h1 { font-size: 1.5rem; text-align: center; }
+        .main-grid.collapsed #main-nav .nav-item { 
+            justify-content: center; 
+            gap: 0;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .nav-item { transition: all 0.3s ease; cursor: pointer; }
+        .nav-item .icon-box { background-color: rgba(255,255,255,0.05); border: 1px solid var(--color-border); transition: all 0.3s ease; }
+        .nav-item:hover .icon-box { background-color: var(--color-border); }
+        .nav-item.active .icon-box { 
+            background-color: var(--color-primary); 
+            color: var(--color-bg); 
+            border-color: var(--color-primary);
+        }
+
+        #sidebar-toggle { transition: transform 0.3s ease-in-out; }
+        .main-grid.collapsed #sidebar-toggle { transform: rotate(180deg); }
+
+        #tactical-map-container, #map-plane-container { position: relative; width: 100%; height: 100%; }
+        #tactical-map, #map-plane { width: 100%; height: 100%; cursor: grab; }
+        #tactical-map:active, #map-plane:active { cursor: grabbing; }
+
+        .asset-icon { position: absolute; color: var(--color-primary); transform: translate(-50%, -50%); cursor: pointer; font-size: 24px; }
+        .asset-icon:hover .tooltip { display: block; }
+        .tooltip { display: none; position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background-color: rgba(10,10,10,0.9); padding: 5px 10px; border-radius: 4px; font-size: 12px; white-space: nowrap; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1100; }
+        .c3i-input, .c3i-select, .c3i-textarea, .c3i-button { background-color: rgba(255, 60, 60, 0.1); border: 1px solid var(--color-border); padding: 0.5rem; border-radius: 0px; color: var(--color-text); }
+        .c3i-button { cursor: pointer; transition: all 0.2s ease; }
+        .c3i-button:hover { background-color: rgba(255, 60, 60, 0.3); border-color: var(--color-primary); }
+        .c3i-button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+        .text-primary { color: var(--color-primary); }
+        body.color-shift-active .text-primary { animation: color-shift 8s infinite linear; }
+        .text-ok { color: var(--color-ok); }
+        .text-warning { color: var(--color-warning); }
+        .text-secondary { color: var(--color-secondary); }
+        .text-info { color: var(--color-info); }
+
+        .control-toggle { display: flex; align-items: center; justify-content: space-between; }
+        .toggle-switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--color-border); transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 4px; bottom: 4px; background-color: var(--color-text); transition: .4s; }
+        input:checked + .slider { background-color: var(--color-primary); }
+        body.color-shift-active input:checked + .slider { animation: color-shift-bg 8s infinite linear; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .theme-btn { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid var(--color-border); transition: all 0.2s; }
+        .theme-btn.active { border-color: var(--color-primary); transform: scale(1.1); }
+
+        .sidebar-tab { padding: 0.5rem; border-bottom: 2px solid transparent; cursor: pointer; }
+        .sidebar-tab.active { border-bottom-color: var(--color-primary); color: var(--color-primary); }
+        body.color-shift-active .sidebar-tab.active { animation: color-shift 8s infinite linear; }
+        .sidebar-tab-content { display: none; }
+        .sidebar-tab-content.active { display: block; }
+
+        input[type="color"] { -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 30px; padding: 0; border: 1px solid var(--color-border); background-color: transparent; cursor: pointer; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; }
+
+        .waypoint-2d {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: var(--color-warning);
+            border: 2px solid var(--color-text);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--color-warning);
+        }
+
+        @keyframes status-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        #status-text {
+            animation: status-pulse 3s infinite ease-in-out;
+        }
+
+        /* Intel/Codex/Armoury Page Specific Styles */
+        .data-nav-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .data-nav-item:hover {
+            background-color: var(--color-border);
+        }
+        .data-nav-item.active {
+            border-left-color: var(--color-primary);
+            color: var(--color-primary);
+            background-color: var(--color-border);
+        }
+        .codex-content, .intel-content, .armoury-content {
+            display: none;
+        }
+        .codex-content.active, .intel-content.active, .armoury-content.active {
+            display: block;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid var(--color-border);
+            padding: 0.5rem;
+            text-align: left;
+        }
+        .data-table th {
+            background-color: rgba(255,255,255,0.05);
+            color: var(--color-primary);
+        }
+        .codex-content h3 {
+            font-size: 1.25rem;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .codex-content h4 {
+            font-size: 1.1rem;
+            color: var(--color-secondary);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .codex-content ul {
+            list-style-type: disc;
+            padding-left: 2rem;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body class="theme-crimson">
 
@@ -27,7 +370,7 @@
         <!-- Stages 0-5 for boot sequence -->
         <div id="stage-offline" class="boot-stage active"><div id="stage-offline-text"><h1>SATELLITE CONNECTION OFFLINE</h1><p>STATUS: IDLE</p><p class="text-sm mt-8 text-gray-500">CLICK OR PRESS ANY KEY TO INITIATE LINK</p></div><div class="canvas-container" id="offline-canvas-container"><canvas id="offline-canvas"></canvas></div></div>
         <div id="stage-core-ignition" class="boot-stage"><div class="stage-title">SYSTEM CORE IGNITION</div><div class="canvas-container" id="core-ignition-canvas-container"><canvas id="core-ignition-canvas"></canvas></div></div>
-        <div id="stage-bios" class="boot-stage"><div id="bios-container"><div class="ui-box self-start"><h1 class="text-base font-bold tracking-widest animated-title">WARSAT BIOS v27.9</h1></div><div id="bios-content"><div id="bios-lines-box" class="ui-box"><div id="bios-lines"></div></div><div id="bios-sidebar" class="flex flex-col gap-4"><div class="ui-box flex-grow"><div class="progress-label">QEC Integrity</div><div class="progress-bar-container"><div id="bar-qec" class="progress-bar"></div></div><div class="progress-label mt-2">Heatsink Calibration</div><div class="progress-bar-container"><div id="bar-heat" class="progress-bar"></div></div><div class="progress-label mt-2">Weapon Systems</div><div class="progress-bar-container"><div id="bar-wpn" class="progress-bar"></div></div><div class="progress-label mt-2">Telemetry Link</div><div class="progress-bar-container"><div id="bar-telemetry" class="progress-bar"></div></div><div class="progress-label mt-2">Shield Emitters</div><div class="progress-bar-container"><div id="bar-shield" class="progress-bar"></div></div><div class="progress-label mt-2">Sensor Array</div><div class="progress-bar-container"><div id="bar-sensor" class="progress-bar"></div></div><div class="circular-bars-container mt-4"><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-power" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Power</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-nav" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NAV</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-life" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Life</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-cpu" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">CPU</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-mem" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">MEM</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-net" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NET</div></div></div><div id="bios-sidebar-visual"></div></div></div></div></div></div>
+        <div id="stage-bios" class="boot-stage"><div id="bios-container"><div class="ui-box self-start"><h1 class="text-base font-bold tracking-widest animated-title">WARSAT BIOS v27.10</h1></div><div id="bios-content"><div id="bios-lines-box" class="ui-box"><div id="bios-lines"></div></div><div id="bios-sidebar" class="flex flex-col gap-4"><div class="ui-box flex-grow"><div class="progress-label">QEC Integrity</div><div class="progress-bar-container"><div id="bar-qec" class="progress-bar"></div></div><div class="progress-label mt-2">Heatsink Calibration</div><div class="progress-bar-container"><div id="bar-heat" class="progress-bar"></div></div><div class="progress-label mt-2">Weapon Systems</div><div class="progress-bar-container"><div id="bar-wpn" class="progress-bar"></div></div><div class="progress-label mt-2">Telemetry Link</div><div class="progress-bar-container"><div id="bar-telemetry" class="progress-bar"></div></div><div class="progress-label mt-2">Shield Emitters</div><div class="progress-bar-container"><div id="bar-shield" class="progress-bar"></div></div><div class="progress-label mt-2">Sensor Array</div><div class="progress-bar-container"><div id="bar-sensor" class="progress-bar"></div></div><div class="circular-bars-container mt-4"><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-power" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Power</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-nav" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NAV</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-life" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Life</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-cpu" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">CPU</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-mem" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">MEM</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-net" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NET</div></div></div><div id="bios-sidebar-visual"></div></div></div></div></div></div>
         <div id="stage-threat-analysis" class="boot-stage"><div class="stage-title">THREAT ANALYSIS</div><div class="canvas-container" id="threat-analysis-canvas-container"><canvas id="threat-analysis-canvas"></canvas></div></div>
         <div id="stage-auth" class="boot-stage"><div class="ui-box"><h1 id="auth-title" class="animated-title">[UPLINK ESTABLISHED]</h1><form id="login-form"><input type="text" id="username" class="input-field" placeholder="CODENAME" required autocomplete="off"><input type="password" id="password" class="input-field" placeholder="PASSCODE" required autocomplete="off"><button type="submit" class="login-btn">AUTHORIZE</button><p id="login-error">AUTH FAILED: INVALID CREDENTIALS</p></form></div></div>
     </div>
@@ -140,7 +483,7 @@
                          <h3 class="text-lg text-primary">Asset Comparison</h3>
                          <button id="clear-comparison-btn" class="c3i-button text-xs">Clear</button>
                      </div>
-                     <div id="armoury-comparison-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                     <div id="armoury-comparison-grid">
                          <p class="text-gray-500 col-span-full">Add up to 3 assets to compare from the browser.</p>
                      </div>
                 </div>
