@@ -3,11 +3,33 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { c3iState } from './data.js';
 import { bootState } from './boot.js';
 import { db } from './firebase.js';
-import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-// Coordinate Conversion Utilities
+// --- Logging Utility ---
+export async function logAction(action, details = '') {
+    if (!c3iState.currentUser || !c3iState.firebaseUser) {
+        console.warn("Cannot log action, user not fully authenticated.");
+        return;
+    }
+    const logData = {
+        timestamp: serverTimestamp(),
+        operator: c3iState.currentUser.codename,
+        action,
+        details,
+        userId: c3iState.firebaseUser.uid
+    };
+    try {
+        const firestoreDb = db || getFirestore();
+        await addDoc(collection(firestoreDb, `artifacts/${appId}/public/data/auditLog`), logData);
+    } catch (error) {
+        console.error("Error writing to audit log:", error);
+    }
+}
+
+
+// --- Coordinate Conversion Utilities ---
 export function pointToLatLon(point, radius) {
     const lat = 90 - (Math.acos(point.y / radius)) * 180 / Math.PI;
     const lon = ((270 + (Math.atan2(point.x, point.z)) * 180 / Math.PI) % 360) - 180;
@@ -36,7 +58,7 @@ export function planeCoordsToLatLon(x, z) {
 }
 
 
-// Tactical Map Logic
+// --- Tactical Map Logic ---
 export function initTacticalMap() {
     let globe, waypointsGroup, waypointsGroupPlane, planeMesh;
     const tacticalMapContainer = document.getElementById('tactical-map-container');
@@ -177,7 +199,8 @@ export function initTacticalMap() {
             };
             try {
                 const waypointsCollection = collection(db, `artifacts/${appId}/public/data/waypoints`);
-                await addDoc(waypointsCollection, newWaypoint);
+                const docRef = await addDoc(waypointsCollection, newWaypoint);
+                logAction('Waypoint Plotted', `[${coords.lat.toFixed(2)}, ${coords.lon.toFixed(2)}] ID: ${docRef.id}`);
             } catch (e) {
                 console.error("Error adding waypoint: ", e);
             }
@@ -205,12 +228,15 @@ export function initTacticalMap() {
 
             document.getElementById('waypoint-name-input').addEventListener('change', async (e) => { 
                 await updateDoc(waypointDocRef, { name: e.target.value });
+                logAction('Waypoint Updated', `Name changed for ID: ${waypointId}`);
             });
             document.getElementById('waypoint-color-input').addEventListener('input', async (e) => { 
                 await updateDoc(waypointDocRef, { color: e.target.value });
+                logAction('Waypoint Updated', `Color changed for ID: ${waypointId}`);
             });
             document.getElementById('delete-waypoint-btn').addEventListener('click', async () => {
                 await deleteDoc(waypointDocRef);
+                logAction('Waypoint Deleted', `ID: ${waypointId}`);
                 infoContent.innerHTML = `<p class="text-sm text-gray-500">Click a waypoint on the map.</p>`;
             });
         }
