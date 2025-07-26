@@ -1,7 +1,8 @@
-import { initializeFirebase, setupFirestoreListeners } from './firebase.js';
+import { initializeFirebase } from './firebase.js';
 import { loadData, c3iState } from './data.js';
 import { bootState, runBootSequence, initSound, initOffline } from './boot.js';
 import { initializeC3IApp } from './ui.js';
+import { getFirestore, doc, addDoc, serverTimestamp, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Application Start ---
 function startHandler() {
@@ -40,7 +41,7 @@ bootState.loginForm.addEventListener('submit', async (e) => {
         c3iState.currentUser = { codename: codename, ...user };
         
         // Wait for Firebase to be ready before logging
-        await initializeFirebase();
+        await authReadyPromise;
         
         await logAction('User Login');
         showDesktop();
@@ -64,14 +65,19 @@ async function logAction(action, details = '') {
         return;
     }
     const logData = {
-        timestamp: new Date(), // Use client-side timestamp for simplicity
+        timestamp: serverTimestamp(),
         operator: c3iState.currentUser.codename,
         action,
         details,
         userId: c3iState.firebaseUser.uid
     };
-    // In a real app, you would save this to Firestore
-    console.log("Log Action:", logData);
+    try {
+        const db = getFirestore();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        await addDoc(collection(db, `artifacts/${appId}/public/data/auditLog`), logData);
+    } catch (error) {
+        console.error("Error writing to audit log:", error);
+    }
 }
 
 
@@ -79,3 +85,14 @@ async function logAction(action, details = '') {
 loadData();
 initializeFirebase();
 initOffline();
+
+const authReadyPromise = new Promise(resolve => {
+    const checkAuth = () => {
+        if (c3iState.firebaseUser) {
+            resolve();
+        } else {
+            setTimeout(checkAuth, 100);
+        }
+    };
+    checkAuth();
+});
