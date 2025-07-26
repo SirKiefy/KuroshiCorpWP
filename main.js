@@ -2,7 +2,7 @@ import { initializeFirebase, authReadyPromise } from './firebase.js';
 import { loadData, c3iState } from './data.js';
 import { bootState, runBootSequence, initSound, initOffline } from './boot.js';
 import { initializeC3IApp } from './ui.js';
-import { getFirestore, addDoc, serverTimestamp, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { logAction } from './utils.js';
 
 // --- Custom Cursor Logic ---
 window.addEventListener('mousemove', e => {
@@ -65,28 +65,6 @@ function showDesktop() {
     document.getElementById('desktop').style.display = 'block';
     initializeC3IApp();
 }
-
-async function logAction(action, details = '') {
-    if (!c3iState.currentUser || !c3iState.firebaseUser) {
-        console.warn("Cannot log action, user not fully authenticated.");
-        return;
-    }
-    const logData = {
-        timestamp: serverTimestamp(),
-        operator: c3iState.currentUser.codename,
-        action,
-        details,
-        userId: c3iState.firebaseUser.uid
-    };
-    try {
-        const db = getFirestore();
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        await addDoc(collection(db, `artifacts/${appId}/public/data/auditLog`), logData);
-    } catch (error) {
-        console.error("Error writing to audit log:", error);
-    }
-}
-
 
 // Initialize Data, then Firebase, then the visual boot sequence
 loadData();
