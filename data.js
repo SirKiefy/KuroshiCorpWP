@@ -1,32 +1,41 @@
+/*
+  This file defines and exports the initial state of the application.
+  It holds all the core data structures that will be used and manipulated throughout the app's lifecycle.
+*/
+
+// c3iState holds the main application data, including user info, game assets, and dynamic data from Firebase.
 export const c3iState = {
-    currentUser: null,
-    firebaseUser: null,
-    waypoints: [],
-    auditLog: [],
-    chatMessages: [],
-    plans: [],
-    tasks: [],
-    intel: {},
-    armoury: {}, 
-    codex: {},
-    comparisonAssets: [],
-    listeners: [],
-    users: {},
+    currentUser: null,      // Holds the currently logged-in user's data from the static list
+    firebaseUser: null,     // Holds the authenticated user object from Firebase
+    waypoints: [],          // Live data for map waypoints
+    auditLog: [],           // Live data for system audit logs
+    chatMessages: [],       // Live data for chat messages
+    plans: [],              // Live data for strategic plans
+    tasks: [],              // Live data for operational tasks
+    intel: {},              // Static intelligence data on factions
+    armoury: {},            // Static data for weapons, vehicles, etc.
+    codex: {},              // Static data for rules and information
+    comparisonAssets: [],   // Temporary state for the asset comparison tool
+    listeners: [],          // Holds references to Firebase listeners to be detached later
+    users: {},              // Static list of authorized users and their credentials
 };
 
+// bootState holds data related to the initial boot sequence and UI elements.
 export const bootState = {
-    stages: null, // Will be populated at runtime
-    cursor: null, // Will be populated at runtime
-    loginForm: null, // Will be populated at runtime
-    loginError: null, // Will be populated at runtime
-    mousePos: { x: 0, y: 0 },
-    currentStage: 0,
-    soundInitialized: false,
+    stages: null,           // Will be populated with DOM elements for each boot stage
+    cursor: null,           // The custom cursor DOM element
+    loginForm: null,        // The login form DOM element
+    loginError: null,       // The login error message DOM element
+    mousePos: { x: 0, y: 0 }, // Current mouse position
+    currentStage: 0,        // The current stage of the boot sequence
+    soundInitialized: false,// Flag to check if the audio context has been started
+    // Synthesizer instances for UI sound effects
     uiSynth: null, failSynth: null, successSynth: null, deploySynth: null, matrixSynth: null, flowSynth: null,
+    // Holds instances of three.js renderers, scenes, etc. for cleanup
     threeInstances: []
 };
 
-
+// loadData populates the static parts of the c3iState.
 export function loadData() {
     c3iState.users = {
         'architect':    { username: 'SirKiefy',                password: 'R9x!Vt3Qw#Lp8J', clearance: 7, admin: true },
@@ -101,3 +110,4 @@ export function loadData() {
         }
     };
 }
+
