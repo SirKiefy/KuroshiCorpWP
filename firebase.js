@@ -16,54 +16,60 @@ import { c3iState } from './data.js';
 import { uiUpdaters } from './ui.js';
 
 // --- Firebase Configuration and Initialization ---
-//
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !!!!!! CRITICAL INSTRUCTION !!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//
-// REPLACE THE PLACEHOLDER VALUES BELOW WITH YOUR ACTUAL FIREBASE PROJECT CONFIGURATION.
-// You can find this in your Firebase project settings.
-// The application WILL NOT WORK without the correct configuration.
-//
+// This configuration is provided by the user.
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBXeJG9xc2xQCoCzKX6WATwSW2CulOre3E",
+  authDomain: "helios-interface.firebaseapp.com",
+  projectId: "helios-interface",
+  storageBucket: "helios-interface.appspot.com", // Corrected storage bucket format
+  messagingSenderId: "1073548914126",
+  appId: "1:1073548914126:web:ec04b501ba577b08584f9f",
+  measurementId: "G-65W3XRX32Y"
 };
 
+
+// Declare variables to hold the initialized Firebase services
 let app;
 export let db;
 export let auth;
 
 /**
- * Initializes the Firebase app and services.
+ * Initializes the Firebase app and services. This function should be called once when the app starts.
  */
 export function initializeFirebase() {
     try {
         app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
+        console.log("Firebase initialized successfully.");
     } catch (error) {
-        console.error("Firebase initialization failed. Please check your firebaseConfig.", error);
-        alert("Firebase initialization failed. Please check your configuration in firebase.js and ensure you have an active internet connection.");
+        console.error("Firebase initialization failed. Please check your firebaseConfig in firebase.js.", error);
+        alert("Firebase initialization failed. Check the console for details.");
     }
 }
 
 
 // --- Authentication ---
-// A promise that resolves when Firebase auth state is determined
+/**
+ * A promise that resolves when the Firebase authentication state has been determined.
+ * This is crucial for ensuring we know if a user is logged in or not before proceeding.
+ */
 export const authReadyPromise = new Promise(resolve => {
+    if (!auth) {
+        console.error("Auth is not initialized. Cannot set onAuthStateChanged listener.");
+        resolve(null);
+        return;
+    }
     // This listener triggers whenever the user's sign-in state changes.
     onAuthStateChanged(auth, user => {
         if (user) {
-            // User is signed in. Store the user object.
+            // User is signed in. Store the user object in our central state.
             c3iState.firebaseUser = user;
+            console.log("User is signed in:", user.uid);
         } else {
             // User is signed out. For this app, we'll sign them in anonymously
-            // so they can still interact with public data.
+            // so they can still interact with public data without a formal account.
+            console.log("User is signed out. Attempting anonymous sign-in...");
             signInAnonymously(auth).catch(error => {
                 console.error("Anonymous sign-in failed:", error);
             });
@@ -77,7 +83,7 @@ export const authReadyPromise = new Promise(resolve => {
 /**
  * Sets up real-time listeners for various data collections in Firestore.
  * When data changes in the database, these listeners will automatically
- * update the local application state and the UI.
+ * update the local application state and trigger UI updates.
  */
 export function setupListeners() {
     if (!db) {
