@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSW-OS [v27.5-FBE]</title>
+    <title>HSW-OS [v27.6-FBE]</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -56,7 +56,10 @@
         }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--color-primary); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--color-secondary); }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
@@ -300,26 +303,42 @@
             animation: status-pulse 3s infinite ease-in-out;
         }
 
-        /* Intel/Codex Page Specific Styles */
-        .intel-nav-item {
+        /* Intel/Codex/Armoury Page Specific Styles */
+        .data-nav-item {
             padding: 0.5rem 1rem;
             cursor: pointer;
             border-left: 2px solid transparent;
             transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .intel-nav-item:hover {
+        .data-nav-item:hover {
             background-color: var(--color-border);
         }
-        .intel-nav-item.active {
+        .data-nav-item.active {
             border-left-color: var(--color-primary);
             color: var(--color-primary);
             background-color: var(--color-border);
         }
-        .codex-content, .intel-content {
+        .codex-content, .intel-content, .armoury-content {
             display: none;
         }
-        .codex-content.active, .intel-content.active {
+        .codex-content.active, .intel-content.active, .armoury-content.active {
             display: block;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid var(--color-border);
+            padding: 0.5rem;
+            text-align: left;
+        }
+        .data-table th {
+            background-color: rgba(255,255,255,0.05);
+            color: var(--color-primary);
         }
 
     </style>
@@ -333,7 +352,7 @@
         <!-- Stages 0-5 for boot sequence -->
         <div id="stage-offline" class="boot-stage active"><div id="stage-offline-text"><h1>SATELLITE CONNECTION OFFLINE</h1><p>STATUS: IDLE</p><p class="text-sm mt-8 text-gray-500">CLICK OR PRESS ANY KEY TO INITIATE LINK</p></div><div class="canvas-container" id="offline-canvas-container"><canvas id="offline-canvas"></canvas></div></div>
         <div id="stage-core-ignition" class="boot-stage"><div class="stage-title">SYSTEM CORE IGNITION</div><div class="canvas-container" id="core-ignition-canvas-container"><canvas id="core-ignition-canvas"></canvas></div></div>
-        <div id="stage-bios" class="boot-stage"><div id="bios-container"><div class="ui-box self-start"><h1 class="text-base font-bold tracking-widest animated-title">WARSAT BIOS v27.5</h1></div><div id="bios-content"><div id="bios-lines-box" class="ui-box"><div id="bios-lines"></div></div><div id="bios-sidebar" class="flex flex-col gap-4"><div class="ui-box flex-grow"><div class="progress-label">QEC Integrity</div><div class="progress-bar-container"><div id="bar-qec" class="progress-bar"></div></div><div class="progress-label mt-2">Heatsink Calibration</div><div class="progress-bar-container"><div id="bar-heat" class="progress-bar"></div></div><div class="progress-label mt-2">Weapon Systems</div><div class="progress-bar-container"><div id="bar-wpn" class="progress-bar"></div></div><div class="progress-label mt-2">Telemetry Link</div><div class="progress-bar-container"><div id="bar-telemetry" class="progress-bar"></div></div><div class="progress-label mt-2">Shield Emitters</div><div class="progress-bar-container"><div id="bar-shield" class="progress-bar"></div></div><div class="progress-label mt-2">Sensor Array</div><div class="progress-bar-container"><div id="bar-sensor" class="progress-bar"></div></div><div class="circular-bars-container mt-4"><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-power" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Power</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-nav" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NAV</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-life" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Life</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-cpu" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">CPU</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-mem" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">MEM</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-net" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NET</div></div></div><div id="bios-sidebar-visual"></div></div></div></div></div></div>
+        <div id="stage-bios" class="boot-stage"><div id="bios-container"><div class="ui-box self-start"><h1 class="text-base font-bold tracking-widest animated-title">WARSAT BIOS v27.6</h1></div><div id="bios-content"><div id="bios-lines-box" class="ui-box"><div id="bios-lines"></div></div><div id="bios-sidebar" class="flex flex-col gap-4"><div class="ui-box flex-grow"><div class="progress-label">QEC Integrity</div><div class="progress-bar-container"><div id="bar-qec" class="progress-bar"></div></div><div class="progress-label mt-2">Heatsink Calibration</div><div class="progress-bar-container"><div id="bar-heat" class="progress-bar"></div></div><div class="progress-label mt-2">Weapon Systems</div><div class="progress-bar-container"><div id="bar-wpn" class="progress-bar"></div></div><div class="progress-label mt-2">Telemetry Link</div><div class="progress-bar-container"><div id="bar-telemetry" class="progress-bar"></div></div><div class="progress-label mt-2">Shield Emitters</div><div class="progress-bar-container"><div id="bar-shield" class="progress-bar"></div></div><div class="progress-label mt-2">Sensor Array</div><div class="progress-bar-container"><div id="bar-sensor" class="progress-bar"></div></div><div class="circular-bars-container mt-4"><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-power" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Power</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-nav" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NAV</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-life" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Life</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-cpu" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">CPU</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-mem" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">MEM</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-net" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NET</div></div></div><div id="bios-sidebar-visual"></div></div></div></div></div></div>
         <div id="stage-threat-analysis" class="boot-stage"><div class="stage-title">THREAT ANALYSIS</div><div class="canvas-container" id="threat-analysis-canvas-container"><canvas id="threat-analysis-canvas"></canvas></div></div>
         <div id="stage-auth" class="boot-stage"><div class="ui-box"><h1 id="auth-title" class="animated-title">[UPLINK ESTABLISHED]</h1><form id="login-form"><input type="text" id="username" class="input-field" placeholder="OPERATOR ID" required autocomplete="off"><input type="password" id="password" class="input-field" placeholder="PASSCODE" required autocomplete="off"><button type="submit" class="login-btn">AUTHORIZE</button><p id="login-error">AUTH FAILED: INVALID CREDENTIALS</p></form></div></div>
     </div>
@@ -432,20 +451,20 @@
                     <div class="grid grid-cols-3 gap-4 h-full">
                         <div id="armoury-nav" class="ui-box col-span-1 flex flex-col h-full">
                             <div id="armoury-breadcrumbs" class="text-sm text-gray-400 mb-2 flex-shrink-0"></div>
-                            <div id="armoury-file-list" class="flex-grow overflow-y-auto no-scrollbar"></div>
+                            <div id="armoury-file-list" class="flex-grow overflow-y-auto"></div>
                         </div>
-                        <div id="armoury-detail" class="ui-box col-span-2 overflow-y-auto no-scrollbar h-full">
+                        <div id="armoury-detail" class="ui-box col-span-2 overflow-y-auto h-full">
                             <p class="text-gray-500">Select an asset to view details.</p>
                         </div>
                     </div>
                 </div>
-                <div id="armoury-comparison" class="sidebar-tab-content h-full">
+                <div id="armoury-comparison" class="sidebar-tab-content h-full overflow-y-auto">
                      <div class="flex justify-between items-center mb-2">
                          <h3 class="text-lg text-primary">Asset Comparison</h3>
                          <button id="clear-comparison-btn" class="c3i-button text-xs">Clear</button>
                      </div>
-                     <div id="armoury-comparison-grid" class="grid grid-cols-3 gap-4">
-                         <p class="text-gray-500 col-span-3">Add up to 3 assets to compare from the browser.</p>
+                     <div id="armoury-comparison-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                         <p class="text-gray-500 col-span-full">Add up to 3 assets to compare from the browser.</p>
                      </div>
                 </div>
             </div>
@@ -456,10 +475,10 @@
         <div class="h-full flex flex-col p-4">
             <h2 class="text-xl text-primary border-b border-primary/20 pb-4">Codex</h2>
             <div class="grid grid-cols-4 gap-4 mt-4 flex-grow overflow-hidden">
-                <div id="codex-nav" class="col-span-1 ui-box overflow-y-auto no-scrollbar">
+                <div id="codex-nav" class="col-span-1 ui-box overflow-y-auto">
                     <!-- Navigation items will be populated by JS -->
                 </div>
-                <div id="codex-content-container" class="col-span-3 ui-box overflow-y-auto no-scrollbar pr-2">
+                <div id="codex-content-container" class="col-span-3 ui-box overflow-y-auto pr-2">
                     <!-- Codex content will be injected here -->
                 </div>
             </div>
@@ -478,7 +497,7 @@
                 <div class="sidebar-tab" data-tab="tasks">Tasks</div>
                 <div class="sidebar-tab" data-tab="personnel">Personnel</div>
             </div>
-            <div id="intel-content-container" class="flex-grow mt-4 overflow-y-auto no-scrollbar">
+            <div id="intel-content-container" class="flex-grow mt-4 overflow-y-auto">
                 <div id="intel-factions" class="intel-content active">
                     <div id="faction-dossiers-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <!-- Faction data will be injected here by JS -->
@@ -500,7 +519,7 @@
     <template id="template-comms">
         <div class="h-full flex flex-col p-4">
             <h2 class="text-xl text-primary border-b border-primary/20 pb-4">Communications - Channel 7</h2>
-            <div id="chat-messages" class="flex-grow my-4 overflow-y-auto no-scrollbar pr-2"></div>
+            <div id="chat-messages" class="flex-grow my-4 overflow-y-auto pr-2"></div>
             <form id="chat-form" class="flex gap-2">
                 <input type="text" id="chat-input" class="c3i-input flex-grow" placeholder="Type message...">
                 <button type="submit" class="c3i-button">Send</button>
@@ -511,7 +530,7 @@
     <template id="template-settings">
         <div class="h-full flex flex-col p-4">
             <h2 class="text-xl text-primary border-b border-primary/20 pb-4">System Settings</h2>
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-y-auto no-scrollbar pr-2">
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-y-auto pr-2">
                 <div class="ui-box">
                     <h3 class="text-lg text-primary mb-2">Audio</h3>
                     <div class="control-toggle">
@@ -557,7 +576,7 @@
                 </div>
                 <div class="ui-box md:col-span-2">
                     <h3 class="text-lg text-primary mb-2">System Audit Log</h3>
-                    <div id="audit-log-container" class="mt-4 overflow-y-auto max-h-96 no-scrollbar"></div>
+                    <div id="audit-log-container" class="mt-4 overflow-y-auto max-h-96"></div>
                 </div>
             </div>
         </div>
@@ -607,7 +626,7 @@
         // --- Firebase SDK Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, setLogLevel, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, serverTimestamp, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, setLogLevel, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, serverTimestamp, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase & App Initialization ---
         let db, auth;
@@ -619,16 +638,13 @@
 
         async function initializeFirebase() {
             try {
-                // User-provided Firebase config
-                const firebaseConfig = {
-                    apiKey: "AIzaSyBXeJG9xc2xQCoCzKX6WATwSW2CulOre3E",
-                    authDomain: "helios-interface.firebaseapp.com",
-                    projectId: "helios-interface",
-                    storageBucket: "helios-interface.appspot.com",
-                    messagingSenderId: "1073548914126",
-                    appId: "1:1073548914126:web:ec04b501ba577b08584f9f",
-                    measurementId: "G-65W3XRX32Y"
-                };
+                // Use the global __firebase_config if available, otherwise fallback to a default or error
+                if (typeof __firebase_config === 'undefined') {
+                    console.error("Firebase config is not available.");
+                    document.getElementById('stage-offline-text').innerHTML = '<h1>CONFIG ERROR</h1><p>Firebase configuration not found.</p>';
+                    return;
+                }
+                const firebaseConfig = JSON.parse(__firebase_config);
 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
@@ -636,16 +652,15 @@
                 setLogLevel('debug');
 
                 // Handle Authentication State Changes
-                onAuthStateChanged(auth, async (user) => {
+                onAuthStateChanged(auth, (user) => {
                     if (user) {
                         console.log("Firebase user signed in:", user.uid);
                         c3iState.firebaseUser = user;
-                        await seedInitialData(); // Check and seed data after auth
                         if (authReadyResolver) {
-                            authReadyResolver(user);
-                            authReadyResolver = null;
+                            authReadyResolver(user); // Resolve with the user object
+                            authReadyResolver = null; // Prevent multiple resolutions
                         }
-                        setupFirestoreListeners();
+                        setupFirestoreListeners(); // Set up listeners once authenticated
                     } else {
                         console.log("No user signed in.");
                         c3iState.firebaseUser = null;
@@ -679,20 +694,15 @@
             auditLog: [],
             chatMessages: [],
             factions: [],
-            armoury: {},
+            armoury: {}, // Use an object to represent the file system
+            codex: {},
             comparisonAssets: [],
-            listeners: [],
+            listeners: [], // To keep track of Firestore listeners
             users: {
-                'SIRKIEFY': { password: 'R9x!Vt3Qw#Lp8J', clearanceLvl: 7, clearance: 'Architect', codename: 'Architect' },
-                'SATICRON': { password: 'M7u$Zj1Lb^Nx4R', clearanceLvl: 6, clearance: 'Vanguard', codename: 'Vanguard' },
-                'FOXBATACTUAL': { password: '991964', clearanceLvl: 6, clearance: 'Vanguard', codename: 'FoxbatActual' },
-                'NIGHTMARE_OF_THE_LIVING': { password: 'B4v*Xg9Hp&Lf2T', clearanceLvl: 4, clearance: 'Nightstalker', codename: 'Nightstalker' },
-                'DANIEL.4031': { password: 'T5q#Ch6Jm%Ws1Y', clearanceLvl: 3, clearance: 'Operator', codename: 'Rocketman' },
-                'SHARPS54': { password: 'L8n^Vr4Xp!Bd3K', clearanceLvl: 3, clearance: 'Operator', codename: 'Deadeye' },
-                'HALOLAD': { password: 'S1j%Ht7Zk&Qp9N', clearanceLvl: 3, clearance: 'Operator', codename: 'Reaper' },
-                'DR_LUPUS': { password: 'H3p$Gn2Fr#Dz6M', clearanceLvl: 3, clearance: 'Operator', codename: 'Wolfhound' },
-                'THEJETNINJA': { password: 'V6m*Kw5Xb!Tf8R', clearanceLvl: 3, clearance: 'Operator', codename: 'Overwatch' },
-                'COWBOYBAMA': { password: 'C9t&Ls1Vg@Pr4Q', clearanceLvl: 3, clearance: 'Operator', codename: 'Ironclad' },
+                'COMMANDER': { password: 'password123', clearance: 'Commander', level: 4 },
+                'OFFICER': { password: 'password123', clearance: 'Officer', level: 3 },
+                'OPERATOR': { password: 'hsw1337', clearance: 'Operator', level: 2 },
+                'RECRUIT': { password: 'password123', clearance: 'Recruit', level: 1 },
             },
         };
 
@@ -708,6 +718,70 @@
             threeInstances: []
         };
         
+        // --- DATA PARSED FROM FILE ---
+        function loadData() {
+            // This data is parsed from the provided text file.
+            c3iState.intel = {
+                'FSSA': { name: 'FSSA (Federated Sovereign State of Armkava)', threat: 'Hostile', hostility: 'Active', location: 'Unknown', strength: { ground: 'Equal', air: 'Weaker', naval: 'Equal' }, report: 'A hostile state actor.', hierarchy: { leader: 'Day (valcry97)', members: ['jake from statefarm (thisscreenisnuts)'] }, assets: 'Standard military hardware.'},
+                'BSS': { name: 'BSS (Black Sea Syndicate)', threat: 'Neutral', hostility: 'Opportunistic', location: 'Black Sea', strength: { ground: 'Weaker', air: 'Obsolete', naval: 'Superior' }, report: 'A neutral syndicate operating in the Black Sea region.', hierarchy: { leader: 'Quasitedjr.TTV', members: ['Bizmark7 (Admin)', 'dloglo1980', 'Snowwolf (snowwolf1512)'] }, assets: 'Naval assets, smuggling routes.'},
+                'NIM': { name: 'NIM (Nordman Industries & Manufacturing)', threat: 'Neutral', hostility: 'Aggressive', location: 'Northern Territories', strength: { ground: 'Superior', air: 'Equal', naval: 'Weaker' }, report: 'A neutral but aggressive industrial corporation. Hostility is advised in interactions.', hierarchy: { leader: 'Fred (fredaibot, Admin/Overseer)', members: ['KesseL (kessel5657)', 'Kokonoe (kokonoe2280)', 'NorthWind (north.wind772)'] }, assets: 'Advanced manufacturing facilities, prototype weaponry.'},
+                'T-T': { name: 'T-T (Terra Titans)', threat: 'Avoid', hostility: 'Dominant', location: 'Global', strength: { ground: 'Overwhelming', air: 'Overwhelming', naval: 'Overwhelming' }, report: 'A powerful faction that should be avoided. Holds significant influence.', hierarchy: { leader: 'DarkXeRoX (darkxerox, Server Owner)', members: ['K4rma (k4rmaletracteur)', 'Rudi/Noah (ruaidhri.noah, Admin)', 'Delfred353', 'PossibleHacker', 'Gifted Lion', 'Aragath', 'Tellyhead'] }, assets: 'High-tier military assets, server administrative control.'},
+                'BBC': { name: 'BBC (Bean Bois Corporation)', threat: 'Unknown', hostility: 'Unknown', location: 'Unknown', strength: { ground: 'Unknown', air: 'Unknown', naval: 'Unknown' }, report: 'An organization with unknown motives and capabilities.', hierarchy: { leader: 'syreX (bessechurger)' }, assets: 'Unknown.'},
+                'C0UM': { name: 'C0UM (Confederation Of Uniform Members)', threat: 'Unknown', hostility: 'Unknown', location: 'Unknown', strength: { ground: 'Unknown', air: 'Unknown', naval: 'Unknown' }, report: 'A confederation with unknown motives.', hierarchy: { leader: 'Agent Brick (thunderbord)' }, assets: 'Unknown.'},
+                'OCF': { name: 'OCF (Oceania Coalition Force)', threat: 'Neutral', hostility: 'Passive', location: 'Oceania', strength: { ground: 'Equal', air: 'Equal', naval: 'Superior' }, report: 'A non-hostile coalition with claims of passive behavior.', hierarchy: { leader: 'TheJetNinja' }, assets: 'Regional defensive forces.'}
+            };
+
+            c3iState.codex = {
+                'Naval Server Rules': `<h3>General</h3><ul><li>All grids are to remain within the planet atmosphere.</li><li>Naval Warships and Structures are large grids only.</li><li>Aircraft and ground vehicles are small grids only.</li><li>Each Grid requires the correct GridCore for that class, Structure GridCores must be above voxels and water.(cleanup deletes grids without a gridcore)</li></ul><h3>Block Limits</h3><p>GridCores will automatically limit the amount of certain blocks, but here is a general list for specific blocks:</p><ul><li>All ships can fit a max of 2 vents.</li><li>O2 GENERATORS ARE ONLY ALLOWED ON BASES AND SMALL GRIDS TO PRODUCE FUEL AND ONLY 1 PER GRID IS ALLOWED.</li><li>Ships will be able to fit 2 navigation computer blocks & 3 rudder blocks.</li><li>ONLY BASES CAN HAVE A MAXIMUM OF 1 FUEL BLOCK REFINERY. SHIPS MAY HAVE 1 EMERGENCY FUEL Converter.</li></ul><h3>Jet Pack Usage</h3><p>JETPACKS ARE ONLY TO BE USED AROUND FRIENDLY GRIDS FOR LOGISTICAL PURPOSES. DO NOT FLY AROUND ENEMY GRIDS. THEY WILL ONLY OPERATE WITHIN A 1KM RANGE OF A FRIENDLY GRIDCORE.</p>`,
+                'War & Sieges': `<h3>Declaring War</h3><p>WAR IS THE METHOD BY WHICH NATIONS FIGHT OVER TERRITORY. TO MAINTAIN GOOD GAMEPLAY ANY FACTION WISHING TO ENGAGE WAR MUST FOLLOW THESE RULES.</p><ul><li>Factions who wish to declare war on another faction must declare their intentions in diplomacy 48hrs prior to initiating a siege.</li><li>An admin must approve the war. Admins reserve the right to decline a war if it is warranted.</li><li>War declarations must be for a reason.</li><li>Attackers must define a target for the war and the closest attacker structure will be their FOB.</li><li>After a war is completed the declaring faction is on a cooldown of 7 days before they can declare another war.</li></ul><h3>Siege</h3><ul><li>Once war is declared and an admin approves it you may start sieging 48 hrs after the declaration message.</li><li>Efforts should be made to make sure both sides are able to be on for the fight.</li><li>Attackers must initiate the siege by moving within 15km of the Structure they wish to attack.</li><li>Once the siege is initiated Defenders have 10 minutes to push the attackers out of the Territory Capture zone. If they fail, their SZ will drop.</li><li>Attackers have 2 hours to siege the base and destroy the Defender's Base Grid Core.</li><li>If the Defenders survive for 2 hours their SZ will be restored and a cooldown of 6 hours will start before a new Siege can begin.</li><li>Wars last for 5 days. Defenders can attack the Attackers FOB to end the war early.</li></ul>`,
+                'Faction & Grid Limits': `<h3>Factions</h3><p>A faction is a group of players working together towards a common goal. Only have grids out in the world that are actively being used. Exploiting factions to increase fleet cap will result in a ban.</p><h3>Ship and Structure limits</h3><table class="data-table"><thead><tr><th>Structure Type</th><th>Amount</th><th>Ship Class Name</th><th>Amount</th></tr></thead><tbody><tr><td>Main Base</td><td>1</td><td>Corvette</td><td>4</td></tr><tr><td>Fort</td><td>5</td><td>Frigate</td><td>3</td></tr><tr><td>Outpost</td><td>10</td><td>Destroyer</td><td>3</td></tr><tr><td>Total Structures</td><td>16</td><td>Cruiser</td><td>2</td></tr><tr><td></td><td></td><td>Submarine</td><td>1</td></tr><tr><td></td><td></td><td>Logistics Ship</td><td>2</td></tr><tr><td></td><td></td><td>Battleship</td><td>1</td></tr><tr><td></td><td></td><td>Aircraft Carrier</td><td>1</td></tr><tr><td></td><td></td><td>Max FleetSize</td><td>18</td></tr></tbody></table>`,
+                'Resource Acquisition': `<h3>Common Ores (Iron, Silicon, Nickel)</h3><p>Mined with Resource Claim Pylons (Light, Medium, Heavy). Yields can be improved with modules. Interference radii apply.</p><h3>Uncommon Ores (Cobalt, Magnesium, Silver, Gold)</h3><p>Found in Resource Zones in water. Require a mining rig and Fuel Blocks. Zones deplete over time.</p><h3>Rare Ores (Platinum, Uranium)</h3><p>Found in random NPC bunkers or from King of the Hill style events.</p>`
+            };
+            
+            c3iState.armoury = {
+                'Naval': {
+                    'Support': {
+                        'Corvette': { type: 'Ship Class', data: { 'Max Dry Mass': '1,000 T', 'Offensive Points': 20, 'Defensive Points': 10, 'Propulsion': 850, 'Notes': 'TBA' } },
+                        'Frigate': { type: 'Ship Class', data: { 'Max Dry Mass': '2,500 T', 'Offensive Points': 35, 'Defensive Points': 20, 'Propulsion': 1100, 'Notes': 'TBA' } },
+                        'Logistics Ship': { type: 'Ship Class', data: { 'Max Dry Mass': '2,250 T', 'Offensive Points': 'N/A', 'Defensive Points': 12, 'Propulsion': 2000, 'Notes': 'Mainly used to transport vehicles or supplies' } },
+                    },
+                    'MultiRole': {
+                        'Destroyer': { type: 'Ship Class', data: { 'Max Dry Mass': '5,500 T', 'Offensive Points': 45, 'Defensive Points': 30, 'Propulsion': 2000, 'Notes': 'TBA' } },
+                        'Cruiser': { type: 'Ship Class', data: { 'Max Dry Mass': '10,000 T', 'Offensive Points': 60, 'Defensive Points': 35, 'Propulsion': 3000, 'Notes': 'TBA' } },
+                    },
+                    'Capital': {
+                        'Battleship': { type: 'Ship Class', data: { 'Max Dry Mass': '20,000 T', 'Offensive Points': 80, 'Defensive Points': 40, 'Propulsion': 4000, 'Notes': 'Cannot field torpedo' } },
+                        'Carrier': { type: 'Ship Class', data: { 'Max Dry Mass': '14,000 T', 'Offensive Points': 16, 'Defensive Points': 30, 'Propulsion': 3000, 'Notes': 'Can be used as a mobile airfield' } },
+                    },
+                    'Submersible': {
+                        'Submarine': { type: 'Ship Class', data: { 'Max Dry Mass': '3,500 T', 'Offensive Points': 12, 'Defensive Points': 4, 'Propulsion': 2000, 'Notes': 'Can fit submarine torpedo tubes' } },
+                    },
+                },
+                'Air': {
+                    'Fighter': { type: 'Aircraft Class', data: { 'Min Weight (T)': 10, 'Max Weight (T)': 20, 'Max Thrust (T)': 30, 'L Hardpoints': 4, 'M Hardpoints': 4, 'Gun Systems': 2, 'Counter Measures': 2, 'Notes': 'Specialised in air dominance. Cannot field Medium A2G Ordinance Hardpoints.' } },
+                    'Strike Fighter': { type: 'Aircraft Class', data: { 'Min Weight (T)': 20, 'Max Weight (T)': 32.5, 'Max Thrust (T)': 60, 'L Hardpoints': 4, 'M Hardpoints': 6, 'H Hardpoints': 2, 'Gun Systems': 2, 'Counter Measures': 2, 'Notes': 'Multi-role based aircraft. Cannot field Medium A2A Ordinance Hardpoints.' } },
+                    'Bomber': { type: 'Aircraft Class', data: { 'Min Weight (T)': 32.5, 'Max Weight (T)': 'N/A', 'Max Thrust (T)': 80, 'H Hardpoints': 6, 'HY Hardpoints': 15, 'Counter Measures': 4, 'Notes': 'Main air to ground class. Cannot fit any A2A missile systems.' } },
+                },
+                'Ground': {
+                    'MBT': { type: 'Vehicle Class', data: { 'Class': 'Main Battle Tank', 'Max Weight': '80T', 'Speed': '80KM/H', 'Hardpoints': 8, 'Notes': 'Limited to one primary barrel.' } },
+                    'AAV': { type: 'Vehicle Class', data: { 'Class': 'Anti Aircraft Vehicle', 'Max Weight': '60T', 'Speed': '80KM/H', 'Hardpoints': 8, 'Notes': 'Only allowed anti-aircraft barrels. Cannot engage other ground vehicles.' } },
+                    'Artillery': { type: 'Vehicle Class', data: { 'Class': 'Artillery', 'Max Weight': '50T', 'Speed': '50KM/H', 'Hardpoints': 8, 'Notes': 'Can only use artillery barrels.' } },
+                },
+                'Analysis': {
+                    'CIWS Performance': { type: 'Report', data: [
+                        { 'Missile Threat': '4x P-250 launchers', 'CIWS Defense': '4x AK-630-2', 'CIWS Success Rate': '96.88%', 'Missile Penetration Rate': '3.12%' },
+                        { 'Missile Threat': '4x P-270 launchers', 'CIWS Defense': '4x Phalanx CIWS', 'CIWS Success Rate': '37.50%', 'Missile Penetration Rate': '62.50%' },
+                        { 'Missile Threat': '4x P-270 launchers', 'CIWS Defense': '4x Goalkeeper CIWS', 'CIWS Success Rate': '62.50%', 'Missile Penetration Rate': '37.50%' },
+                        { 'Missile Threat': '4x P-270 launchers', 'CIWS Defense': '4x AK-630', 'CIWS Success Rate': '75.00%', 'Missile Penetration Rate': '25.00%' },
+                        { 'Missile Threat': '4x Slava launchers (P-1000)', 'CIWS Defense': '4x Phalanx CIWS', 'CIWS Success Rate': '46.88%', 'Missile Penetration Rate': '53.12%' },
+                        { 'Missile Threat': '4x Slava launchers (P-1000)', 'CIWS Defense': '4x Goalkeeper CIWS', 'CIWS Success Rate': '65.62%', 'Missile Penetration Rate': '34.38%' },
+                        { 'Missile Threat': '4x Slava launchers (P-1000)', 'CIWS Defense': '4x AK-630', 'CIWS Success Rate': '84.38%', 'Missile Penetration Rate': '15.62%' },
+                        { 'Missile Threat': '4x Slava launchers (P-1000)', 'CIWS Defense': '4x AK-630-2', 'CIWS Success Rate': '100.00%', 'Missile Penetration Rate': '0.00%' },
+                    ]}
+                }
+            };
+        }
+
         // --- Event Listeners ---
         window.addEventListener('mousemove', e => {
             bootState.mousePos = { x: e.clientX, y: e.clientY };
@@ -1140,11 +1214,7 @@
                     console.error('Failed to load biome map texture.');
                     statusTextEl.textContent = 'WARN: Biome texture failed to load.';
                 });
-                const heightMapTexture = textureLoader.load('https://i.imgur.com/vlYiAdX.png',
-                    () => {}, undefined, () => {
-                    console.error('Failed to load height map texture.');
-                    statusTextEl.textContent = 'WARN: Heightmap texture failed to load.';
-                });
+                
                 const territoryTexture = textureLoader.load('https://i.postimg.cc/6Q7f2MhN/territory-map-overlay.png');
                 const resourcesTexture = textureLoader.load('https://i.postimg.cc/d1wz2YQG/resource-map-overlay.png');
 
@@ -1156,17 +1226,6 @@
                 bootState.threeInstances.push({ renderer: globeRenderer, camera: globeCamera, container: tacticalMapContainer });
                 
                 const geometry = new THREE.SphereGeometry(5, 128, 128);
-                const material = new THREE.MeshPhongMaterial({ 
-                    map: mapTexture, 
-                    shininess: 20, 
-                    specular: 0x333333,
-                    bumpMap: heightMapTexture,
-                    bumpScale: 0.15,
-                    displacementMap: heightMapTexture,
-                    displacementScale: 0,
-                });
-                globe = new THREE.Mesh(geometry, material);
-                globeScene.add(globe);
                 
                 const globeControls = new OrbitControls(globeCamera, globeRenderer.domElement);
                 globeControls.enableDamping = true;
@@ -1176,6 +1235,104 @@
                 globeControls.maxDistance = 20;
                 globeControls.autoRotate = true;
                 globeControls.autoRotateSpeed = 0.2;
+
+                // Load heightmap and create material in callback
+                textureLoader.load('https://i.imgur.com/vlYiAdX.png', (heightMapTexture) => {
+                    heightMapTexture.wrapS = THREE.RepeatWrapping;
+                    heightMapTexture.wrapT = THREE.RepeatWrapping;
+
+                    const material = new THREE.MeshPhongMaterial({ 
+                        map: mapTexture, 
+                        shininess: 20, 
+                        specular: 0x333333,
+                        bumpMap: heightMapTexture,
+                        bumpScale: 0.15,
+                        displacementMap: heightMapTexture,
+                        displacementScale: 0, // Initially off
+                    });
+
+                    // Inject custom shader for outline effect
+                    material.onBeforeCompile = (shader) => {
+                        shader.uniforms.u_outline_enabled = { value: false };
+                        shader.uniforms.u_outline_color = { value: new THREE.Color(getComputedStyle(document.body).getPropertyValue('--color-info')) };
+                        shader.uniforms.u_outline_threshold = { value: 0.05 }; // Adjusted threshold
+                        shader.uniforms.heightMap = { value: heightMapTexture };
+
+                        shader.vertexShader = `
+                            varying vec2 vUv;
+                        ` + shader.vertexShader;
+                        
+                        shader.vertexShader = shader.vertexShader.replace(
+                            '#include <begin_vertex>',
+                            `
+                            #include <begin_vertex>
+                            vUv = uv;
+                            `
+                        );
+
+                        shader.fragmentShader = `
+                            uniform bool u_outline_enabled;
+                            uniform vec3 u_outline_color;
+                            uniform float u_outline_threshold;
+                            uniform sampler2D heightMap;
+                            varying vec2 vUv;
+
+                            float get_height(vec2 uv) {
+                                return texture2D(heightMap, uv).r;
+                            }
+
+                        ` + shader.fragmentShader;
+
+                        shader.fragmentShader = shader.fragmentShader.replace(
+                            '#include <dithering_fragment>',
+                            `
+                            #include <dithering_fragment>
+                            if (u_outline_enabled) {
+                                float height = get_height(vUv);
+                                if (height > 0.01) { // Only apply sobel above water level
+                                    vec2 d = fwidth(vUv);
+                                    float sobel_x = get_height(vUv + vec2(d.x, 0.0)) - get_height(vUv - vec2(d.x, 0.0));
+                                    float sobel_y = get_height(vUv + vec2(0.0, d.y)) - get_height(vUv - vec2(0.0, d.y));
+                                    float edge = sqrt(sobel_x * sobel_x + sobel_y * sobel_y);
+                                    gl_FragColor.rgb = mix(gl_FragColor.rgb, u_outline_color, step(u_outline_threshold, edge));
+                                }
+                            }
+                            `
+                        );
+                        
+                        globe.userData.shader = shader; // Store shader reference
+                    };
+
+                    globe = new THREE.Mesh(geometry, material);
+                    globeScene.add(globe);
+
+                    // Add other elements that depend on the globe here
+                    waypointsGroup = new THREE.Group();
+                    globe.add(waypointsGroup);
+                    const gridGeo = new THREE.SphereGeometry(5.05, 32, 16);
+                    const gridMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.1 });
+                    const coordinateGrid = new THREE.Mesh(gridGeo, gridMat);
+                    coordinateGrid.visible = false;
+                    globe.add(coordinateGrid);
+                    const territoryMat = new THREE.MeshBasicMaterial({ map: territoryTexture, transparent: true, opacity: 0.7 });
+                    const territoryOverlay = new THREE.Mesh(new THREE.SphereGeometry(5.01, 128, 128), territoryMat);
+                    territoryOverlay.visible = false;
+                    globe.add(territoryOverlay);
+                    const resourcesMat = new THREE.MeshBasicMaterial({ map: resourcesTexture, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
+                    const resourcesOverlay = new THREE.Mesh(new THREE.SphereGeometry(5.02, 128, 128), resourcesMat);
+                    resourcesOverlay.visible = false;
+                    globe.add(resourcesOverlay);
+
+                    // Re-bind controls and listeners that need the globe
+                    document.getElementById('heightmap-toggle').dispatchEvent(new Event('change'));
+                    document.getElementById('territory-toggle').addEventListener('change', (e) => { territoryOverlay.visible = e.target.checked; });
+                    document.getElementById('resources-toggle').addEventListener('change', (e) => { resourcesOverlay.visible = e.target.checked; });
+                    document.getElementById('coord-toggle').addEventListener('change', (e) => { coordinateGrid.visible = e.target.checked; });
+
+                }, undefined, () => {
+                    console.error('Failed to load height map texture.');
+                    statusTextEl.textContent = 'WARN: Heightmap texture failed to load.';
+                });
 
                 // --- Plane Scene ---
                 const planeScene = new THREE.Scene();
@@ -1238,26 +1395,8 @@
                 });
 
                 // --- Common Elements ---
-                waypointsGroup = new THREE.Group();
-                globe.add(waypointsGroup);
                 waypointsGroupPlane = new THREE.Group();
                 planeScene.add(waypointsGroupPlane);
-
-                const gridGeo = new THREE.SphereGeometry(5.05, 32, 16);
-                const gridMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.1 });
-                const coordinateGrid = new THREE.Mesh(gridGeo, gridMat);
-                coordinateGrid.visible = false;
-                globe.add(coordinateGrid);
-
-                const territoryMat = new THREE.MeshBasicMaterial({ map: territoryTexture, transparent: true, opacity: 0.7 });
-                const territoryOverlay = new THREE.Mesh(new THREE.SphereGeometry(5.01, 128, 128), territoryMat);
-                territoryOverlay.visible = false;
-                globe.add(territoryOverlay);
-
-                const resourcesMat = new THREE.MeshBasicMaterial({ map: resourcesTexture, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
-                const resourcesOverlay = new THREE.Mesh(new THREE.SphereGeometry(5.02, 128, 128), resourcesMat);
-                resourcesOverlay.visible = false;
-                globe.add(resourcesOverlay);
 
                 globeScene.add(new THREE.AmbientLight(0xffffff, 2.0));
                 planeScene.add(new THREE.AmbientLight(0xffffff, 2.0));
@@ -1282,7 +1421,7 @@
                 animate();
                 
                 function renderAllWaypoints() {
-                    renderWaypointsOnGlobe();
+                    if (waypointsGroup) renderWaypointsOnGlobe();
                     renderWaypointsOnPlane();
                 }
                 
@@ -1406,6 +1545,7 @@
 
                 globeRenderer.domElement.addEventListener('contextmenu', (event) => {
                     event.preventDefault();
+                    if (!globe) return;
                     const rect = globeRenderer.domElement.getBoundingClientRect();
                     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
                     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -1419,7 +1559,7 @@
                 });
 
                 globeRenderer.domElement.addEventListener('click', (event) => {
-                    if(isDragging) return;
+                    if(isDragging || !waypointsGroup) return;
                     const rect = globeRenderer.domElement.getBoundingClientRect();
                     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
                     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -1432,6 +1572,7 @@
                 });
 
                 globeRenderer.domElement.addEventListener('mousemove', (event) => {
+                    if (!globe) return;
                     const rect = globeRenderer.domElement.getBoundingClientRect();
                     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
                     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -1495,27 +1636,29 @@
                 document.getElementById('rotate-toggle').addEventListener('change', (e) => { globeControls.autoRotate = e.target.checked; });
                 document.getElementById('heightmap-toggle').addEventListener('change', (e) => { 
                     const isEnabled = e.target.checked;
-                    globe.material.displacementScale = isEnabled ? 0.5 : 0;
-                    globe.material.needsUpdate = true;
+                    if (globe && globe.material) {
+                        globe.material.displacementScale = isEnabled ? 0.3 : 0;
+                        if (globe.userData.shader) {
+                            globe.userData.shader.uniforms.u_outline_enabled.value = isEnabled;
+                        }
+                        globe.material.needsUpdate = true;
+                    }
                     if (planeMesh && heightData) {
                         const vertices = planeMesh.geometry.attributes.position.array;
                         for (let i = 0; i < vertices.length / 3; i++) {
-                            const x = Math.floor((vertices[i * 3] + 10) / 20 * (terrainSize - 1));
-                            const y = Math.floor((vertices[i * 3 + 1] + 10) / 20 * (terrainSize - 1));
-                            const pixelIndex = (y * terrainSize + x) * 4;
-                            const height = heightData[pixelIndex] / 255;
-                            vertices[i * 3 + 2] = height * 2.0 * (isEnabled ? 1 : 0);
+                             const x = Math.floor((vertices[i * 3] + 10) / 20 * (terrainSize - 1));
+                             const y = Math.floor((vertices[i * 3 + 1] + 10) / 20 * (terrainSize - 1));
+                             const pixelIndex = (y * terrainSize + x) * 4;
+                             const height = heightData[pixelIndex] / 255;
+                             vertices[i * 3 + 2] = height * 2.0 * (isEnabled ? 1 : 0);
                         }
                         planeMesh.geometry.attributes.position.needsUpdate = true;
                         planeMesh.geometry.computeVertexNormals();
                     }
                 });
-                document.getElementById('territory-toggle').addEventListener('change', (e) => { territoryOverlay.visible = e.target.checked; });
-                document.getElementById('resources-toggle').addEventListener('change', (e) => { resourcesOverlay.visible = e.target.checked; });
-                document.getElementById('coord-toggle').addEventListener('change', (e) => { coordinateGrid.visible = e.target.checked; });
                 
-                const sidebarTabs = document.querySelectorAll('.sidebar-tab');
-                const sidebarTabContents = document.querySelectorAll('.sidebar-tab-content');
+                const sidebarTabs = document.querySelectorAll('#map-main-panel ~ .ui-box .sidebar-tab');
+                const sidebarTabContents = document.querySelectorAll('#map-main-panel ~ .ui-box .sidebar-tab-content');
                 sidebarTabs.forEach(tab => {
                     tab.addEventListener('click', () => {
                         sidebarTabs.forEach(t => t.classList.remove('active'));
@@ -1528,7 +1671,7 @@
                 document.getElementById('plot-waypoint-btn').addEventListener('click', () => {
                     const lat = parseFloat(document.getElementById('lat-input').value);
                     const lon = parseFloat(document.getElementById('lon-input').value);
-                    if (isNaN(lat) || isNaN(lon)) return;
+                    if (isNaN(lat) || isNaN(lon) || !globe) return;
                     const position = latLonToPoint(lat, lon, 5);
                     plotNewWaypoint(position, {lat, lon});
                     statusTextEl.textContent = `Waypoint plotted manually.`;
@@ -1540,15 +1683,212 @@
         }
 
         function initArmouryPage() {
-            // Armoury page logic will go here
+            const fileListEl = document.getElementById('armoury-file-list');
+            const detailEl = document.getElementById('armoury-detail');
+            const breadcrumbsEl = document.getElementById('armoury-breadcrumbs');
+            const comparisonGridEl = document.getElementById('armoury-comparison-grid');
+
+            let currentPath = [];
+
+            function renderBrowser() {
+                let currentLevel = c3iState.armoury;
+                for (const part of currentPath) {
+                    currentLevel = currentLevel[part];
+                }
+
+                fileListEl.innerHTML = '';
+                breadcrumbsEl.innerHTML = `<span class="cursor-pointer hover:text-primary" data-path="">ROOT</span>` + currentPath.map((p, i) => ` / <span class="cursor-pointer hover:text-primary" data-path="${currentPath.slice(0, i + 1).join('/')}">${p}</span>`).join('');
+
+                if (currentLevel) {
+                    for (const dirName in currentLevel) {
+                        if (typeof currentLevel[dirName] === 'object' && !currentLevel[dirName].type) { // It's a directory
+                             const dirEl = document.createElement('div');
+                             dirEl.className = 'data-nav-item';
+                             dirEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> <span>${dirName}</span>`;
+                             dirEl.addEventListener('click', () => {
+                                 currentPath.push(dirName);
+                                 renderBrowser();
+                             });
+                             fileListEl.appendChild(dirEl);
+                        }
+                    }
+                    for (const fileName in currentLevel) {
+                         if (currentLevel[fileName].type) { // It's a file
+                             const fileEl = document.createElement('div');
+                             fileEl.className = 'data-nav-item';
+                             fileEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg> <span>${fileName}</span>`;
+                             fileEl.addEventListener('click', () => showAssetDetail(currentLevel[fileName], fileName));
+                             fileListEl.appendChild(fileEl);
+                         }
+                    }
+                }
+
+                breadcrumbsEl.querySelectorAll('span').forEach(span => {
+                    span.addEventListener('click', (e) => {
+                        const path = e.target.dataset.path;
+                        currentPath = path ? path.split('/') : [];
+                        renderBrowser();
+                    });
+                });
+            }
+
+            function showAssetDetail(asset, name) {
+                detailEl.innerHTML = `<h3 class="text-lg text-primary mb-2">${name}</h3><p class="text-sm text-gray-400 mb-4">${asset.type}</p>`;
+                
+                if (asset.type === 'Report') {
+                    let tableHTML = '<table class="data-table text-xs"><thead><tr>';
+                    const headers = Object.keys(asset.data[0]);
+                    headers.forEach(h => tableHTML += `<th>${h}</th>`);
+                    tableHTML += '</tr></thead><tbody>';
+                    asset.data.forEach(row => {
+                        tableHTML += '<tr>';
+                        headers.forEach(h => tableHTML += `<td>${row[h]}</td>`);
+                        tableHTML += '</tr>';
+                    });
+                    tableHTML += '</tbody></table>';
+                    detailEl.innerHTML += tableHTML;
+                } else {
+                    let listHTML = '<ul class="space-y-1 text-sm">';
+                    for (const [key, value] of Object.entries(asset.data)) {
+                        listHTML += `<li><strong>${key}:</strong> <span class="text-info">${value}</span></li>`;
+                    }
+                    listHTML += '</ul>';
+                    detailEl.innerHTML += listHTML;
+                }
+
+                const compareBtn = document.createElement('button');
+                compareBtn.className = 'c3i-button text-sm mt-4';
+                compareBtn.textContent = 'Add to Comparison';
+                compareBtn.onclick = () => addToComparison({name, ...asset});
+                detailEl.appendChild(compareBtn);
+            }
+
+            function addToComparison(asset) {
+                if (c3iState.comparisonAssets.length < 3 && !c3iState.comparisonAssets.find(a => a.name === asset.name)) {
+                    c3iState.comparisonAssets.push(asset);
+                    renderComparison();
+                    if(bootState.soundInitialized) bootState.uiSynth.triggerAttackRelease("C5", "16n");
+                } else {
+                     if(bootState.soundInitialized) bootState.failSynth.triggerAttackRelease("A2", "16n");
+                }
+            }
+
+            function renderComparison() {
+                if (c3iState.comparisonAssets.length === 0) {
+                    comparisonGridEl.innerHTML = `<p class="text-gray-500 col-span-full">Add up to 3 assets to compare from the browser.</p>`;
+                    return;
+                }
+                comparisonGridEl.innerHTML = '';
+                c3iState.comparisonAssets.forEach(asset => {
+                    const card = document.createElement('div');
+                    card.className = 'ui-box';
+                    let cardHTML = `<h4 class="text-md text-primary mb-2">${asset.name}</h4><p class="text-xs text-gray-400 mb-2">${asset.type}</p>`;
+                    cardHTML += '<ul class="space-y-1 text-xs">';
+                    for (const [key, value] of Object.entries(asset.data)) {
+                        cardHTML += `<li><strong>${key}:</strong> <span class="text-info">${value}</span></li>`;
+                    }
+                    cardHTML += '</ul>';
+                    card.innerHTML = cardHTML;
+                    comparisonGridEl.appendChild(card);
+                });
+            }
+            
+            document.getElementById('clear-comparison-btn').addEventListener('click', () => {
+                c3iState.comparisonAssets = [];
+                renderComparison();
+            });
+            
+            const sidebarTabs = document.querySelectorAll('#template-armoury .sidebar-tab');
+            sidebarTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    sidebarTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById('armoury-browser').classList.toggle('active', tab.dataset.tab === 'browser');
+                    document.getElementById('armoury-comparison').classList.toggle('active', tab.dataset.tab === 'comparison');
+                });
+            });
+
+            renderBrowser();
+            renderComparison();
         }
 
         function initCodexPage() {
-            // Codex page logic will go here
+            const navEl = document.getElementById('codex-nav');
+            const contentEl = document.getElementById('codex-content-container');
+            
+            function renderCodex() {
+                navEl.innerHTML = '';
+                Object.keys(c3iState.codex).forEach((key, index) => {
+                    const navItem = document.createElement('div');
+                    navItem.className = 'data-nav-item';
+                    if (index === 0) navItem.classList.add('active');
+                    navItem.textContent = key;
+                    navItem.dataset.key = key;
+                    navEl.appendChild(navItem);
+                });
+
+                navEl.querySelectorAll('.data-nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const key = e.target.dataset.key;
+                        navEl.querySelectorAll('.data-nav-item').forEach(i => i.classList.remove('active'));
+                        e.target.classList.add('active');
+                        contentEl.innerHTML = `<h3 class="text-lg text-primary mb-4">${key}</h3><div>${c3iState.codex[key]}</div>`;
+                    });
+                });
+                
+                // Load first item
+                const firstKey = Object.keys(c3iState.codex)[0];
+                if(firstKey) {
+                    contentEl.innerHTML = `<h3 class="text-lg text-primary mb-4">${firstKey}</h3><div>${c3iState.codex[firstKey]}</div>`;
+                }
+            }
+            renderCodex();
         }
 
         function initIntelPage() {
-            // Intel page logic will go here
+            const container = document.getElementById('faction-dossiers-container');
+            
+            function renderFactions() {
+                container.innerHTML = '';
+                for(const key in c3iState.intel) {
+                    const faction = c3iState.intel[key];
+                    const dossier = document.createElement('div');
+                    dossier.className = 'ui-box space-y-2';
+                    
+                    let strengthHTML = `<div class="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div>Ground<br><span class="font-bold text-info">${faction.strength.ground}</span></div>
+                        <div>Air<br><span class="font-bold text-info">${faction.strength.air}</span></div>
+                        <div>Naval<br><span class="font-bold text-info">${faction.strength.naval}</span></div>
+                    </div>`;
+
+                    let hierarchyHTML = `<h5 class="font-bold mt-2">Hierarchy:</h5><ul class="text-xs list-disc list-inside"><li><span class="font-bold">Leader:</span> ${faction.hierarchy.leader}</li>`;
+                    if(faction.hierarchy.members) {
+                        faction.hierarchy.members.forEach(m => hierarchyHTML += `<li>${m}</li>`);
+                    }
+                    hierarchyHTML += '</ul>';
+
+                    dossier.innerHTML = `
+                        <h3 class="text-lg text-primary">${faction.name}</h3>
+                        <div class="flex justify-between text-sm"><span>Threat: <span class="text-warning font-bold">${faction.threat}</span></span> <span>Hostility: <span class="text-secondary font-bold">${faction.hostility}</span></span></div>
+                        <p class="text-sm italic text-gray-400">"${faction.report}"</p>
+                        ${strengthHTML}
+                        ${hierarchyHTML}
+                    `;
+                    container.appendChild(dossier);
+                }
+            }
+
+            const sidebarTabs = document.querySelectorAll('#template-intel .sidebar-tab');
+            sidebarTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    sidebarTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.querySelectorAll('#intel-content-container .intel-content').forEach(c => c.classList.remove('active'));
+                    document.getElementById(`intel-${tab.dataset.tab}`).classList.add('active');
+                });
+            });
+
+            renderFactions();
         }
 
         function initCommsPage() {
@@ -1708,7 +2048,7 @@
             const password = e.target.password.value;
             const user = c3iState.users[username];
             if (user && user.password === password) {
-                c3iState.currentUser = { callsign: user.codename, ...user };
+                c3iState.currentUser = { callsign: username, ...user };
                 await logAction('User Login');
                 showDesktop();
             } else {
@@ -1718,7 +2058,8 @@
             }
         });
 
-        // Initialize Firebase first, then the visual boot sequence
+        // Initialize Data, then Firebase, then the visual boot sequence
+        loadData();
         initializeFirebase();
         initOffline();
     </script>
