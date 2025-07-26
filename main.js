@@ -1,8 +1,15 @@
-import { initializeFirebase } from './firebase.js';
+import { initializeFirebase, authReadyPromise } from './firebase.js';
 import { loadData, c3iState } from './data.js';
 import { bootState, runBootSequence, initSound, initOffline } from './boot.js';
 import { initializeC3IApp } from './ui.js';
-import { getFirestore, doc, addDoc, serverTimestamp, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, addDoc, serverTimestamp, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// --- Custom Cursor Logic ---
+window.addEventListener('mousemove', e => {
+    bootState.mousePos = { x: e.clientX, y: e.clientY };
+    bootState.cursor.style.left = e.clientX + 'px';
+    bootState.cursor.style.top = e.clientY + 'px';
+});
 
 // --- Application Start ---
 function startHandler() {
@@ -85,14 +92,3 @@ async function logAction(action, details = '') {
 loadData();
 initializeFirebase();
 initOffline();
-
-const authReadyPromise = new Promise(resolve => {
-    const checkAuth = () => {
-        if (c3iState.firebaseUser) {
-            resolve();
-        } else {
-            setTimeout(checkAuth, 100);
-        }
-    };
-    checkAuth();
-});
