@@ -123,10 +123,27 @@ export function initTacticalMap() {
             resourcesOverlay.visible = false;
             globe.add(resourcesOverlay);
 
-            document.getElementById('heightmap-toggle').dispatchEvent(new Event('change'));
+            // Attach event listeners after globe is created
+            document.getElementById('rotate-toggle').addEventListener('change', (e) => { 
+                globeControls.autoRotate = e.target.checked; 
+            });
+            document.getElementById('heightmap-toggle').addEventListener('change', (e) => { 
+                const isEnabled = e.target.checked;
+                if (globe && globe.material) {
+                    globe.material.displacementScale = isEnabled ? 0.4 : 0; // Increased for visibility
+                    if (globe.userData.shader) {
+                        globe.userData.shader.uniforms.u_outline_enabled.value = isEnabled;
+                    }
+                    globe.material.needsUpdate = true;
+                }
+            });
             document.getElementById('territory-toggle').addEventListener('change', (e) => { territoryOverlay.visible = e.target.checked; });
             document.getElementById('resources-toggle').addEventListener('change', (e) => { resourcesOverlay.visible = e.target.checked; });
             document.getElementById('coord-toggle').addEventListener('change', (e) => { coordinateGrid.visible = e.target.checked; });
+            
+            // Initial state sync
+            document.getElementById('heightmap-toggle').dispatchEvent(new Event('change'));
+
         });
 
         // Plane Scene
@@ -198,7 +215,8 @@ export function initTacticalMap() {
                 timestamp: serverTimestamp()
             };
             try {
-                const waypointsCollection = collection(db, `artifacts/${appId}/public/data/waypoints`);
+                const firestoreDb = db || getFirestore();
+                const waypointsCollection = collection(firestoreDb, `artifacts/${appId}/public/data/waypoints`);
                 const docRef = await addDoc(waypointsCollection, newWaypoint);
                 logAction('Waypoint Plotted', `[${coords.lat.toFixed(2)}, ${coords.lon.toFixed(2)}] ID: ${docRef.id}`);
             } catch (e) {
@@ -223,8 +241,8 @@ export function initTacticalMap() {
                 <div class="mt-2"><label class="text-xs">Colour</label><input type="color" id="waypoint-color-input" class="w-full h-8" value="${waypoint.color}"></div>
                 <button id="delete-waypoint-btn" class="c3i-button w-full mt-2 text-sm">Delete Waypoint</button>
             `;
-
-            const waypointDocRef = doc(db, `artifacts/${appId}/public/data/waypoints`, waypointId);
+            const firestoreDb = db || getFirestore();
+            const waypointDocRef = doc(firestoreDb, `artifacts/${appId}/public/data/waypoints`, waypointId);
 
             document.getElementById('waypoint-name-input').addEventListener('change', async (e) => { 
                 await updateDoc(waypointDocRef, { name: e.target.value });
