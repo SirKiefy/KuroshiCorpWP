@@ -1,10 +1,7 @@
 import { c3iState } from './data.js';
 import { bootState } from './boot.js';
-import { db } from './firebase.js';
-import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { db, savePlan, updatePlan, deletePlan, saveTask, updateTask, deleteTask, saveChatMessage } from './firebase.js';
 import * as Utils from './utils.js';
-
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
 function getClearanceName(level) {
     if (level >= 7) return 'System Administrator';
@@ -33,7 +30,7 @@ export function initializeC3IApp() {
     });
 
     const pageInitializers = {
-        map: initTacticalMapPage,
+        map: Utils.initTacticalMap,
         armoury: initArmouryPage,
         codex: initCodexPage,
         intel: initIntelPage,
@@ -44,7 +41,8 @@ export function initializeC3IApp() {
     function loadPage(pageName) {
         if(bootState.soundInitialized) bootState.uiSynth.triggerAttackRelease("E4", "8n");
         pageContainer.innerHTML = '';
-        bootState.threeInstances = []; // Clear previous three.js instances
+        bootState.threeInstances.forEach(inst => inst.renderer.dispose());
+        bootState.threeInstances = [];
         const template = document.getElementById(`template-${pageName}`);
         if (template) {
             pageContainer.appendChild(template.content.cloneNode(true));
@@ -61,12 +59,7 @@ export function initializeC3IApp() {
         item.addEventListener('click', () => loadPage(item.dataset.page));
     });
 
-    loadPage('map'); // Load initial page
-}
-
-// Page Initializers
-function initTacticalMapPage() {
-    Utils.initTacticalMap();
+    loadPage('map');
 }
 
 function initArmouryPage() {
@@ -86,36 +79,26 @@ function initArmouryPage() {
 
     function renderBrowser() {
         let currentLevel = c3iState.armoury;
-        for (const part of currentPath) {
-            currentLevel = currentLevel[part];
-        }
+        currentPath.forEach(part => { currentLevel = currentLevel[part]; });
 
         fileListEl.innerHTML = '';
         breadcrumbsEl.innerHTML = `<span class="cursor-pointer hover:text-primary" data-path="">ROOT</span>` + currentPath.map((p, i) => ` / <span class="cursor-pointer hover:text-primary" data-path="${currentPath.slice(0, i + 1).join('/')}">${p}</span>`).join('');
 
-        if (currentLevel) {
-            for (const dirName in currentLevel) {
-                if (typeof currentLevel[dirName] === 'object' && !currentLevel[dirName].type) { // It's a directory
-                     const dirEl = document.createElement('div');
-                     dirEl.className = 'data-nav-item';
-                     dirEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> <span>${dirName}</span>`;
-                     dirEl.addEventListener('click', () => {
-                         currentPath.push(dirName);
-                         renderBrowser();
-                     });
-                     fileListEl.appendChild(dirEl);
-                }
-            }
-            for (const fileName in currentLevel) {
-                 if (currentLevel[fileName].type) { // It's a file
-                     const fileEl = document.createElement('div');
-                     fileEl.className = 'data-nav-item';
-                     fileEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg> <span>${fileName}</span>`;
-                     fileEl.addEventListener('click', () => showAssetDetail(currentLevel[fileName], fileName));
-                     fileListEl.appendChild(fileEl);
-                 }
-            }
-        }
+        Object.keys(currentLevel).filter(key => typeof currentLevel[key] === 'object' && !currentLevel[key].type).forEach(dirName => {
+            const dirEl = document.createElement('div');
+            dirEl.className = 'data-nav-item';
+            dirEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> <span>${dirName}</span>`;
+            dirEl.addEventListener('click', () => { currentPath.push(dirName); renderBrowser(); });
+            fileListEl.appendChild(dirEl);
+        });
+
+        Object.keys(currentLevel).filter(key => currentLevel[key].type).forEach(fileName => {
+            const fileEl = document.createElement('div');
+            fileEl.className = 'data-nav-item';
+            fileEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg> <span>${fileName}</span>`;
+            fileEl.addEventListener('click', () => showAssetDetail(currentLevel[fileName], fileName));
+            fileListEl.appendChild(fileEl);
+        });
 
         breadcrumbsEl.querySelectorAll('span').forEach(span => {
             span.addEventListener('click', (e) => {
@@ -152,7 +135,6 @@ function initArmouryPage() {
 
         const buttonGroup = document.createElement('div');
         buttonGroup.className = 'flex gap-2 mt-4';
-
         const compareBtn = document.createElement('button');
         compareBtn.className = 'c3i-button text-sm';
         compareBtn.textContent = 'Add to Comparison';
@@ -166,7 +148,6 @@ function initArmouryPage() {
             editBtn.onclick = () => alert('Edit functionality for Armoury is a future implementation.');
             buttonGroup.appendChild(editBtn);
         }
-
         detailEl.appendChild(buttonGroup);
     }
 
@@ -230,16 +211,10 @@ function initArmouryPage() {
                             angleLines: { color: 'rgba(255,255,255,0.2)' },
                             grid: { color: 'rgba(255,255,255,0.2)' },
                             pointLabels: { color: 'white', font: { family: "'PPSupplyMono', monospace" } },
-                            ticks: {
-                                color: 'black',
-                                backdropColor: 'rgba(255,255,255,0.8)',
-                                font: { family: "'PPSupplyMono', monospace" }
-                            }
+                            ticks: { color: 'black', backdropColor: 'rgba(255,255,255,0.8)', font: { family: "'PPSupplyMono', monospace" } }
                         }
                     },
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     maintainAspectRatio: true,
                 }
             });
@@ -307,7 +282,10 @@ function initIntelPage() {
 
     function showDetailView(factionKey) {
         const faction = c3iState.intel[factionKey];
-        if (!faction) return;
+        if (!faction) {
+            detailView.innerHTML = `<p class="text-gray-500">Select a faction to view details.</p>`;
+            return;
+        }
 
         let strengthHTML = `<div class="grid grid-cols-3 gap-2 text-center text-sm p-2 ui-box">
             <div>Ground<br><span class="font-bold text-info">${faction.strength.ground}</span></div>
@@ -472,25 +450,30 @@ function initIntelPage() {
 
         if (currentModalType === 'plan') {
             data.details = itemDetailsInput.value;
-        } else {
+            if (id) {
+                await updatePlan(id, data);
+            } else {
+                await savePlan(data);
+            }
+        } else { // task
             data.priority = itemPriorityInput.value;
-            if (!id) data.completed = false; // Only set on creation
-        }
-
-        if (id) {
-            await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, id), data);
-        } else {
-            await addDoc(collection(db, `artifacts/${appId}/public/data/${collectionName}`), data);
+            if (id) {
+                await updateTask(id, data);
+            } else {
+                data.completed = false;
+                await saveTask(data);
+            }
         }
         modal.classList.add('hidden');
     });
 
     async function deleteItem(collectionName, id) {
-        await deleteDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, id));
+        if (collectionName === 'plans') await deletePlan(id);
+        if (collectionName === 'tasks') await deleteTask(id);
     }
     
     async function toggleTaskComplete(id, completed) {
-        await updateDoc(doc(db, `artifacts/${appId}/public/data/tasks`, id), { completed });
+        await updateTask(id, { completed });
     }
 
     document.getElementById('add-plan-btn')?.addEventListener('click', () => openPlanTaskModal('plan'));
@@ -534,13 +517,7 @@ function initCommsPage() {
                 userId: c3iState.firebaseUser.uid
             };
             chatInput.value = '';
-            try {
-                const chatCollection = collection(db, `artifacts/${appId}/public/data/chatMessages`);
-                await addDoc(chatCollection, messageData);
-            } catch (error) {
-                console.error("Error sending message:", error);
-                chatInput.value = text;
-            }
+            await saveChatMessage(messageData);
         }
     });
 
