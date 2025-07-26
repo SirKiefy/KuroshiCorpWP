@@ -607,7 +607,7 @@
         // --- Firebase SDK Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, setLogLevel, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, serverTimestamp, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, setLogLevel, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, serverTimestamp, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase & App Initialization ---
         let db, auth;
@@ -619,13 +619,16 @@
 
         async function initializeFirebase() {
             try {
-                // Use the global __firebase_config if available, otherwise fallback to a default or error
-                if (typeof __firebase_config === 'undefined') {
-                    console.error("Firebase config is not available.");
-                    document.getElementById('stage-offline-text').innerHTML = '<h1>CONFIG ERROR</h1><p>Firebase configuration not found.</p>';
-                    return;
-                }
-                const firebaseConfig = JSON.parse(__firebase_config);
+                // User-provided Firebase config
+                const firebaseConfig = {
+                    apiKey: "AIzaSyBXeJG9xc2xQCoCzKX6WATwSW2CulOre3E",
+                    authDomain: "helios-interface.firebaseapp.com",
+                    projectId: "helios-interface",
+                    storageBucket: "helios-interface.appspot.com",
+                    messagingSenderId: "1073548914126",
+                    appId: "1:1073548914126:web:ec04b501ba577b08584f9f",
+                    measurementId: "G-65W3XRX32Y"
+                };
 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
@@ -633,15 +636,16 @@
                 setLogLevel('debug');
 
                 // Handle Authentication State Changes
-                onAuthStateChanged(auth, (user) => {
+                onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         console.log("Firebase user signed in:", user.uid);
                         c3iState.firebaseUser = user;
+                        await seedInitialData(); // Check and seed data after auth
                         if (authReadyResolver) {
-                            authReadyResolver(user); // Resolve with the user object
-                            authReadyResolver = null; // Prevent multiple resolutions
+                            authReadyResolver(user);
+                            authReadyResolver = null;
                         }
-                        setupFirestoreListeners(); // Set up listeners once authenticated
+                        setupFirestoreListeners();
                     } else {
                         console.log("No user signed in.");
                         c3iState.firebaseUser = null;
@@ -675,14 +679,20 @@
             auditLog: [],
             chatMessages: [],
             factions: [],
-            armoury: {}, // Use an object to represent the file system
+            armoury: {},
             comparisonAssets: [],
-            listeners: [], // To keep track of Firestore listeners
+            listeners: [],
             users: {
-                'COMMANDER': { password: 'password123', clearance: 'Commander', level: 4 },
-                'OFFICER': { password: 'password123', clearance: 'Officer', level: 3 },
-                'OPERATOR': { password: 'hsw1337', clearance: 'Operator', level: 2 },
-                'RECRUIT': { password: 'password123', clearance: 'Recruit', level: 1 },
+                'SIRKIEFY': { password: 'R9x!Vt3Qw#Lp8J', clearanceLvl: 7, clearance: 'Architect', codename: 'Architect' },
+                'SATICRON': { password: 'M7u$Zj1Lb^Nx4R', clearanceLvl: 6, clearance: 'Vanguard', codename: 'Vanguard' },
+                'FOXBATACTUAL': { password: '991964', clearanceLvl: 6, clearance: 'Vanguard', codename: 'FoxbatActual' },
+                'NIGHTMARE_OF_THE_LIVING': { password: 'B4v*Xg9Hp&Lf2T', clearanceLvl: 4, clearance: 'Nightstalker', codename: 'Nightstalker' },
+                'DANIEL.4031': { password: 'T5q#Ch6Jm%Ws1Y', clearanceLvl: 3, clearance: 'Operator', codename: 'Rocketman' },
+                'SHARPS54': { password: 'L8n^Vr4Xp!Bd3K', clearanceLvl: 3, clearance: 'Operator', codename: 'Deadeye' },
+                'HALOLAD': { password: 'S1j%Ht7Zk&Qp9N', clearanceLvl: 3, clearance: 'Operator', codename: 'Reaper' },
+                'DR_LUPUS': { password: 'H3p$Gn2Fr#Dz6M', clearanceLvl: 3, clearance: 'Operator', codename: 'Wolfhound' },
+                'THEJETNINJA': { password: 'V6m*Kw5Xb!Tf8R', clearanceLvl: 3, clearance: 'Operator', codename: 'Overwatch' },
+                'COWBOYBAMA': { password: 'C9t&Ls1Vg@Pr4Q', clearanceLvl: 3, clearance: 'Operator', codename: 'Ironclad' },
             },
         };
 
@@ -1484,8 +1494,9 @@
                 });
                 document.getElementById('rotate-toggle').addEventListener('change', (e) => { globeControls.autoRotate = e.target.checked; });
                 document.getElementById('heightmap-toggle').addEventListener('change', (e) => { 
-                    const scale = e.target.checked ? 0.5 : 0;
-                    if (globe) globe.material.displacementScale = scale; 
+                    const isEnabled = e.target.checked;
+                    globe.material.displacementScale = isEnabled ? 0.5 : 0;
+                    globe.material.needsUpdate = true;
                     if (planeMesh && heightData) {
                         const vertices = planeMesh.geometry.attributes.position.array;
                         for (let i = 0; i < vertices.length / 3; i++) {
@@ -1493,12 +1504,11 @@
                             const y = Math.floor((vertices[i * 3 + 1] + 10) / 20 * (terrainSize - 1));
                             const pixelIndex = (y * terrainSize + x) * 4;
                             const height = heightData[pixelIndex] / 255;
-                            vertices[i * 3 + 2] = height * 2.0 * (e.target.checked ? 1 : 0);
+                            vertices[i * 3 + 2] = height * 2.0 * (isEnabled ? 1 : 0);
                         }
                         planeMesh.geometry.attributes.position.needsUpdate = true;
                         planeMesh.geometry.computeVertexNormals();
                     }
-                    if (globe) globe.material.needsUpdate = true; 
                 });
                 document.getElementById('territory-toggle').addEventListener('change', (e) => { territoryOverlay.visible = e.target.checked; });
                 document.getElementById('resources-toggle').addEventListener('change', (e) => { resourcesOverlay.visible = e.target.checked; });
@@ -1698,7 +1708,7 @@
             const password = e.target.password.value;
             const user = c3iState.users[username];
             if (user && user.password === password) {
-                c3iState.currentUser = { callsign: username, ...user };
+                c3iState.currentUser = { callsign: user.codename, ...user };
                 await logAction('User Login');
                 showDesktop();
             } else {
