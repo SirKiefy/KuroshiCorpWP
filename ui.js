@@ -41,7 +41,10 @@ export function initializeC3IApp() {
     function loadPage(pageName) {
         if(bootState.soundInitialized) bootState.uiSynth.triggerAttackRelease("E4", "8n");
         pageContainer.innerHTML = '';
-        bootState.threeInstances.forEach(inst => inst.renderer.dispose());
+        bootState.threeInstances.forEach(inst => {
+            if(inst.renderer) inst.renderer.dispose();
+            if(inst.scene) inst.scene.clear();
+        });
         bootState.threeInstances = [];
         const template = document.getElementById(`template-${pageName}`);
         if (template) {
@@ -70,7 +73,7 @@ function initArmouryPage() {
     const addAssetBtn = document.getElementById('add-asset-btn');
 
     let currentPath = [];
-    let chartInstances = [];
+    let comparisonChart = null;
 
     if (c3iState.currentUser.clearance >= 4) {
         addAssetBtn.classList.remove('hidden');
@@ -162,14 +165,15 @@ function initArmouryPage() {
     }
 
     function renderComparison() {
-        chartInstances.forEach(chart => chart.destroy());
-        chartInstances = [];
+        if (comparisonChart) {
+            comparisonChart.destroy();
+        }
 
         if (c3iState.comparisonAssets.length === 0) {
             comparisonGridEl.innerHTML = `<p class="text-gray-500 col-span-full">Add up to 3 assets to compare from the browser.</p>`;
             return;
         }
-        comparisonGridEl.innerHTML = '';
+        comparisonGridEl.innerHTML = `<canvas id="comparison-chart"></canvas>`;
         
         const numericKeys = new Set();
         c3iState.comparisonAssets.forEach(asset => {
@@ -181,44 +185,55 @@ function initArmouryPage() {
         });
         const labels = Array.from(numericKeys);
 
-        c3iState.comparisonAssets.forEach((asset, index) => {
-            const card = document.createElement('div');
-            card.className = 'ui-box';
+        const datasets = c3iState.comparisonAssets.map((asset, index) => {
+            const colors = [
+                'rgba(255, 60, 60, 0.4)', // Primary
+                'rgba(69, 243, 255, 0.4)', // Info
+                'rgba(245, 166, 35, 0.4)' // Warning
+            ];
+            const borderColors = [
+                'rgba(255, 60, 60, 1)',
+                'rgba(69, 243, 255, 1)',
+                'rgba(245, 166, 35, 1)'
+            ];
             const data = labels.map(key => parseFloat(asset.data[key]) || 0);
+            return {
+                label: asset.name,
+                data: data,
+                backgroundColor: colors[index],
+                borderColor: borderColors[index],
+                borderWidth: 1
+            };
+        });
 
-            card.innerHTML = `
-                <h4 class="text-md text-primary mb-2">${asset.name}</h4>
-                <canvas id="compare-chart-${index}"></canvas>
-            `;
-            comparisonGridEl.appendChild(card);
-
-            const ctx = document.getElementById(`compare-chart-${index}`).getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: asset.name,
-                        data: data,
-                        backgroundColor: 'rgba(255, 60, 60, 0.2)',
-                        borderColor: 'rgba(255, 60, 60, 1)',
-                        borderWidth: 1
-                    }]
+        const ctx = document.getElementById('comparison-chart').getContext('2d');
+        comparisonChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(255,255,255,0.2)' },
+                        grid: { color: 'rgba(255,255,255,0.2)' },
+                        pointLabels: { color: 'white', font: { family: "'PPSupplyMono', monospace" } },
+                        ticks: { color: 'black', backdropColor: 'rgba(255,255,255,0.8)', font: { family: "'PPSupplyMono', monospace" } }
+                    }
                 },
-                options: {
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(255,255,255,0.2)' },
-                            grid: { color: 'rgba(255,255,255,0.2)' },
-                            pointLabels: { color: 'white', font: { family: "'PPSupplyMono', monospace" } },
-                            ticks: { color: 'black', backdropColor: 'rgba(255,255,255,0.8)', font: { family: "'PPSupplyMono', monospace" } }
+                plugins: { 
+                    legend: { 
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: 'white',
+                            font: { family: "'PPSupplyMono', monospace" }
                         }
-                    },
-                    plugins: { legend: { display: false } },
-                    maintainAspectRatio: true,
-                }
-            });
-            chartInstances.push(chart);
+                    } 
+                },
+                maintainAspectRatio: true,
+            }
         });
     }
     
@@ -445,7 +460,6 @@ function initIntelPage() {
         let data = {
             name: itemNameInput.value,
             author: c3iState.currentUser.codename,
-            timestamp: serverTimestamp()
         };
 
         if (currentModalType === 'plan') {
@@ -513,7 +527,6 @@ function initCommsPage() {
             const messageData = {
                 user: c3iState.currentUser.codename,
                 text: text,
-                timestamp: serverTimestamp(),
                 userId: c3iState.firebaseUser.uid
             };
             chatInput.value = '';
@@ -571,3 +584,27 @@ function initSettingsPage() {
     window.addEventListener('logUpdated', renderLog);
     renderLog();
 }
+
+// UI Updater Registry
+export const uiUpdaters = {
+    waypoints: () => {
+        const mapPage = document.getElementById('template-map');
+        if (mapPage) Utils.initTacticalMap(); // Re-init to redraw waypoints
+    },
+    chatMessages: () => {
+        const commsPage = document.getElementById('template-comms');
+        if (commsPage) initCommsPage();
+    },
+    auditLog: () => {
+        const settingsPage = document.getElementById('template-settings');
+        if (settingsPage) initSettingsPage();
+    },
+    plans: () => {
+        const intelPage = document.getElementById('template-intel');
+        if (intelPage) initIntelPage();
+    },
+    tasks: () => {
+        const intelPage = document.getElementById('template-intel');
+        if (intelPage) initIntelPage();
+    }
+};
