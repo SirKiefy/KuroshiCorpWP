@@ -129,8 +129,7 @@ const globeManager = (() => {
             // FIX: Added robust error handling and logging to the waypoint placement logic
             renderer.domElement.addEventListener('contextmenu', async (event) => {
                 event.preventDefault();
-                console.log("Context menu event triggered.");
-
+                
                 if (!globe) {
                     console.error("Globe object not found for raycasting.");
                     return;
@@ -148,7 +147,6 @@ const globeManager = (() => {
                 const intersects = raycaster.intersectObject(globe);
 
                 if (intersects.length > 0) {
-                    console.log("Raycaster intersected with globe.");
                     const intersectPoint = intersects[0].point;
                     const coords = pointToLatLon(intersectPoint, 5);
                     
@@ -161,16 +159,12 @@ const globeManager = (() => {
                     };
 
                     try {
-                        console.log("Attempting to save waypoint:", waypointData);
                         await Firebase.saveWaypoint(waypointData);
-                        console.log("Waypoint saved successfully.");
                     } catch (error) {
                         console.error("Failed to save waypoint to Firebase:", error);
                         const statusTextEl = document.getElementById('status-text');
                         if(statusTextEl) statusTextEl.textContent = "Error: Could not save waypoint.";
                     }
-                } else {
-                    console.log("Raycaster did not intersect with globe.");
                 }
             });
 
@@ -186,9 +180,10 @@ const globeManager = (() => {
                 }
             });
             
+            // Listen for the custom event to re-render waypoints
+            window.addEventListener('waypointsUpdated', renderWaypoints);
             renderWaypoints(); // Initial render
         },
-        renderWaypoints: renderWaypoints
     };
 })();
 
@@ -199,7 +194,6 @@ export function initTacticalMap() {
 
     document.getElementById('status-text').textContent = 'Awaiting command. Hover over map for coordinates.';
     
-    // Use a timeout to ensure the DOM is ready for canvas initialization
     setTimeout(() => {
         globeManager.init(tacticalMapCanvas, tacticalMapContainer);
         document.getElementById('plot-waypoint-btn').addEventListener('click', () => {
@@ -217,8 +211,6 @@ export function initTacticalMap() {
         });
     }, 10);
 }
-
-export const getGlobeInstance = () => globeManager;
 
 function showWaypointInfo(waypointId) {
     const waypoint = c3iState.waypoints.find(w => w.id === waypointId);
