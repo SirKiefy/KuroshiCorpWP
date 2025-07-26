@@ -14,10 +14,23 @@ export const c3iState = {
     users: {},
 };
 
+export const bootState = {
+    stages: null, // Will be populated at runtime
+    cursor: null, // Will be populated at runtime
+    loginForm: null, // Will be populated at runtime
+    loginError: null, // Will be populated at runtime
+    mousePos: { x: 0, y: 0 },
+    currentStage: 0,
+    soundInitialized: false,
+    uiSynth: null, failSynth: null, successSynth: null, deploySynth: null, matrixSynth: null, flowSynth: null,
+    threeInstances: []
+};
+
+
 export function loadData() {
     c3iState.users = {
         'architect':    { username: 'SirKiefy',                password: 'R9x!Vt3Qw#Lp8J', clearance: 7, admin: true },
-        'Altair':       { username: 'saticron',                password: 'M7u$Zj1Lb^Nx4R', clearance: 6, admin: false },
+        'altair':       { username: 'saticron',                password: 'M7u$Zj1Lb^Nx4R', clearance: 6, admin: false },
         'foxbatactual': { username: 'FoxbatActual',            password: '991964',         clearance: 6, admin: false },
         'nightstalker': { username: 'nightmare_of_the_living', password: 'B4v*Xg9Hp&Lf2T', clearance: 4, admin: false },
         'rocketman':    { username: 'daniel.4031',             password: 'T5q#Ch6Jm%Ws1Y', clearance: 3, admin: false },
