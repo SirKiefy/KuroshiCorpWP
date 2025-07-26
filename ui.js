@@ -19,7 +19,6 @@ export function initializeC3IApp() {
     document.getElementById('user-clearance').textContent = `Lvl ${c3iState.currentUser.clearance} - ${getClearanceName(c3iState.currentUser.clearance)}`;
     document.getElementById('user-id-display').textContent = c3iState.firebaseUser?.uid || 'ANONYMOUS';
     document.getElementById('logout-button').addEventListener('click', () => {
-        // In a real app, you would call signOut from firebase.js
         location.reload();
     });
 
@@ -82,6 +81,7 @@ function initArmouryPage() {
 
     if (c3iState.currentUser.clearance >= 4) {
         addAssetBtn.classList.remove('hidden');
+        addAssetBtn.addEventListener('click', () => alert('Add Asset functionality is a future implementation.'));
     }
 
     function renderBrowser() {
