@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, setLogLevel, onSnapshot, collection, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, setLogLevel, onSnapshot, collection, query, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { c3iState } from './data.js';
 
 export let db, auth;
@@ -11,15 +11,21 @@ export const authReadyPromise = new Promise(resolve => { authReadyResolver = res
 
 export async function initializeFirebase() {
     try {
-        const firebaseConfig = {
-            apiKey: "AIzaSyBXeJG9xc2xQCoCzKX6WATwSW2CulOre3E",
-            authDomain: "helios-interface.firebaseapp.com",
-            projectId: "helios-interface",
-            storageBucket: "helios-interface.appspot.com",
-            messagingSenderId: "1073548914126",
-            appId: "1:1073548914126:web:ec04b501ba577b08584f9f",
-            measurementId: "G-65W3XRX32Y"
-        };
+        let firebaseConfig;
+        if (typeof __firebase_config !== 'undefined') {
+            firebaseConfig = JSON.parse(__firebase_config);
+        } else {
+            console.warn("Using fallback Firebase config.");
+            firebaseConfig = {
+                apiKey: "AIzaSyBXeJG9xc2xQCoCzKX6WATwSW2CulOre3E",
+                authDomain: "helios-interface.firebaseapp.com",
+                projectId: "helios-interface",
+                storageBucket: "helios-interface.appspot.com",
+                messagingSenderId: "1073548914126",
+                appId: "1:1073548914126:web:ec04b501ba577b08584f9f",
+                measurementId: "G-65W3XRX32Y"
+            };
+        }
 
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
@@ -28,7 +34,6 @@ export async function initializeFirebase() {
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("Firebase user signed in:", user.uid);
                 c3iState.firebaseUser = user;
                 if (authReadyResolver) {
                     authReadyResolver(user);
@@ -36,19 +41,13 @@ export async function initializeFirebase() {
                 }
                 setupFirestoreListeners();
             } else {
-                console.log("No user signed in.");
                 c3iState.firebaseUser = null;
             }
         });
 
-        try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-        } catch (error) {
-            console.error("Authentication failed, trying anonymous sign-in:", error);
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
             await signInAnonymously(auth);
         }
 
@@ -59,14 +58,9 @@ export async function initializeFirebase() {
 }
 
 export function setupFirestoreListeners() {
-    if (!c3iState.firebaseUser) {
-        console.log("Waiting for user authentication to set up listeners.");
-        return;
-    }
+    if (!c3iState.firebaseUser) return;
     c3iState.listeners.forEach(unsubscribe => unsubscribe());
     c3iState.listeners = [];
-
-    console.log("User authenticated, setting up Firestore listeners.");
 
     const collectionsToWatch = {
         waypoints: 'waypointsUpdated',
@@ -79,17 +73,62 @@ export function setupFirestoreListeners() {
     for (const [key, eventName] of Object.entries(collectionsToWatch)) {
         const q = query(collection(db, `artifacts/${appId}/public/data/${key}`));
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            console.log(`Received ${key} snapshot with ${snapshot.docs.length} documents.`);
             let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
             if (['auditLog', 'chatMessages', 'plans', 'tasks'].includes(key)) {
                 data.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
             }
-            
             c3iState[key] = data;
-            
             window.dispatchEvent(new Event(eventName));
         }, err => console.error(`${key} listener error: `, err));
         c3iState.listeners.push(unsubscribe);
     }
 }
+
+// --- CENTRALIZED DATABASE WRITE FUNCTIONS ---
+
+async function saveData(collectionName, data) {
+    try {
+        await addDoc(collection(db, `artifacts/${appId}/public/data/${collectionName}`), data);
+        return true;
+    } catch (error) {
+        console.error(`Error saving to ${collectionName}:`, error);
+        return false;
+    }
+}
+
+async function updateData(collectionName, docId, data) {
+    try {
+        const docRef = doc(db, `artifacts/${appId}/public/data/${collectionName}`, docId);
+        await updateDoc(docRef, data);
+        return true;
+    } catch (error) {
+        console.error(`Error updating ${collectionName}:`, error);
+        return false;
+    }
+}
+
+async function deleteData(collectionName, docId) {
+    try {
+        await deleteDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, docId));
+        return true;
+    } catch (error) {
+        console.error(`Error deleting from ${collectionName}:`, error);
+        return false;
+    }
+}
+
+// Export specific functions for each data type
+export const saveWaypoint = (data) => saveData('waypoints', data);
+export const updateWaypoint = (id, data) => updateData('waypoints', id, data);
+export const deleteWaypoint = (id) => deleteData('waypoints', id);
+
+export const savePlan = (data) => saveData('plans', data);
+export const updatePlan = (id, data) => updateData('plans', id, data);
+export const deletePlan = (id) => deleteData('plans', id);
+
+export const saveTask = (data) => saveData('tasks', data);
+export const updateTask = (id, data) => updateData('tasks', id, data);
+export const deleteTask = (id) => deleteData('tasks', id);
+
+export const saveChatMessage = (data) => saveData('chatMessages', data);
+export const saveAuditLog = (data) => saveData('auditLog', data);
