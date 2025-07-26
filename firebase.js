@@ -6,17 +6,25 @@
   - Sets up real-time listeners for data changes.
 */
 
-// Import Firebase modules
+// Import Firebase modules from the official CDN
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Import application state and UI updaters
 import { c3iState } from './data.js';
 import { uiUpdaters } from './ui.js';
 
 // --- Firebase Configuration and Initialization ---
-// IMPORTANT: Replace with your actual Firebase config
+//
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!! CRITICAL INSTRUCTION !!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//
+// REPLACE THE PLACEHOLDER VALUES BELOW WITH YOUR ACTUAL FIREBASE PROJECT CONFIGURATION.
+// You can find this in your Firebase project settings.
+// The application WILL NOT WORK without the correct configuration.
+//
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
@@ -26,31 +34,57 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
-// Initialize Firebase app, Firestore, and Auth
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+let app;
+export let db;
+export let auth;
+
+/**
+ * Initializes the Firebase app and services.
+ */
+export function initializeFirebase() {
+    try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+    } catch (error) {
+        console.error("Firebase initialization failed. Please check your firebaseConfig.", error);
+        alert("Firebase initialization failed. Please check your configuration in firebase.js and ensure you have an active internet connection.");
+    }
+}
+
 
 // --- Authentication ---
 // A promise that resolves when Firebase auth state is determined
 export const authReadyPromise = new Promise(resolve => {
+    // This listener triggers whenever the user's sign-in state changes.
     onAuthStateChanged(auth, user => {
         if (user) {
-            // User is signed in.
+            // User is signed in. Store the user object.
             c3iState.firebaseUser = user;
         } else {
-            // User is signed out. Sign in anonymously.
+            // User is signed out. For this app, we'll sign them in anonymously
+            // so they can still interact with public data.
             signInAnonymously(auth).catch(error => {
                 console.error("Anonymous sign-in failed:", error);
             });
         }
+        // Resolve the promise so the login process can continue.
         resolve(user);
     });
 });
 
 // --- Firestore Listeners ---
-// This function sets up real-time listeners for various data collections in Firestore.
+/**
+ * Sets up real-time listeners for various data collections in Firestore.
+ * When data changes in the database, these listeners will automatically
+ * update the local application state and the UI.
+ */
 export function setupListeners() {
+    if (!db) {
+        console.error("Firestore (db) is not initialized. Cannot set up listeners.");
+        return;
+    }
+
     const collectionsToListen = {
         waypoints: 'waypointsUpdated',
         auditLog: 'logUpdated',
@@ -60,34 +94,30 @@ export function setupListeners() {
     };
 
     for (const [collectionName, eventName] of Object.entries(collectionsToListen)) {
+        // Create a query to get the collection and order it by timestamp
         const collRef = collection(db, collectionName);
-        onSnapshot(collRef, (snapshot) => {
+        const q = query(collRef, orderBy("timestamp", "desc"));
+
+        // onSnapshot creates a real-time listener
+        onSnapshot(q, (snapshot) => {
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
-            // Sort data if it has a timestamp
-            if (data.length > 0 && data[0].timestamp) {
-                data.sort((a, b) => b.timestamp?.toMillis() - a.timestamp?.toMillis());
-            }
-
-            // Update the local state
+            // Update the central application state
             c3iState[collectionName] = data;
             
-            // Dispatch an event to notify the UI of the update
-            window.dispatchEvent(new CustomEvent(eventName, { detail: data }));
+            // Dispatch a custom event to notify the UI that data has changed
+            window.dispatchEvent(new CustomEvent(eventName));
             
-            // Also, directly call the UI updater if it exists
-            if (uiUpdaters[collectionName]) {
-                uiUpdaters[collectionName]();
-            }
         }, (error) => {
             console.error(`Error listening to ${collectionName}:`, error);
+            // This can happen due to Firestore rules or network issues.
         });
     }
 }
 
 // --- Firestore Data Manipulation Functions ---
 
-// Save a new plan
+// Save a new plan to the 'plans' collection
 export async function savePlan(planData) {
     await addDoc(collection(db, 'plans'), { ...planData, timestamp: serverTimestamp() });
 }
@@ -103,7 +133,7 @@ export async function deletePlan(planId) {
     await deleteDoc(doc(db, 'plans', planId));
 }
 
-// Save a new task
+// Save a new task to the 'tasks' collection
 export async function saveTask(taskData) {
     await addDoc(collection(db, 'tasks'), { ...taskData, timestamp: serverTimestamp() });
 }
@@ -119,7 +149,7 @@ export async function deleteTask(taskId) {
     await deleteDoc(doc(db, 'tasks', taskId));
 }
 
-// Save a new chat message
+// Save a new chat message to the 'chat' collection
 export async function saveChatMessage(messageData) {
     await addDoc(collection(db, 'chat'), { ...messageData, timestamp: serverTimestamp() });
 }
