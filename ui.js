@@ -67,8 +67,6 @@ export function initializeC3IApp() {
 
 // Page Initializers
 function initTacticalMapPage() {
-    // This function remains large due to the complexity of Three.js map controls
-    // In a larger project, this could be further broken down.
     Utils.initTacticalMap();
 }
 
