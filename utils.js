@@ -143,7 +143,136 @@ export function initTacticalMap() {
         animate();
         
         // Waypoint Logic
-        // ... (Waypoint logic remains the same as previous versions) ...
+        function renderAllWaypoints() {
+            if (waypointsGroup) renderWaypointsOnGlobe();
+            renderWaypointsOnPlane();
+        }
+        
+        function renderWaypointsOnGlobe() {
+            waypointsGroup.clear();
+            c3iState.waypoints.forEach(wp => {
+                const wpGeo = new THREE.ConeGeometry(0.1, 0.8, 8);
+                const wpMat = new THREE.MeshBasicMaterial({ color: wp.color });
+                const waypointMesh = new THREE.Mesh(wpGeo, wpMat);
+                waypointMesh.position.copy(new THREE.Vector3(wp.position.x, wp.position.y, wp.position.z));
+                waypointMesh.lookAt(new THREE.Vector3(0,0,0));
+                waypointMesh.rotateX(Math.PI / 2);
+                waypointMesh.userData.id = wp.id;
+                waypointsGroup.add(waypointMesh);
+            });
+        }
 
+        function renderWaypointsOnPlane() {
+            // Placeholder for plane waypoints
+        }
+
+        async function plotNewWaypoint(position, coords) {
+            const newWaypoint = { 
+                name: `WP-${Date.now().toString().slice(-4)}`, 
+                position: { x: position.x, y: position.y, z: position.z },
+                coords, 
+                color: '#f5a623',
+                createdBy: c3iState.firebaseUser.uid,
+                timestamp: serverTimestamp()
+            };
+            try {
+                const waypointsCollection = collection(db, `artifacts/${appId}/public/data/waypoints`);
+                await addDoc(waypointsCollection, newWaypoint);
+            } catch (e) {
+                console.error("Error adding waypoint: ", e);
+            }
+        }
+        
+        function showWaypointInfo(waypointId) {
+            const waypoint = c3iState.waypoints.find(w => w.id === waypointId);
+            if (!waypoint) return;
+            
+            statusTextEl.textContent = `Selected waypoint: ${waypoint.name}`;
+            document.querySelector('.sidebar-tab[data-tab="waypoints"]').click();
+
+            const infoContent = document.getElementById('waypoint-info-content');
+            infoContent.innerHTML = `
+                <input id="waypoint-name-input" class="c3i-input w-full" value="${waypoint.name}">
+                <div class="text-xs mt-2">
+                    <p>LAT: <span class="text-primary">${waypoint.coords.lat.toFixed(4)}</span></p>
+                    <p>LON: <span class="text-primary">${waypoint.coords.lon.toFixed(4)}</span></p>
+                </div>
+                <div class="mt-2"><label class="text-xs">Colour</label><input type="color" id="waypoint-color-input" class="w-full h-8" value="${waypoint.color}"></div>
+                <button id="delete-waypoint-btn" class="c3i-button w-full mt-2 text-sm">Delete Waypoint</button>
+            `;
+
+            const waypointDocRef = doc(db, `artifacts/${appId}/public/data/waypoints`, waypointId);
+
+            document.getElementById('waypoint-name-input').addEventListener('change', async (e) => { 
+                await updateDoc(waypointDocRef, { name: e.target.value });
+            });
+            document.getElementById('waypoint-color-input').addEventListener('input', async (e) => { 
+                await updateDoc(waypointDocRef, { color: e.target.value });
+            });
+            document.getElementById('delete-waypoint-btn').addEventListener('click', async () => {
+                await deleteDoc(waypointDocRef);
+                infoContent.innerHTML = `<p class="text-sm text-gray-500">Click a waypoint on the map.</p>`;
+            });
+        }
+
+        // Event Listeners
+        let mouseDownPos = new THREE.Vector2();
+        let isDragging = false;
+
+        function setupDragCheck(element) {
+            element.addEventListener('mousedown', (event) => {
+                mouseDownPos.set(event.clientX, event.clientY);
+                isDragging = false;
+            });
+            element.addEventListener('mousemove', (event) => {
+                if (event.buttons === 0) return;
+                const currentPos = new THREE.Vector2(event.clientX, event.clientY);
+                if (mouseDownPos.distanceTo(currentPos) > 5) {
+                    isDragging = true;
+                }
+            });
+        }
+
+        setupDragCheck(globeRenderer.domElement);
+        setupDragCheck(planeRenderer.domElement);
+
+        globeRenderer.domElement.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            if (!globe) return;
+            const rect = globeRenderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, globeCamera);
+            const intersects = raycaster.intersectObject(globe);
+            if (intersects.length > 0) {
+                const intersectPoint = intersects[0].point;
+                const coords = pointToLatLon(intersectPoint, 5);
+                plotNewWaypoint(intersectPoint, coords);
+            }
+        });
+
+        globeRenderer.domElement.addEventListener('click', (event) => {
+            if(isDragging || !waypointsGroup) return;
+            const rect = globeRenderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, globeCamera);
+            const intersects = raycaster.intersectObjects(waypointsGroup.children);
+            if (intersects.length > 0) {
+                const waypointId = intersects[0].object.userData.id;
+                if (waypointId) showWaypointInfo(waypointId);
+            }
+        });
+
+        document.getElementById('plot-waypoint-btn').addEventListener('click', () => {
+            const lat = parseFloat(document.getElementById('lat-input').value);
+            const lon = parseFloat(document.getElementById('lon-input').value);
+            if (isNaN(lat) || isNaN(lon) || !globe) return;
+            const position = latLonToPoint(lat, lon, 5);
+            plotNewWaypoint(position, {lat, lon});
+        });
+
+        window.addEventListener('waypointsUpdated', renderAllWaypoints);
+        renderAllWaypoints();
     }, 10);
 }
