@@ -60,7 +60,7 @@ export function planeCoordsToLatLon(x, z) {
 
 // --- Tactical Map Logic ---
 export function initTacticalMap() {
-    let globe, waypointsGroup, waypointsGroupPlane, planeMesh;
+    let globe, globeControls, waypointsGroup, waypointsGroupPlane, planeMesh;
     const tacticalMapContainer = document.getElementById('tactical-map-container');
     const mapPlaneContainer = document.getElementById('map-plane-container');
     const mapPlaneCanvas = document.getElementById('map-plane');
@@ -90,8 +90,23 @@ export function initTacticalMap() {
         bootState.threeInstances.push({ renderer: globeRenderer, camera: globeCamera, container: tacticalMapContainer });
         
         const geometry = new THREE.SphereGeometry(5, 128, 128);
-        const globeControls = new OrbitControls(globeCamera, globeRenderer.domElement);
+        globeControls = new OrbitControls(globeCamera, globeRenderer.domElement);
         Object.assign(globeControls, { enableDamping: true, dampingFactor: 0.03, screenSpacePanning: false, minDistance: 6, maxDistance: 20, autoRotate: true, autoRotateSpeed: 0.2 });
+
+        // Attach event listeners immediately
+        document.getElementById('rotate-toggle').addEventListener('change', (e) => { 
+            if (globeControls) globeControls.autoRotate = e.target.checked; 
+        });
+        document.getElementById('heightmap-toggle').addEventListener('change', (e) => { 
+            const isEnabled = e.target.checked;
+            if (globe && globe.material) {
+                globe.material.displacementScale = isEnabled ? 0.4 : 0;
+                if (globe.userData.shader) {
+                    globe.userData.shader.uniforms.u_outline_enabled.value = isEnabled;
+                }
+                globe.material.needsUpdate = true;
+            }
+        });
 
         textureLoader.load('https://i.imgur.com/vlYiAdX.png', (heightMapTexture) => {
             heightMapTexture.wrapS = THREE.RepeatWrapping;
@@ -123,27 +138,11 @@ export function initTacticalMap() {
             resourcesOverlay.visible = false;
             globe.add(resourcesOverlay);
 
-            // Attach event listeners after globe is created
-            document.getElementById('rotate-toggle').addEventListener('change', (e) => { 
-                globeControls.autoRotate = e.target.checked; 
-            });
-            document.getElementById('heightmap-toggle').addEventListener('change', (e) => { 
-                const isEnabled = e.target.checked;
-                if (globe && globe.material) {
-                    globe.material.displacementScale = isEnabled ? 0.4 : 0; // Increased for visibility
-                    if (globe.userData.shader) {
-                        globe.userData.shader.uniforms.u_outline_enabled.value = isEnabled;
-                    }
-                    globe.material.needsUpdate = true;
-                }
-            });
             document.getElementById('territory-toggle').addEventListener('change', (e) => { territoryOverlay.visible = e.target.checked; });
             document.getElementById('resources-toggle').addEventListener('change', (e) => { resourcesOverlay.visible = e.target.checked; });
             document.getElementById('coord-toggle').addEventListener('change', (e) => { coordinateGrid.visible = e.target.checked; });
             
-            // Initial state sync
             document.getElementById('heightmap-toggle').dispatchEvent(new Event('change'));
-
         });
 
         // Plane Scene
