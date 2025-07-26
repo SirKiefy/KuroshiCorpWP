@@ -7,14 +7,10 @@
 */
 
 import { c3iState, bootState } from './data.js';
-import { db, savePlan, updatePlan, deletePlan, saveTask, updateTask, deleteTask, saveChatMessage } from './firebase.js';
+import * as Firebase from './firebase.js';
 import * as Utils from './utils.js';
 
-/**
- * Returns the name for a given clearance level.
- * @param {number} level - The clearance level number.
- * @returns {string} The name of the clearance level.
- */
+// --- Helper Functions ---
 function getClearanceName(level) {
     if (level >= 7) return 'System Administrator';
     if (level >= 6) return 'Command';
@@ -23,31 +19,24 @@ function getClearanceName(level) {
     return 'Recruit';
 }
 
-/**
- * Initializes the main C3I application interface after successful login.
- */
+// --- Page Initializers ---
+
 export function initializeC3IApp() {
-    // Set user info in the navigation sidebar
     document.getElementById('user-callsign').textContent = c3iState.currentUser.codename;
     document.getElementById('user-clearance').textContent = `Lvl ${c3iState.currentUser.clearance} - ${getClearanceName(c3iState.currentUser.clearance)}`;
     document.getElementById('user-id-display').textContent = c3iState.firebaseUser?.uid || 'ANONYMOUS';
-    document.getElementById('logout-button').addEventListener('click', () => {
-        location.reload(); // Simple way to log out is to reload the page
-    });
+    document.getElementById('logout-button').addEventListener('click', () => location.reload());
 
     const navItems = document.querySelectorAll('#main-interface .nav-item');
     const pageContainer = document.getElementById('desktop-content-container');
     const mainInterface = document.getElementById('main-interface');
     const sidebarToggle = document.getElementById('sidebar-toggle');
 
-    // Sidebar collapse/expand functionality
     sidebarToggle.addEventListener('click', () => {
         mainInterface.classList.toggle('collapsed');
-        // Trigger a resize event to fix any canvas/chart rendering issues
         setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
     });
 
-    // A map of page names to their initialization functions
     const pageInitializers = {
         map: Utils.initTacticalMap,
         armoury: initArmouryPage,
@@ -57,51 +46,35 @@ export function initializeC3IApp() {
         settings: initSettingsPage,
     };
 
-    /**
-     * Loads a new page into the main content area.
-     * @param {string} pageName - The name of the page to load.
-     */
     function loadPage(pageName) {
         if(bootState.soundInitialized) bootState.uiSynth.triggerAttackRelease("E4", "8n");
         
-        // Clean up previous page's resources, especially Three.js instances
         pageContainer.innerHTML = '';
         bootState.threeInstances.forEach(inst => {
-            if(inst.renderer) inst.renderer.dispose();
-            if(inst.scene) inst.scene.clear();
+            inst.renderer?.dispose();
+            inst.scene?.clear();
         });
         bootState.threeInstances = [];
 
-        // Clone the content from the corresponding template
         const template = document.getElementById(`template-${pageName}`);
         if (template) {
             pageContainer.appendChild(template.content.cloneNode(true));
         }
 
-        // Run the initializer function for the new page
         if (pageInitializers[pageName]) {
             pageInitializers[pageName]();
         }
 
-        // Update the active state of the navigation items
-        navItems.forEach(item => {
-            item.classList.toggle('active', item.dataset.page === pageName);
-        });
+        navItems.forEach(item => item.classList.toggle('active', item.dataset.page === pageName));
     }
 
-    // Add click listeners to all navigation items
-    navItems.forEach(item => {
-        item.addEventListener('click', () => loadPage(item.dataset.page));
-    });
+    navItems.forEach(item => item.addEventListener('click', () => loadPage(item.dataset.page)));
 
-    // Load the default page ('map') on initialization
     loadPage('map');
 }
 
-/**
- * Initializes the Armoury page.
- */
 function initArmouryPage() {
+    // Armoury page logic remains the same as it uses static data
     const fileListEl = document.getElementById('armoury-file-list');
     const detailEl = document.getElementById('armoury-detail');
     const breadcrumbsEl = document.getElementById('armoury-breadcrumbs');
@@ -111,15 +84,11 @@ function initArmouryPage() {
     let currentPath = [];
     let comparisonChart = null;
 
-    // Show "Add Asset" button only for users with sufficient clearance
     if (c3iState.currentUser.clearance >= 4) {
         addAssetBtn.classList.remove('hidden');
         addAssetBtn.addEventListener('click', () => alert('Add Asset functionality is a future implementation.'));
     }
 
-    /**
-     * Renders the file browser for the armoury.
-     */
     function renderBrowser() {
         let currentLevel = c3iState.armoury;
         currentPath.forEach(part => { currentLevel = currentLevel[part]; });
@@ -127,7 +96,6 @@ function initArmouryPage() {
         fileListEl.innerHTML = '';
         breadcrumbsEl.innerHTML = `<span class="cursor-pointer hover:text-primary" data-path="">ROOT</span>` + currentPath.map((p, i) => ` / <span class="cursor-pointer hover:text-primary" data-path="${currentPath.slice(0, i + 1).join('/')}">${p}</span>`).join('');
 
-        // Render directories
         Object.keys(currentLevel).filter(key => typeof currentLevel[key] === 'object' && !currentLevel[key].type).forEach(dirName => {
             const dirEl = document.createElement('div');
             dirEl.className = 'data-nav-item';
@@ -136,7 +104,6 @@ function initArmouryPage() {
             fileListEl.appendChild(dirEl);
         });
 
-        // Render files (assets)
         Object.keys(currentLevel).filter(key => currentLevel[key].type).forEach(fileName => {
             const fileEl = document.createElement('div');
             fileEl.className = 'data-nav-item';
@@ -145,7 +112,6 @@ function initArmouryPage() {
             fileListEl.appendChild(fileEl);
         });
 
-        // Add click listeners to breadcrumbs for navigation
         breadcrumbsEl.querySelectorAll('span').forEach(span => {
             span.addEventListener('click', (e) => {
                 const path = e.target.dataset.path;
@@ -155,16 +121,10 @@ function initArmouryPage() {
         });
     }
 
-    /**
-     * Shows the details of a selected asset.
-     * @param {object} asset - The asset object.
-     * @param {string} name - The name of the asset.
-     */
     function showAssetDetail(asset, name) {
         detailEl.innerHTML = `<h3 class="text-lg text-primary mb-2">${name}</h3><p class="text-sm text-gray-400 mb-4">${asset.type}</p>`;
         
         if (asset.type === 'Report') {
-            // Render reports as a table
             let tableHTML = '<table class="data-table text-xs"><thead><tr>';
             const headers = Object.keys(asset.data[0]);
             headers.forEach(h => tableHTML += `<th>${h}</th>`);
@@ -177,7 +137,6 @@ function initArmouryPage() {
             tableHTML += '</tbody></table>';
             detailEl.innerHTML += tableHTML;
         } else {
-            // Render other assets as a list of properties
             let listHTML = '<ul class="space-y-1 text-sm">';
             for (const [key, value] of Object.entries(asset.data)) {
                 listHTML += `<li><strong>${key}:</strong> <span class="text-info">${value}</span></li>`;
@@ -186,7 +145,6 @@ function initArmouryPage() {
             detailEl.innerHTML += listHTML;
         }
 
-        // Add buttons for actions (Compare, Edit)
         const buttonGroup = document.createElement('div');
         buttonGroup.className = 'flex gap-2 mt-4';
         const compareBtn = document.createElement('button');
@@ -205,10 +163,6 @@ function initArmouryPage() {
         detailEl.appendChild(buttonGroup);
     }
 
-    /**
-     * Adds an asset to the comparison list.
-     * @param {object} asset - The asset to add.
-     */
     function addToComparison(asset) {
         if (c3iState.comparisonAssets.length < 3 && !c3iState.comparisonAssets.find(a => a.name === asset.name)) {
             c3iState.comparisonAssets.push(asset);
@@ -219,9 +173,6 @@ function initArmouryPage() {
         }
     }
 
-    /**
-     * Renders the asset comparison radar chart.
-     */
     function renderComparison() {
         if (comparisonChart) {
             comparisonChart.destroy();
@@ -233,7 +184,6 @@ function initArmouryPage() {
         }
         comparisonGridEl.innerHTML = `<canvas id="comparison-chart"></canvas>`;
         
-        // Find all numeric properties to use as axes for the radar chart
         const numericKeys = new Set();
         c3iState.comparisonAssets.forEach(asset => {
             Object.keys(asset.data).forEach(key => {
@@ -274,7 +224,6 @@ function initArmouryPage() {
         renderComparison();
     });
     
-    // Tab switching logic for Browser/Comparison views
     const sidebarTabs = document.querySelectorAll('#template-armoury .sidebar-tab');
     sidebarTabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -289,154 +238,41 @@ function initArmouryPage() {
     renderComparison();
 }
 
-/**
- * Initializes the Codex page.
- */
 function initCodexPage() {
+    // Codex page logic remains the same as it uses static data
     const navEl = document.getElementById('codex-nav');
     const contentEl = document.getElementById('codex-content-container');
     
-    function renderCodex() {
-        navEl.innerHTML = '';
-        Object.keys(c3iState.codex).forEach((key, index) => {
-            const navItem = document.createElement('div');
-            navItem.className = 'data-nav-item';
-            if (index === 0) navItem.classList.add('active');
-            navItem.textContent = key;
-            navItem.dataset.key = key;
-            navEl.appendChild(navItem);
-        });
+    navEl.innerHTML = '';
+    Object.keys(c3iState.codex).forEach((key, index) => {
+        const navItem = document.createElement('div');
+        navItem.className = 'data-nav-item';
+        if (index === 0) navItem.classList.add('active');
+        navItem.textContent = key;
+        navItem.dataset.key = key;
+        navEl.appendChild(navItem);
+    });
 
-        navEl.querySelectorAll('.data-nav-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const key = e.target.dataset.key;
-                navEl.querySelectorAll('.data-nav-item').forEach(i => i.classList.remove('active'));
-                e.target.classList.add('active');
-                contentEl.innerHTML = `<div class="prose prose-invert">${c3iState.codex[key]}</div>`;
-            });
+    navEl.querySelectorAll('.data-nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            const key = e.target.dataset.key;
+            navEl.querySelectorAll('.data-nav-item').forEach(i => i.classList.remove('active'));
+            e.target.classList.add('active');
+            contentEl.innerHTML = `<div class="prose prose-invert">${c3iState.codex[key]}</div>`;
         });
-        
-        const firstKey = Object.keys(c3iState.codex)[0];
-        if(firstKey) {
-            contentEl.innerHTML = `${c3iState.codex[firstKey]}`;
-        }
+    });
+    
+    const firstKey = Object.keys(c3iState.codex)[0];
+    if(firstKey) {
+        contentEl.innerHTML = `${c3iState.codex[firstKey]}`;
     }
-    renderCodex();
 }
 
-/**
- * Initializes the Intel page.
- */
 function initIntelPage() {
-    const listContainer = document.getElementById('faction-list-container');
-    const detailView = document.getElementById('faction-detail-view');
-    const plansContainer = document.getElementById('plans-container');
-    const tasksContainer = document.getElementById('tasks-container');
-    const personnelContainer = document.getElementById('personnel-container');
-
-    function showDetailView(factionKey) {
-        const faction = c3iState.intel[factionKey];
-        if (!faction) {
-            detailView.innerHTML = `<p class="text-gray-500">Select a faction to view details.</p>`;
-            return;
-        }
-
-        let strengthHTML = `<div class="grid grid-cols-3 gap-2 text-center text-sm p-2 ui-box">
-            <div>Ground<br><span class="font-bold text-info">${faction.strength.ground}</span></div>
-            <div>Air<br><span class="font-bold text-info">${faction.strength.air}</span></div>
-            <div>Naval<br><span class="font-bold text-info">${faction.strength.naval}</span></div>
-        </div>`;
-
-        let hierarchyHTML = `<h5 class="font-bold mt-4 text-secondary">Hierarchy:</h5><ul class="text-sm list-disc list-inside"><li><span class="font-bold">Leader:</span> ${faction.hierarchy.leader}</li>`;
-        if(faction.hierarchy.members) {
-            faction.hierarchy.members.forEach(m => hierarchyHTML += `<li>${m}</li>`);
-        }
-        hierarchyHTML += '</ul>';
-
-        detailView.innerHTML = `
-            <h3 class="text-2xl text-primary">${faction.name}</h3>
-            <div class="flex justify-between text-md my-2"><span>Threat: <span class="text-warning font-bold">${faction.threat}</span></span> <span>Hostility: <span class="text-secondary font-bold">${faction.hostility}</span></span></div>
-            <p class="text-md italic text-gray-400 my-4 p-2 ui-box">"${faction.report}"</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>${strengthHTML}</div>
-                <div>${hierarchyHTML}</div>
-            </div>
-        `;
-    }
-    
-    function renderFactionList() {
-        listContainer.innerHTML = '';
-        for(const key in c3iState.intel) {
-            const faction = c3iState.intel[key];
-            const card = document.createElement('div');
-            card.className = 'data-nav-item';
-            card.dataset.factionKey = key;
-            card.innerHTML = `<span>${faction.name}</span>`;
-            card.addEventListener('click', () => {
-                document.querySelectorAll('#faction-list-container .data-nav-item').forEach(i => i.classList.remove('active'));
-                card.classList.add('active');
-                showDetailView(key)
-            });
-            listContainer.appendChild(card);
-        }
-    }
-
-    function renderPlans() {
-        if(!plansContainer) return;
-        plansContainer.innerHTML = c3iState.plans.map(plan => `
-            <div class="ui-box">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h4 class="text-primary">${plan.name}</h4>
-                        <p class="text-sm whitespace-pre-wrap">${plan.details}</p>
-                        <p class="text-xs text-gray-500 mt-2">By ${plan.author} on ${plan.timestamp?.toDate().toLocaleDateString()}</p>
-                    </div>
-                    ${c3iState.currentUser.clearance >= 4 ? `<div class="flex gap-2">
-                        <button class="c3i-button text-xs edit-plan-btn" data-id="${plan.id}">Edit</button>
-                        <button class="c3i-button text-xs delete-plan-btn" data-id="${plan.id}">X</button>
-                    </div>` : ''}
-                </div>
-            </div>
-        `).join('');
-        document.querySelectorAll('.edit-plan-btn').forEach(btn => btn.addEventListener('click', (e) => openPlanTaskModal('plan', e.target.dataset.id)));
-        document.querySelectorAll('.delete-plan-btn').forEach(btn => btn.addEventListener('click', (e) => deleteItem('plans', e.target.dataset.id)));
-    }
-    
-    function renderTasks() {
-        if(!tasksContainer) return;
-        tasksContainer.innerHTML = c3iState.tasks.map(task => `
-            <div class="ui-box ${task.completed ? 'opacity-50' : ''}">
-                 <div class="flex justify-between items-start">
-                    <div class="flex items-center gap-4">
-                        ${c3iState.currentUser.clearance >= 4 ? `<input type="checkbox" class="task-complete-check" data-id="${task.id}" ${task.completed ? 'checked' : ''}>` : ''}
-                        <div>
-                            <p class="${task.completed ? 'line-through' : ''}">${task.name}</p>
-                            <p class="text-sm mt-1">Priority: <span class="font-bold text-warning">${task.priority}</span></p>
-                            <p class="text-xs text-gray-500 mt-2">Assigned by ${task.author} on ${task.timestamp?.toDate().toLocaleDateString()}</p>
-                        </div>
-                    </div>
-                    ${c3iState.currentUser.clearance >= 4 ? `<div class="flex gap-2">
-                        <button class="c3i-button text-xs edit-task-btn" data-id="${task.id}">Edit</button>
-                        <button class="c3i-button text-xs delete-task-btn" data-id="${task.id}">X</button>
-                    </div>` : ''}
-                </div>
-            </div>
-        `).join('');
-        document.querySelectorAll('.edit-task-btn').forEach(btn => btn.addEventListener('click', (e) => openPlanTaskModal('task', e.target.dataset.id)));
-        document.querySelectorAll('.delete-task-btn').forEach(btn => btn.addEventListener('click', (e) => deleteItem('tasks', e.target.dataset.id)));
-        document.querySelectorAll('.task-complete-check').forEach(box => box.addEventListener('change', (e) => toggleTaskComplete(e.target.dataset.id, e.target.checked)));
-    }
-
-    function renderPersonnel() {
-        if (!personnelContainer) return;
-        let tableHTML = `<table class="data-table"><thead><tr><th>Codename</th><th>Username</th><th>Clearance Level</th></tr></thead><tbody>`;
-        for (const codename in c3iState.users) {
-            const user = c3iState.users[codename];
-            tableHTML += `<tr><td>${codename}</td><td>${user.username}</td><td>${user.clearance} - ${getClearanceName(user.clearance)}</td></tr>`;
-        }
-        tableHTML += `</tbody></table>`;
-        personnelContainer.innerHTML = tableHTML;
-    }
+    renderFactionList();
+    renderPlans();
+    renderTasks();
+    renderPersonnel();
 
     const sidebarTabs = document.querySelectorAll('#template-intel .sidebar-tab');
     sidebarTabs.forEach(tab => {
@@ -448,142 +284,33 @@ function initIntelPage() {
         });
     });
 
-    // --- Modals and Forms ---
-    const modal = document.getElementById('plan-task-modal');
-    const modalTitle = document.getElementById('plan-task-modal-title');
-    const form = document.getElementById('plan-task-form');
-    const editIdInput = document.getElementById('edit-id');
-    const itemNameInput = document.getElementById('item-name');
-    const itemDetailsInput = document.getElementById('item-details');
-    const itemPriorityInput = document.getElementById('item-priority');
-    const detailsField = document.getElementById('details-field');
-    const priorityField = document.getElementById('priority-field');
-    const labelName = document.getElementById('label-name');
-
-    let currentModalType = '';
-
-    function openPlanTaskModal(type, id = null) {
-        form.reset();
-        currentModalType = type;
-        editIdInput.value = id || '';
-
-        if (type === 'plan') {
-            modalTitle.textContent = id ? 'Edit Strategic Plan' : 'New Strategic Plan';
-            labelName.textContent = 'Plan Name';
-            detailsField.style.display = 'block';
-            priorityField.style.display = 'none';
-            if (id) {
-                const plan = c3iState.plans.find(p => p.id === id);
-                itemNameInput.value = plan.name;
-                itemDetailsInput.value = plan.details;
-            }
-        } else { // task
-            modalTitle.textContent = id ? 'Edit Operational Task' : 'New Operational Task';
-            labelName.textContent = 'Task Description';
-            detailsField.style.display = 'none';
-            priorityField.style.display = 'block';
-            if (id) {
-                const task = c3iState.tasks.find(t => t.id === id);
-                itemNameInput.value = task.name;
-                itemPriorityInput.value = task.priority;
-            }
-        }
-        modal.classList.remove('hidden');
-    }
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = editIdInput.value;
-        const collectionName = currentModalType === 'plan' ? 'plans' : 'tasks';
-        
-        let data = {
-            name: itemNameInput.value,
-            author: c3iState.currentUser.codename,
-        };
-
-        if (currentModalType === 'plan') {
-            data.details = itemDetailsInput.value;
-            if (id) {
-                await updatePlan(id, data);
-            } else {
-                await savePlan(data);
-            }
-        } else { // task
-            data.priority = itemPriorityInput.value;
-            if (id) {
-                await updateTask(id, data);
-            } else {
-                data.completed = false;
-                await saveTask(data);
-            }
-        }
-        modal.classList.add('hidden');
-    });
-
-    async function deleteItem(collectionName, id) {
-        if (collectionName === 'plans') await deletePlan(id);
-        if (collectionName === 'tasks') await deleteTask(id);
-    }
-    
-    async function toggleTaskComplete(id, completed) {
-        await updateTask(id, { completed });
-    }
-
     document.getElementById('add-plan-btn')?.addEventListener('click', () => openPlanTaskModal('plan'));
     document.getElementById('add-task-btn')?.addEventListener('click', () => openPlanTaskModal('task'));
-    document.getElementById('close-plan-task-modal-btn')?.addEventListener('click', () => modal.classList.add('hidden'));
-
-    window.addEventListener('plansUpdated', renderPlans);
-    window.addEventListener('tasksUpdated', renderTasks);
-
-    renderFactionList();
-    renderPlans();
-    renderTasks();
-    renderPersonnel();
+    document.getElementById('close-plan-task-modal-btn')?.addEventListener('click', () => document.getElementById('plan-task-modal').classList.add('hidden'));
+    document.getElementById('plan-task-form').addEventListener('submit', handlePlanTaskFormSubmit);
 }
 
-/**
- * Initializes the Communications page.
- */
 function initCommsPage() {
-    const chatMessagesEl = document.getElementById('chat-messages');
+    renderMessages();
     const chatForm = document.getElementById('chat-form');
-    const chatInput = document.getElementById('chat-input');
-
-    function renderMessages() {
-        if (!chatMessagesEl) return;
-        chatMessagesEl.innerHTML = '';
-        c3iState.chatMessages.forEach(msg => {
-            const msgEl = document.createElement('p');
-            const sender = msg.user === c3iState.currentUser.codename ? 'You' : msg.user;
-            const colorClass = msg.user === c3iState.currentUser.codename ? 'text-info' : 'text-primary';
-            msgEl.innerHTML = `<span class="${colorClass}">${sender}:</span> ${msg.text}`;
-            chatMessagesEl.prepend(msgEl); // Prepend to show newest messages at the bottom
-        });
-    }
-
     chatForm.addEventListener('submit', async e => {
         e.preventDefault();
+        const chatInput = document.getElementById('chat-input');
         const text = chatInput.value.trim();
         if (text) {
-            const messageData = {
+            chatInput.value = '';
+            await Firebase.saveChatMessage({
                 user: c3iState.currentUser.codename,
                 text: text,
                 userId: c3iState.firebaseUser.uid
-            };
-            chatInput.value = '';
-            await saveChatMessage(messageData);
+            });
         }
     });
-
-    window.addEventListener('chatUpdated', renderMessages);
-    renderMessages();
 }
         
-/**
- * Initializes the Settings page.
- */
 function initSettingsPage() {
+    renderLog();
+    
     const soundToggle = document.getElementById('sound-toggle');
     soundToggle.checked = bootState.soundInitialized && !Tone.getDestination().mute;
     soundToggle.addEventListener('change', (e) => {
@@ -614,44 +341,201 @@ function initSettingsPage() {
     colorShiftToggle.addEventListener('change', (e) => {
         document.body.classList.toggle('color-shift-active', e.target.checked);
     });
-    
-    const container = document.getElementById('audit-log-container');
-    function renderLog() {
-         if (!container) return;
-        let logHtml = `<table class="data-table"><thead><tr class="border-b border-primary/20"><th class="p-2">Timestamp</th><th class="p-2">Operator</th><th class="p-2">Action</th><th class="p-2">Details</th></tr></thead><tbody>`;
-        c3iState.auditLog.forEach(log => {
-            logHtml += `<tr class="border-b border-gray-800"><td class="p-2">${log.timestamp?.toDate().toLocaleString() || '...'}</td><td class="p-2 text-primary">${log.operator}</td><td class="p-2">${log.action}</td><td class="p-2">${log.details}</td></tr>`;
-        });
-        logHtml += `</tbody></table>`;
-        container.innerHTML = logHtml;
-    }
-
-    window.addEventListener('logUpdated', renderLog);
-    renderLog();
 }
 
-// UI Updater Registry
-// This allows other modules (like firebase.js) to trigger UI updates without creating circular dependencies.
-export const uiUpdaters = {
-    waypoints: () => {
-        const mapPage = document.getElementById('tactical-map');
-        if (mapPage) Utils.initTacticalMap(); // Re-init to redraw waypoints
-    },
-    chatMessages: () => {
-        const commsPage = document.getElementById('chat-form');
-        if (commsPage) initCommsPage();
-    },
-    auditLog: () => {
-        const settingsPage = document.getElementById('audit-log-container');
-        if (settingsPage) initSettingsPage();
-    },
-    plans: () => {
-        const intelPage = document.getElementById('intel-plans');
-        if (intelPage) initIntelPage();
-    },
-    tasks: () => {
-        const intelPage = document.getElementById('intel-tasks');
-        if (intelPage) initIntelPage();
-    }
-};
+// --- EXPORTED RENDER FUNCTIONS ---
+// These functions are called by firebase.js when data updates
 
+export function renderAllWaypoints() {
+    Utils.getGlobeInstance()?.renderWaypoints();
+}
+
+export function renderLog() {
+    const container = document.getElementById('audit-log-container');
+    if (!container) return;
+    let logHtml = `<table class="data-table"><thead><tr class="border-b border-primary/20"><th class="p-2">Timestamp</th><th class="p-2">Operator</th><th class="p-2">Action</th><th class="p-2">Details</th></tr></thead><tbody>`;
+    c3iState.auditLog.forEach(log => {
+        logHtml += `<tr class="border-b border-gray-800"><td class="p-2">${log.timestamp?.toDate().toLocaleString() || '...'}</td><td class="p-2 text-primary">${log.operator}</td><td class="p-2">${log.action}</td><td class="p-2">${log.details}</td></tr>`;
+    });
+    logHtml += `</tbody></table>`;
+    container.innerHTML = logHtml;
+}
+
+export function renderMessages() {
+    const chatMessagesEl = document.getElementById('chat-messages');
+    if (!chatMessagesEl) return;
+    chatMessagesEl.innerHTML = '';
+    c3iState.chatMessages.forEach(msg => {
+        const msgEl = document.createElement('p');
+        const sender = msg.user === c3iState.currentUser.codename ? 'You' : msg.user;
+        const colorClass = msg.user === c3iState.currentUser.codename ? 'text-info' : 'text-primary';
+        msgEl.innerHTML = `<span class="${colorClass}">${sender}:</span> ${msg.text}`;
+        chatMessagesEl.prepend(msgEl);
+    });
+}
+
+export function renderPlans() {
+    const plansContainer = document.getElementById('plans-container');
+    if(!plansContainer) return;
+    plansContainer.innerHTML = c3iState.plans.map(plan => `
+        <div class="ui-box">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h4 class="text-primary">${plan.name}</h4>
+                    <p class="text-sm whitespace-pre-wrap">${plan.details}</p>
+                    <p class="text-xs text-gray-500 mt-2">By ${plan.author} on ${plan.timestamp?.toDate().toLocaleDateString()}</p>
+                </div>
+                ${c3iState.currentUser.clearance >= 4 ? `<div class="flex gap-2">
+                    <button class="c3i-button text-xs edit-plan-btn" data-id="${plan.id}">Edit</button>
+                    <button class="c3i-button text-xs delete-plan-btn" data-id="${plan.id}">X</button>
+                </div>` : ''}
+            </div>
+        </div>
+    `).join('');
+    plansContainer.querySelectorAll('.edit-plan-btn').forEach(btn => btn.addEventListener('click', (e) => openPlanTaskModal('plan', e.target.dataset.id)));
+    plansContainer.querySelectorAll('.delete-plan-btn').forEach(btn => btn.addEventListener('click', (e) => Firebase.deletePlan(e.target.dataset.id)));
+}
+
+export function renderTasks() {
+    const tasksContainer = document.getElementById('tasks-container');
+    if(!tasksContainer) return;
+    tasksContainer.innerHTML = c3iState.tasks.map(task => `
+        <div class="ui-box ${task.completed ? 'opacity-50' : ''}">
+             <div class="flex justify-between items-start">
+                <div class="flex items-center gap-4">
+                    ${c3iState.currentUser.clearance >= 4 ? `<input type="checkbox" class="task-complete-check" data-id="${task.id}" ${task.completed ? 'checked' : ''}>` : ''}
+                    <div>
+                        <p class="${task.completed ? 'line-through' : ''}">${task.name}</p>
+                        <p class="text-sm mt-1">Priority: <span class="font-bold text-warning">${task.priority}</span></p>
+                        <p class="text-xs text-gray-500 mt-2">Assigned by ${task.author} on ${task.timestamp?.toDate().toLocaleDateString()}</p>
+                    </div>
+                </div>
+                ${c3iState.currentUser.clearance >= 4 ? `<div class="flex gap-2">
+                    <button class="c3i-button text-xs edit-task-btn" data-id="${task.id}">Edit</button>
+                    <button class="c3i-button text-xs delete-task-btn" data-id="${task.id}">X</button>
+                </div>` : ''}
+            </div>
+        </div>
+    `).join('');
+    tasksContainer.querySelectorAll('.edit-task-btn').forEach(btn => btn.addEventListener('click', (e) => openPlanTaskModal('task', e.target.dataset.id)));
+    tasksContainer.querySelectorAll('.delete-task-btn').forEach(btn => btn.addEventListener('click', (e) => Firebase.deleteTask(e.target.dataset.id)));
+    tasksContainer.querySelectorAll('.task-complete-check').forEach(box => box.addEventListener('change', (e) => Firebase.updateTask(e.target.dataset.id, { completed: e.target.checked })));
+}
+
+// --- Static Content Renderers ---
+function renderFactionList() {
+    const listContainer = document.getElementById('faction-list-container');
+    if (!listContainer) return;
+    listContainer.innerHTML = '';
+    for(const key in c3iState.intel) {
+        const faction = c3iState.intel[key];
+        const card = document.createElement('div');
+        card.className = 'data-nav-item';
+        card.dataset.factionKey = key;
+        card.innerHTML = `<span>${faction.name}</span>`;
+        card.addEventListener('click', () => {
+            document.querySelectorAll('#faction-list-container .data-nav-item').forEach(i => i.classList.remove('active'));
+            card.classList.add('active');
+            showFactionDetailView(key);
+        });
+        listContainer.appendChild(card);
+    }
+}
+
+function showFactionDetailView(factionKey) {
+    const detailView = document.getElementById('faction-detail-view');
+    const faction = c3iState.intel[factionKey];
+    if (!faction) {
+        detailView.innerHTML = `<p class="text-gray-500">Select a faction to view details.</p>`;
+        return;
+    }
+    let strengthHTML = `<div class="grid grid-cols-3 gap-2 text-center text-sm p-2 ui-box"><div>Ground<br><span class="font-bold text-info">${faction.strength.ground}</span></div><div>Air<br><span class="font-bold text-info">${faction.strength.air}</span></div><div>Naval<br><span class="font-bold text-info">${faction.strength.naval}</span></div></div>`;
+    let hierarchyHTML = `<h5 class="font-bold mt-4 text-secondary">Hierarchy:</h5><ul class="text-sm list-disc list-inside"><li><span class="font-bold">Leader:</span> ${faction.hierarchy.leader}</li>`;
+    if(faction.hierarchy.members) {
+        faction.hierarchy.members.forEach(m => hierarchyHTML += `<li>${m}</li>`);
+    }
+    hierarchyHTML += '</ul>';
+    detailView.innerHTML = `<h3 class="text-2xl text-primary">${faction.name}</h3><div class="flex justify-between text-md my-2"><span>Threat: <span class="text-warning font-bold">${faction.threat}</span></span> <span>Hostility: <span class="text-secondary font-bold">${faction.hostility}</span></span></div><p class="text-md italic text-gray-400 my-4 p-2 ui-box">"${faction.report}"</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div>${strengthHTML}</div><div>${hierarchyHTML}</div></div>`;
+}
+
+function renderPersonnel() {
+    const personnelContainer = document.getElementById('personnel-container');
+    if (!personnelContainer) return;
+    let tableHTML = `<table class="data-table"><thead><tr><th>Codename</th><th>Username</th><th>Clearance Level</th></tr></thead><tbody>`;
+    for (const codename in c3iState.users) {
+        const user = c3iState.users[codename];
+        tableHTML += `<tr><td>${codename}</td><td>${user.username}</td><td>${user.clearance} - ${getClearanceName(user.clearance)}</td></tr>`;
+    }
+    tableHTML += `</tbody></table>`;
+    personnelContainer.innerHTML = tableHTML;
+}
+
+
+// --- Modal & Form Logic ---
+function openPlanTaskModal(type, id = null) {
+    const modal = document.getElementById('plan-task-modal');
+    const form = document.getElementById('plan-task-form');
+    form.reset();
+    form.dataset.type = type;
+    document.getElementById('edit-id').value = id || '';
+
+    const modalTitle = document.getElementById('plan-task-modal-title');
+    const labelName = document.getElementById('label-name');
+    const detailsField = document.getElementById('details-field');
+    const priorityField = document.getElementById('priority-field');
+    const itemNameInput = document.getElementById('item-name');
+    const itemDetailsInput = document.getElementById('item-details');
+    const itemPriorityInput = document.getElementById('item-priority');
+
+    if (type === 'plan') {
+        modalTitle.textContent = id ? 'Edit Strategic Plan' : 'New Strategic Plan';
+        labelName.textContent = 'Plan Name';
+        detailsField.style.display = 'block';
+        priorityField.style.display = 'none';
+        if (id) {
+            const plan = c3iState.plans.find(p => p.id === id);
+            if(plan) {
+                itemNameInput.value = plan.name;
+                itemDetailsInput.value = plan.details;
+            }
+        }
+    } else { // task
+        modalTitle.textContent = id ? 'Edit Operational Task' : 'New Operational Task';
+        labelName.textContent = 'Task Description';
+        detailsField.style.display = 'none';
+        priorityField.style.display = 'block';
+        if (id) {
+            const task = c3iState.tasks.find(t => t.id === id);
+            if(task) {
+                itemNameInput.value = task.name;
+                itemPriorityInput.value = task.priority;
+            }
+        }
+    }
+    modal.classList.remove('hidden');
+}
+
+async function handlePlanTaskFormSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const type = form.dataset.type;
+    const id = document.getElementById('edit-id').value;
+    const name = document.getElementById('item-name').value;
+
+    if (type === 'plan') {
+        const details = document.getElementById('item-details').value;
+        if (id) {
+            await Firebase.updatePlan(id, { name, details });
+        } else {
+            await Firebase.savePlan({ name, details });
+        }
+    } else { // task
+        const priority = document.getElementById('item-priority').value;
+        if (id) {
+            await Firebase.updateTask(id, { name, priority });
+        } else {
+            await Firebase.saveTask({ name, priority });
+        }
+    }
+    document.getElementById('plan-task-modal').classList.add('hidden');
+}
