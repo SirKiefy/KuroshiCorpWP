@@ -723,11 +723,10 @@
 
             // Sign in the user
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // When a custom firebaseConfig is provided, we must sign in anonymously
+                // to that specific project, rather than trying to use the environment's token,
+                // which would cause an auth/custom-token-mismatch error.
+                await signInAnonymously(auth);
             } catch (error) {
                 console.error("Firebase Authentication Failed:", error);
                 const offlineText = document.getElementById('stage-offline-text');
