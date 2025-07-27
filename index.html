@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSW-OS [v27.14-LOCAL]</title>
+    <title>HSW-OS [v87.14.227-LOCAL]</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -366,7 +366,8 @@
         
         .border-l-ally { border-left-color: var(--color-ally) !important; }
         .border-l-hostile { border-left-color: var(--color-primary) !important; }
-        .border-l-neutral { border-left-color: var(--color-warning) !important; }
+        .border-l-neutral { border-left-color: #f5a623 !important; } /* Yellow */
+        .border-l-caution { border-left-color: #ff8c3c !important; } /* Orange-Red */
         .border-l-avoid { border-left-color: var(--color-tertiary) !important; }
     </style>
 </head>
@@ -457,15 +458,16 @@
                 <div class="sidebar-tab active" data-tab="assets">Asset Browser</div>
                 <div class="sidebar-tab" data-tab="weapons">Weapons</div>
                 <div class="sidebar-tab" data-tab="ammunition">Ammunition</div>
+                <div class="sidebar-tab" data-tab="penetration">Penetration Sim</div>
             </div>
             <div class="flex-grow mt-4 overflow-hidden">
                 <div id="armoury-content-assets" class="sidebar-tab-content active h-full">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
                         <div id="armoury-nav-container" class="ui-box col-span-1 flex flex-col h-full">
                             <div id="armoury-breadcrumbs" class="text-sm text-gray-400 mb-2"></div>
                             <div id="armoury-file-list" class="flex-grow overflow-y-auto"></div>
                         </div>
-                        <div id="armoury-detail-wrapper" class="ui-box col-span-1 overflow-y-auto h-full">
+                        <div id="armoury-detail-wrapper" class="ui-box col-span-2 overflow-y-auto h-full">
                              <div id="armoury-detail-content">
                                 <p class="text-gray-500">Select an asset to view details.</p>
                              </div>
@@ -494,6 +496,16 @@
                         <div id="ammo-list-container" class="col-span-1 ui-box overflow-y-auto"></div>
                         <div id="ammo-detail-view" class="col-span-2 ui-box overflow-y-auto">
                              <p class="text-gray-500">Select an ammunition type to view details.</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="armoury-content-penetration" class="sidebar-tab-content h-full">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+                        <div class="col-span-1 ui-box overflow-y-auto" id="penetration-controls">
+                            <!-- Penetration Sim Controls will be injected here -->
+                        </div>
+                        <div class="col-span-2 ui-box p-0 relative" id="penetration-visual-container">
+                            <!-- Penetration Sim 3D view will be here -->
                         </div>
                     </div>
                 </div>
@@ -653,6 +665,7 @@
             weaponSystems: {
                 weapons: [],
                 ammo: [],
+                armor: {},
             },
             comparisonAssets: [],
             users: {},
@@ -688,53 +701,50 @@
 
         function loadLocalData() {
             const ammoCsvData = `Ammo Round Name,Base Damage,Mass (kg),Max Trajectory (m),Area of Damage (Radius / Damage),Fragments (Type / Count)
-HE (4.5 Inch),500,100,5000,"5m / 100",HEPDShrap / 50
-HE-VT (4.5 Inch),500,100,5000,"5m / 100",HEPDShrap / 50
-HC Mark 41 (5 Inch),500,100,5000,"5m / 100",HEPDShrap / 50
-HC-VT Mark 41 (5 Inch),500,100,5000,"5m / 100",HEPDShrap / 50
-HE-PD (5 Inch),500,100,4000,"5m / 5",HEPDShrap / 50
-HE-MOM (76mm),500,100,5000,"5m / 100",HEPDShrap / 40
-HE (100mm),500,100,5000,"5m / 100",HEPDShrap / 40
-120mm HE,500,100,5000,"5m / 100",HEPDShrap / 50
-8 Inch HC Mark 25,2500,100,5500,"10m / 25",HEPDShrap / 30
-12 Inch AP Mk 16 (US),2500,100,5500,"5m / 5",6InchShrap / 35
-12 Inch HE Mk 16 (US),2500,100,5500,"10m / 25",6InchShrap / 30
-12 Inch HE (US),2500,100,5500,"10m / 25",6InchShrap / 30
-Bofors 254mm HE,2500,100,4000,"5m / 5",6InchShrap / 30
-380mm SAP (OTO),700,100,5000,"5m / 5",380mmShrap / 45
-12 Inch AP (UK),2500,100,5500,"5m / 5",6InchShrap / 35
-12 Inch HE (UK),2500,100,5500,"10m / 25",6InchShrap / 30
-127mm Hvar Rocket,200,100,3800,None,None
-13mm,20,0.5,1000,None,None
-37mm Shell,50,0,1000,"5m / 5",37mmShrap / 20
-37mm,50,0,1000,"5m / 5",37mmShrap / 20`;
+HE (4.5 Inch),500,10,5000,"5m / 100",HEPDShrap / 50
+HE-VT (4.5 Inch),500,10,5000,"5m / 100",HEPDShrap / 50
+HC Mark 41 (5 Inch),600,12,5000,"5m / 100",HEPDShrap / 50
+HC-VT Mark 41 (5 Inch),600,12,5000,"5m / 100",HEPDShrap / 50
+HE-PD (5 Inch),550,11,4000,"5m / 5",HEPDShrap / 50
+HE-MOM (76mm),400,8,5000,"5m / 100",HEPDShrap / 40
+HE (100mm),450,9,5000,"5m / 100",HEPDShrap / 40
+120mm HE,700,15,5000,"5m / 100",HEPDShrap / 50
+8 Inch HC Mark 25,2500,118,5500,"10m / 25",HEPDShrap / 30
+12 Inch AP Mk 16 (US),5000,450,7000,"5m / 5",6InchShrap / 35
+12 Inch HE Mk 16 (US),3500,400,6500,"10m / 25",6InchShrap / 30
+12 Inch HE (US),3500,400,6500,"10m / 25",6InchShrap / 30
+Bofors 254mm HE,3000,250,6000,"5m / 5",6InchShrap / 30
+380mm SAP (OTO),4000,350,7000,"5m / 5",380mmShrap / 45
+12 Inch AP (UK),5200,480,7000,"5m / 5",6InchShrap / 35
+12 Inch HE (UK),3600,420,6500,"10m / 25",6InchShrap / 30
+127mm Hvar Rocket,200,18,3800,None,None
+13mm,20,0.05,1000,None,None
+37mm Shell,50,0.7,1000,"5m / 5",37mmShrap / 20
+37mm,50,0.7,1000,"5m / 5",37mmShrap / 20`;
 
             const weaponsCsvData = `Weapon Name,Rate of Fire (RPM),Reload Time (seconds),Max Target Distance (m),Weapon Type,Ammunition,Ammo Magazine
-100mm MLE 1968,80,1,7000,BlockWeapon,"FAM_100mm_HE_Shell, FAM5InchAAShrap",Fam_100mm_HE_FR
-120mm TAK120,80,1,7000,BlockWeapon,"FAM_120mm_HE, FAM5InchAAShrap",Fam_120mm_HE_Sweden
-76mm 62 SR,120,6,7000,BlockWeapon,"FAM_76mm_HEMOM_Shell, FAM5InchAAShrap",Fam_76mm_HE_IT
-4.5 Inch Mark V,24,0.4,7000,BlockWeapon,"FAM_4_5_HE_Shell, FAM_4_5_HEVT_Shell, FAM5InchAAShrap",Fam_4_5_Shell_UK
-5 Inch 54 Mark 42,34,2,7000,BlockWeapon,"FAM_5_Inch_HC, FAM_5_Inch_HCVT, FAM5InchAAShrap",Fam5InchShell_US
-5 Inch 64 LW,32,0.5,7000,BlockWeapon,"FAM5InchShellAmmo, FAM5InchAAShrap",Fam5InchShell
-8 Inch 55 Mark 71,12,5,7000,BlockWeapon,"FAM_8InchShell, FAM5InchAAShrap",Fam8InchShell
-12 Inch 50 Mark 7,2,30,7000,BlockWeapon,"FAM_12InchShell_US, FAM12InchShrap_US",Fam12InchShell_US
-Bofors 254mm,2,30,7000,BlockWeapon,"FAM_Bofors_254mm_HE, FAM12InchShrap_US",Bofors_254mm_HE
-380mm OTO,2,30,7000,BlockWeapon,"FAM_380mm_SAP, 380mmShrap",380mm_SAP_OTO
-12 Inch Mark IX,2,30,7000,BlockWeapon,"FAM_12InchShell_UK, FAM12InchShrap_UK",Fam12InchShell_UK
-HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
-13mm HMG,600,3,1000,BlockWeapon,13mm,13mmMag
-85mm Flak,15,0,3500,BlockWeapon,"85mm, 85mmFRAG, FlakFrag",85mmShell
-37mm Flak (Remodel),160,0,1000,BlockWeapon,"37mm, 37mmShrap",37mmMag
-37mm Flak Single (Large),160,0,1000,BlockWeapon,"37mm, 37mmShrap",37mmMag
-37mm Flak Single (Small),160,0,1000,BlockWeapon,"37mm, 37mmShrap",37mmMag
-37mm Flak (Small),160,0,1000,BlockWeapon,"37mm, 37mmShrap",37mmMag
-37mm MLE 1933 (Remodel),175,0,1000,BlockWeapon,"37mmShell, 37mmShrap",37mmShell
-37mm MLE 1935 ACAD (Remodel),175,0,1000,BlockWeapon,"37mmShell, 37mmShrap",37mmShell
-37mm Project 76-K Quad,180,0,1000,BlockWeapon,"37mm_USSR, 37mmShrap",37mmUSSRMag
-57mm/60 Twin,120,0,3500,BlockWeapon,"Bofors57mm, FlakFrag",57mmBofors`;
+100mm MLE 1968,80,1,7000,BlockWeapon,"HE (100mm)",Fam_100mm_HE_FR
+120mm TAK120,80,1,7000,BlockWeapon,"120mm HE",Fam_120mm_HE_Sweden
+76mm 62 SR,120,6,7000,BlockWeapon,"HE-MOM (76mm)",Fam_76mm_HE_IT
+4.5 Inch Mark V,24,0.4,7000,BlockWeapon,"HE (4.5 Inch),HE-VT (4.5 Inch)",Fam_4_5_Shell_UK
+5 Inch 54 Mark 42,34,2,7000,BlockWeapon,"HC Mark 41 (5 Inch),HC-VT Mark 41 (5 Inch)",Fam5InchShell_US
+5 Inch 64 LW,32,0.5,7000,BlockWeapon,"HE-PD (5 Inch)",Fam5InchShell
+8 Inch 55 Mark 71,12,5,7000,BlockWeapon,"8 Inch HC Mark 25",Fam8InchShell
+12 Inch 50 Mark 7,2,30,7000,BlockWeapon,"12 Inch AP Mk 16 (US),12 Inch HE Mk 16 (US),12 Inch HE (US)",Fam12InchShell_US
+Bofors 254mm,2,30,7000,BlockWeapon,"Bofors 254mm HE",Bofors_254mm_HE
+380mm OTO,2,30,7000,BlockWeapon,"380mm SAP (OTO)",380mm_SAP_OTO
+12 Inch Mark IX,2,30,7000,BlockWeapon,"12 Inch AP (UK),12 Inch HE (UK)",Fam12InchShell_UK
+HVAR Rocket Launcher,30,10,3800,BlockWeapon,"127mm Hvar Rocket",HvarRocketMagazine
+13mm HMG,600,3,1000,BlockWeapon,"13mm",13mmMag
+37mm Flak (Remodel),160,0,1000,BlockWeapon,"37mm,37mm Shell",37mmMag`;
 
             c3iState.weaponSystems.weapons = parseCSV(weaponsCsvData);
             c3iState.weaponSystems.ammo = parseCSV(ammoCsvData);
+            c3iState.weaponSystems.armor = {
+                'Light Armour': { mass: 500, hitpoints: 2500, pcu: 1, plateCount: 25 },
+                'Heavy Armour': { mass: 3300, hitpoints: 15000, pcu: 1, plateCount: 150 },
+                'Blast Door': { mass: 2800, hitpoints: 14000, pcu: 1, plateCount: 140 }, // Assuming 100hp/plate
+            };
         }
 
         function loadData() {
@@ -754,17 +764,17 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
             c3iState.intel.factions = {
                  'UNN': { 
                      name: 'UNN (United Nations Nomads)', 
-                     threat: 'Ally', 
-                     hostility: 'Friendly', 
+                     threat: 'Neutral', 
+                     hostility: 'Passive', 
                      location: 'Mobile', 
                      strength: { ground: 'Moderate', air: 'Moderate', naval: 'Strong' }, 
-                     report: 'Allied peacekeeping force. UNN assets are to be assisted upon request. They provide logistical and combat support in authorized operations.', 
+                     report: 'Independent peacekeeping force. UNN assets are to be considered neutral unless engaged. They may provide logistical and combat support in authorized joint operations.', 
                      hierarchy: { leader: 'Fleet Admiral Johnson', members: ['UNN Command Staff'] }, 
                      assets: 'A versatile fleet of modern warships, primarily focused on defense and rapid deployment.'
                  },
                  'FSSA': { 
                      name: 'FSSA (Federated Sovereign State of Armkava)', 
-                     threat: 'Hostile', 
+                     threat: 'Caution', 
                      hostility: 'Active', 
                      location: 'Unknown', 
                      strength: { ground: 'Equal', air: 'Weaker', naval: 'Equal' }, 
@@ -784,7 +794,7 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
                  },
                  'NIM': { 
                      name: 'NIM (Nordman Industries & Manufacturing)', 
-                     threat: 'Neutral', 
+                     threat: 'Caution', 
                      hostility: 'Aggressive', 
                      location: 'Northern Territories', 
                      strength: { ground: 'Superior', air: 'Equal', naval: 'Weaker' }, 
@@ -794,14 +804,24 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
                  },
                  'T-T': { 
                      name: 'T-T (Terra Titans)', 
-                     threat: 'Avoid', 
+                     threat: 'Caution', 
                      hostility: 'Dominant', 
                      location: 'Global', 
                      strength: { ground: 'Overwhelming', air: 'Overwhelming', naval: 'Overwhelming' }, 
-                     report: 'A powerful, enigmatic faction that should be avoided at all costs. Holds significant global influence and possesses technology that surpasses our own. Do not engage.', 
+                     report: 'A powerful, enigmatic faction that should be approached with extreme caution. Holds significant global influence and possesses technology that surpasses our own. Do not engage without explicit authorization.', 
                      hierarchy: { leader: 'DarkXeRoX (darkxerox, Server Owner)', members: ['K4rma (k4rmaletracteur)', 'Rudi/Noah (ruaidhri.noah, Admin)', 'Delfred353', 'PossibleHacker', 'Gifted Lion', 'Aragath', 'Tellyhead'] },
                      assets: 'High-tier military assets of unknown origin, server administrative control.'
                  },
+                 'EoD': {
+                     name: 'Empire Of Draconis',
+                     threat: 'Caution',
+                     hostility: 'Territorial',
+                     location: 'Unknown',
+                     strength: { ground: 'Weaker', air: 'Weaker', naval: 'Weaker' },
+                     report: 'Relative power is weaker due to less manpower.',
+                     hierarchy: { leader: '[EoD] STRIDER aka strider4212 (server admin)', members: ['[EoD] jaems aka jaems9991', '[EoD] Plant aka plant3468', 'Imperial akaimperialguardcommissar', '[EoD] Mule aka mule1']},
+                     assets: 'Standard military hardware, composition and numbers unknown.'
+                 }
             };
 
             c3iState.codex = {
@@ -1013,7 +1033,7 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
 
                     material.onBeforeCompile = (shader) => {
                         shader.uniforms.u_outline_enabled = { value: false };
-                        shader.uniforms.u_outline_color = { value: new THREE.Color(getComputedStyle(document.body).getPropertyValue('--color-info')) };
+                        shader.uniforms.u_outline_color = { value: new THREE.Color(0x444444) };
                         shader.uniforms.u_outline_threshold = { value: 0.05 };
                         shader.uniforms.heightMap = { value: heightMapTexture };
                         shader.vertexShader = `varying vec2 vUv;\n` + shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\nvUv = uv;`);
@@ -1442,6 +1462,8 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
             const pageWrapper = document.getElementById('armoury-page-wrapper');
             if (!pageWrapper) return;
             
+            let armouryVisuals = []; // To manage 3D visualizers in this scope
+            
             // General Armoury Elements
             const sidebarTabs = pageWrapper.querySelectorAll('.sidebar-tab');
             
@@ -1458,8 +1480,6 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
             const weaponsDetailView = pageWrapper.querySelector('#weapons-detail-view');
             const ammoListContainer = pageWrapper.querySelector('#ammo-list-container');
             const ammoDetailView = pageWrapper.querySelector('#ammo-detail-view');
-            let damageChart = null;
-            let ammoRadarChart = null;
             let weaponRangeChart = null;
 
 
@@ -1469,7 +1489,12 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
                     sidebarTabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
                     pageWrapper.querySelectorAll('.sidebar-tab-content').forEach(c => c.classList.remove('active'));
-                    pageWrapper.querySelector(`#armoury-content-${tab.dataset.tab}`).classList.add('active');
+                    const contentEl = pageWrapper.querySelector(`#armoury-content-${tab.dataset.tab}`);
+                    contentEl.classList.add('active');
+                    
+                    if (tab.dataset.tab === 'penetration') {
+                        initPenetrationSim();
+                    }
                 });
             });
 
@@ -1707,9 +1732,13 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
 
             function showWeaponDetails(weapon) {
                 if (weaponRangeChart) weaponRangeChart.destroy();
+                armouryVisuals.forEach(v => v.renderer.dispose());
+                armouryVisuals = [];
 
                 const rpm = parseFloat(weapon['Rate of Fire (RPM)']);
                 const range = parseFloat(weapon['Max Target Distance (m)']);
+                const compatibleAmmoNames = weapon['Ammunition'].split(',').map(s => s.trim());
+                const compatibleAmmo = c3iState.weaponSystems.ammo.filter(a => compatibleAmmoNames.includes(a['Ammo Round Name']));
 
                 const allRpms = c3iState.weaponSystems.weapons.map(w => parseFloat(w['Rate of Fire (RPM)']));
                 const allRanges = c3iState.weaponSystems.weapons.map(w => parseFloat(w['Max Target Distance (m)']));
@@ -1722,22 +1751,54 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
                 
                 let detailsHtml = `
                     <h3>${weapon['Weapon Name']}</h3>
-                    <div class="grid grid-cols-2 gap-4 text-sm mt-4">
-                        <p><strong>Type:</strong> <span class="text-info">${weapon['Weapon Type']}</span></p>
-                        <p><strong>Reload:</strong> <span class="text-info">${weapon['Reload Time (seconds)']}s</span></p>
-                    </div>
-                    <div class="space-y-3 mt-4 text-sm">
-                        <div>
-                            <div class="flex justify-between text-xs mb-1"><span>Rate of Fire</span><span class="text-info">${rpm} RPM</span></div>
-                            <div class="stat-bar"><div class="stat-bar-inner stat-bar-offense" style="width: ${rpmPercent}%;"></div></div>
+                    <div class="ui-box mt-4">
+                        <h4 class="text-secondary">Specifications</h4>
+                        <div class="grid grid-cols-2 gap-4 text-sm mt-2">
+                            <p><strong>Type:</strong> <span class="text-info">${weapon['Weapon Type']}</span></p>
+                            <p><strong>Reload:</strong> <span class="text-info">${weapon['Reload Time (seconds)']}s</span></p>
+                        </div>
+                        <div class="space-y-3 mt-4 text-sm">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1"><span>Rate of Fire</span><span class="text-info">${rpm} RPM</span></div>
+                                <div class="stat-bar"><div class="stat-bar-inner stat-bar-offense" style="width: ${rpmPercent}%;"></div></div>
+                            </div>
                         </div>
                     </div>
-                    <h4 class="mt-6">Range Analysis</h4>
-                    <div class="h-48 mt-2"><canvas id="weapon-range-chart"></canvas></div>
-                    <h4 class="mt-6">Compatible Ammunition</h4>
-                    <p class="text-xs text-gray-400">${weapon['Ammunition']}</p>
+                    <div class="ui-box mt-4">
+                        <h4 class="text-secondary">Range Analysis</h4>
+                        <div class="h-48 mt-2"><canvas id="weapon-range-chart"></canvas></div>
+                    </div>
+                     <div class="ui-box mt-4">
+                        <h4 class="text-secondary">Trajectory Simulation</h4>
+                        <div class="mt-2 text-sm">
+                            <label for="trajectory-ammo-select">Select Ammunition:</label>
+                            <select id="trajectory-ammo-select" class="c3i-select w-full mt-1"></select>
+                        </div>
+                        <div id="trajectory-visual-container" class="mt-2 h-64 p-0 relative">
+                            <!-- Stats and canvas will be injected by initTrajectoryVisual -->
+                        </div>
+                    </div>
                 `;
                 weaponsDetailView.innerHTML = detailsHtml;
+
+                const ammoSelect = document.getElementById('trajectory-ammo-select');
+                compatibleAmmo.forEach(ammo => {
+                    const opt = document.createElement('option');
+                    opt.value = ammo['Ammo Round Name'];
+                    opt.textContent = ammo['Ammo Round Name'];
+                    ammoSelect.appendChild(opt);
+                });
+
+                const updateTrajectory = () => {
+                    const selectedAmmoName = ammoSelect.value;
+                    const selectedAmmo = compatibleAmmo.find(a => a['Ammo Round Name'] === selectedAmmoName);
+                    if (selectedAmmo) {
+                        initTrajectoryVisual(document.getElementById('trajectory-visual-container'), range, selectedAmmo);
+                    }
+                };
+
+                ammoSelect.addEventListener('change', updateTrajectory);
+                updateTrajectory(); // Initial call
 
                 const ctx = document.getElementById('weapon-range-chart').getContext('2d');
                 weaponRangeChart = new Chart(ctx, {
@@ -1814,88 +1875,455 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
             }
 
             function showAmmoDetails(ammo) {
-                if (damageChart) damageChart.destroy();
-                if (ammoRadarChart) ammoRadarChart.destroy();
+                armouryVisuals.forEach(v => v.renderer.dispose());
+                armouryVisuals = [];
 
-                const baseDmg = parseFloat(ammo['Base Damage']);
-                const blocksDestroyed = (baseDmg / 135).toFixed(2);
-                const trajectory = parseFloat(ammo['Max Trajectory (m)']);
-                const mass = parseFloat(ammo['Mass (kg)']);
                 const aoeRadius = parseFloat(ammo['Area of Damage (Radius / Damage)'].split('/')[0]) || 0;
+                const fragmentCount = parseFloat(ammo['Fragments (Type / Count)'].split('/')[1]) || 0;
 
                 let detailsHtml = `
                     <h3>${ammo['Ammo Round Name']}</h3>
-                    <p class="text-xs text-gray-400 mt-4 mb-2">${getAmmoDescription(ammo['Ammo Round Name'])}</p>
-                    <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-4">
-                        <p><strong>Mass:</strong> <span class="text-info">${ammo['Mass (kg)']} kg</span></p>
-                        <p><strong>Max Trajectory:</strong> <span class="text-info">${trajectory} m</span></p>
-                        <p><strong>Area of Damage:</strong> <span class="text-info">${ammo['Area of Damage (Radius / Damage)']}</span></p>
-                        <p><strong>Fragments:</strong> <span class="text-info">${ammo['Fragments (Type / Count)']}</span></p>
-                    </div>
-                    <h4 class="mt-6">Performance Analysis</h4>
-                    <div class="grid grid-cols-2 gap-4 h-48 mt-2">
-                        <canvas id="damage-chart"></canvas>
-                        <canvas id="ammo-radar-chart"></canvas>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                        <div class="ui-box">
+                            <h4 class="text-secondary">Description</h4>
+                            <p class="text-xs text-gray-400 mt-2">${getAmmoDescription(ammo['Ammo Round Name'])}</p>
+                        </div>
+                        <div class="ui-box">
+                            <h4 class="text-secondary">Specifications</h4>
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
+                                <p><strong>Mass:</strong> <span class="text-info">${ammo['Mass (kg)']} kg</span></p>
+                                <p><strong>Max Trajectory:</strong> <span class="text-info">${ammo['Max Trajectory (m)']} m</span></p>
+                                <p><strong>Area of Damage:</strong> <span class="text-info">${ammo['Area of Damage (Radius / Damage)']}</span></p>
+                                <p><strong>Fragments:</strong> <span class="text-info">${ammo['Fragments (Type / Count)']}</span></p>
+                            </div>
+                        </div>
+                        <div id="performance-visual-container" class="ui-box lg:col-span-2 h-64 p-0 relative">
+                             <div class="absolute top-2 left-2 text-xs text-gray-400">Performance Profile</div>
+                        </div>
+                        <div id="aoe-visual-container" class="ui-box lg:col-span-2 h-64 p-0 relative">
+                             <div class="absolute top-2 left-2 text-xs text-gray-400">Area of Effect Simulation</div>
+                        </div>
                     </div>
                 `;
                 ammoDetailView.innerHTML = detailsHtml;
+                
+                initPerformanceVisual(document.getElementById('performance-visual-container'), ammo);
 
-                const damageCtx = document.getElementById('damage-chart').getContext('2d');
-                damageChart = new Chart(damageCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Base Damage (HP)', 'Heavy Armour Blocks Destroyed'],
-                        datasets: [{
-                            label: 'Damage Potential',
-                            data: [baseDmg, blocksDestroyed],
-                            backgroundColor: [getComputedStyle(document.body).getPropertyValue('--color-primary')+'99', getComputedStyle(document.body).getPropertyValue('--color-info')+'99'],
-                            borderColor: [getComputedStyle(document.body).getPropertyValue('--color-primary'), getComputedStyle(document.body).getPropertyValue('--color-info')],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        scales: { 
-                            x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'white', font: { family: "'PPSupplyMono', monospace" } } },
-                            y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'white', font: { family: "'PPSupplyMono', monospace" } } }
-                        },
-                        plugins: { legend: { display: false } },
-                        maintainAspectRatio: false
-                    }
-                });
-
-                const radarCtx = document.getElementById('ammo-radar-chart').getContext('2d');
-                ammoRadarChart = new Chart(radarCtx, {
-                    type: 'radar',
-                    data: {
-                        labels: ['Damage', 'Trajectory', 'Mass', 'AoE Radius'],
-                        datasets: [{
-                            label: ammo['Ammo Round Name'],
-                            data: [
-                                baseDmg,
-                                trajectory,
-                                mass,
-                                aoeRadius
-                            ],
-                            backgroundColor: 'rgba(76, 175, 80, 0.4)',
-                            borderColor: 'rgba(76, 175, 80, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        scales: { 
-                            r: { 
-                                angleLines: { color: 'rgba(255,255,255,0.2)' },
-                                grid: { color: 'rgba(255,255,255,0.2)' },
-                                pointLabels: { color: 'white', font: { family: "'PPSupplyMono', monospace" } },
-                                ticks: { display: false }
-                            } 
-                        },
-                        plugins: { legend: { display: false } },
-                        maintainAspectRatio: false
-                    }
-                });
+                if (aoeRadius > 0) {
+                    initAoeVisual(document.getElementById('aoe-visual-container'), aoeRadius, fragmentCount);
+                }
             }
+            
+            function initPerformanceVisual(container, ammo) {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+                camera.position.set(0, 2, 8);
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                container.appendChild(renderer.domElement);
+                armouryVisuals.push({ renderer, scene, camera, container });
+                const controls = new OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                
+                scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+                const light = new THREE.DirectionalLight(0xffffff, 1);
+                light.position.set(5, 5, 5);
+                scene.add(light);
+
+                const baseDmg = parseFloat(ammo['Base Damage']);
+                const mass = parseFloat(ammo['Mass (kg)']);
+                const trajectory = parseFloat(ammo['Max Trajectory (m)']);
+                const aoeRadius = parseFloat(ammo['Area of Damage (Radius / Damage)'].split('/')[0]) || 0;
+
+                // Normalize values for visualization (these max values are arbitrary for scaling)
+                const maxDmg = 5000, maxMass = 500, maxTraj = 8000, maxAoe = 15;
+
+                const createStatBar = (name, value, maxValue, color, position) => {
+                    const height = (value / maxValue) * 5;
+                    const bar = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.5, height, 0.5),
+                        new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.3 })
+                    );
+                    bar.position.set(position.x, height / 2, position.z);
+                    scene.add(bar);
+                };
+
+                createStatBar('Damage', baseDmg, maxDmg, 0xff3c3c, new THREE.Vector3(-3, 0, 0));
+                createStatBar('Mass', mass, maxMass, 0x45f3ff, new THREE.Vector3(-1, 0, 0));
+                createStatBar('Trajectory', trajectory, maxTraj, 0x4caf50, new THREE.Vector3(1, 0, 0));
+                createStatBar('AoE Radius', aoeRadius, maxAoe, 0xf5a623, new THREE.Vector3(3, 0, 0));
+
+                function animate() {
+                    if (!document.body.contains(container)) {
+                        renderer.dispose();
+                        return;
+                    }
+                    controls.update();
+                    requestAnimationFrame(animate);
+                    renderer.render(scene, camera);
+                }
+                animate();
+            }
+
+            function initAoeVisual(container, radius, fragmentCount) {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+                camera.position.set(radius * 1.5, radius * 1.5, radius * 1.5);
+                camera.lookAt(0, 0.9, 0);
+
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                container.appendChild(renderer.domElement);
+                armouryVisuals.push({ renderer, scene, camera, container });
+
+                const controls = new OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.1;
+                controls.target.set(0, 0.9, 0);
+                
+                const grid = new THREE.GridHelper(radius * 4, 20, 0x555555, 0x555555);
+                scene.add(grid);
+                const axesHelper = new THREE.AxesHelper(radius * 2.5);
+                scene.add(axesHelper);
+
+                const sphereGeo = new THREE.SphereGeometry(radius, 32, 32);
+                const sphereMat = new THREE.MeshBasicMaterial({ color: 0xff8c3c, transparent: true, opacity: 0.3 });
+                const aoeSphere = new THREE.Mesh(sphereGeo, sphereMat);
+                scene.add(aoeSphere);
+
+                // Add reference silhouette
+                const silGeo = new THREE.PlaneGeometry(0.7, 1.8);
+                const silMat = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.5});
+                const silhouette = new THREE.Mesh(silGeo, silMat);
+                silhouette.position.y = 0.9;
+                scene.add(silhouette);
+
+                let fragments = new THREE.Group();
+                scene.add(fragments);
+                
+                const raycaster = new THREE.Raycaster();
+                
+                function resetSimulation() {
+                    fragments.children.forEach(c => {
+                        if (c.geometry) c.geometry.dispose();
+                        if (c.material) c.material.dispose();
+                    });
+                    fragments.clear();
+
+                    for (let i = 0; i < fragmentCount; i++) {
+                        const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+                        const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), dir.clone().multiplyScalar(radius * 2)]);
+                        const lineMat = new THREE.LineBasicMaterial({ color: 0xf5a623, transparent: true });
+                        const fragLine = new THREE.Line(lineGeo, lineMat);
+                        fragments.add(fragLine);
+                    }
+                }
+                
+                resetSimulation();
+
+                let clock = new THREE.Clock();
+                function animate() {
+                    if (!document.body.contains(container)) {
+                        renderer.dispose();
+                        return;
+                    }
+                    const t = clock.getElapsedTime();
+                    
+                    const animProgress = (t % 4) / 4; // 4 second loop
+                    
+                    aoeSphere.scale.setScalar(animProgress);
+                    aoeSphere.material.opacity = 0.4 * (1 - animProgress);
+                    
+                    fragments.children.forEach(frag => {
+                        const p = frag.geometry.attributes.position.array;
+                        const endPoint = new THREE.Vector3(p[3], p[4], p[5]);
+                        const currentLen = endPoint.length() * animProgress;
+                        const newEndPoint = endPoint.clone().normalize().multiplyScalar(currentLen);
+                        frag.geometry.attributes.position.set([newEndPoint.x, newEndPoint.y, newEndPoint.z], 3);
+                        frag.geometry.attributes.position.needsUpdate = true;
+                        frag.material.opacity = 1 - animProgress;
+                    });
+
+                    controls.update();
+                    requestAnimationFrame(animate);
+                    renderer.render(scene, camera);
+                }
+                animate();
+            }
+
+            function initTrajectoryVisual(container, weaponRange, ammo) {
+                // Clear previous instance if it exists in the container
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+
+                const statsEl = document.createElement('div');
+                statsEl.id = 'trajectory-stats';
+                statsEl.className = 'absolute top-2 left-2 text-xs text-gray-400 bg-black/50 p-1 rounded z-10';
+                container.appendChild(statsEl);
+
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, weaponRange * 2);
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                container.appendChild(renderer.domElement);
+                armouryVisuals.push({ renderer, scene, camera, container });
+
+                const g = 9.81;
+                const kineticEnergy = parseFloat(ammo['Base Damage']) * 100;
+                const mass = parseFloat(ammo['Mass (kg)']) || 1;
+                const v0 = Math.sqrt(2 * kineticEnergy / mass);
+                
+                const ammoMaxRange = (v0 * v0) / g;
+                const isImpossible = ammoMaxRange < weaponRange;
+                const effectiveRange = isImpossible ? ammoMaxRange : weaponRange;
+                const launchAngleRad = 0.5 * Math.asin((effectiveRange * g) / (v0 * v0));
+                
+                if (isNaN(launchAngleRad)) {
+                    statsEl.innerHTML = `<span>IMPOSSIBLE TRAJECTORY</span><br><span>Shell cannot achieve stable flight.</span>`;
+                    return;
+                }
+
+                const v0y = v0 * Math.sin(launchAngleRad);
+                const timeOfFlight = (2 * v0y) / g;
+                const maxHeight = (v0y * v0y) / (2 * g);
+                const totalDrop = 0.5 * g * timeOfFlight * timeOfFlight;
+                
+                statsEl.innerHTML = `
+                    <span>Weapon Max Range: ${weaponRange.toFixed(0)}m</span><br>
+                    <span class="${isImpossible ? 'text-warning' : 'text-info'}">Shell Achievable Range: ${ammoMaxRange.toFixed(0)}m</span><br>
+                    <span>Time to Target: ${timeOfFlight.toFixed(2)}s</span><br>
+                    <span>Apex: ${maxHeight.toFixed(2)}m</span><br>
+                    <span>Drop @ Range: ${totalDrop.toFixed(2)}m</span>
+                `;
+
+                camera.position.set(effectiveRange / 2, maxHeight * 0.8, effectiveRange * 0.8);
+                camera.lookAt(effectiveRange / 2, maxHeight / 2, 0);
+                const controls = new OrbitControls(camera, renderer.domElement);
+                controls.target.set(effectiveRange / 2, maxHeight / 2, 0);
+
+                const grid = new THREE.GridHelper(weaponRange * 1.1, 10, 0x555555, 0x555555);
+                grid.position.set(weaponRange / 2, 0, 0);
+                grid.rotation.x = Math.PI / 2;
+                scene.add(grid);
+
+                const points = [];
+                for (let i = 0; i <= 100; i++) {
+                    const t = (i / 100) * timeOfFlight;
+                    const x = (v0 * Math.cos(launchAngleRad)) * t;
+                    const y = (v0 * Math.sin(launchAngleRad)) * t - 0.5 * g * t * t;
+                    points.push(new THREE.Vector3(x, y, 0));
+                }
+                const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+                const lineMat = new THREE.LineBasicMaterial({ color: 0x45f3ff });
+                const trajectoryLine = new THREE.Line(lineGeo, lineMat);
+                scene.add(trajectoryLine);
+
+                if (isImpossible) {
+                    const dottedLineMat = new THREE.LineDashedMaterial({ color: 0xcccccc, dashSize: 10, gapSize: 10 });
+                    const dottedPoints = [new THREE.Vector3(effectiveRange, 0, 0), new THREE.Vector3(weaponRange, 0, 0)];
+                    const dottedLineGeo = new THREE.BufferGeometry().setFromPoints(dottedPoints);
+                    const dottedLine = new THREE.Line(dottedLineGeo, dottedLineMat);
+                    dottedLine.computeLineDistances();
+                    scene.add(dottedLine);
+                }
+
+                const projectile = new THREE.Mesh(new THREE.SphereGeometry(weaponRange / 150, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff3c3c }));
+                scene.add(projectile);
+                
+                let clock = new THREE.Clock();
+                function animate() {
+                     if (!document.body.contains(container)) {
+                        renderer.dispose();
+                        return;
+                    }
+                    const t = (clock.getElapsedTime() * 0.5) % timeOfFlight;
+                    projectile.position.x = (v0 * Math.cos(launchAngleRad)) * t;
+                    projectile.position.y = (v0 * Math.sin(launchAngleRad)) * t - 0.5 * g * t * t;
+                    
+                    controls.update();
+                    requestAnimationFrame(animate);
+                    renderer.render(scene, camera);
+                }
+                animate();
+            }
+            
+            function initPenetrationSim() {
+                const controlsContainer = document.getElementById('penetration-controls');
+                const visualContainer = document.getElementById('penetration-visual-container');
+                armouryVisuals.forEach(v => v.renderer.dispose());
+                armouryVisuals = [];
+                
+                controlsContainer.innerHTML = `
+                    <h4 class="text-secondary">Simulation Parameters</h4>
+                    <div class="space-y-4 mt-4 text-sm">
+                        <div>
+                            <label>Armor Type</label>
+                            <select id="pen-armor-type" class="c3i-select w-full mt-1"></select>
+                        </div>
+                         <div>
+                            <label>Armor Blocks: <span id="pen-blocks-val">1</span></label>
+                            <input type="range" id="pen-blocks" min="1" max="10" value="1" class="w-full">
+                        </div>
+                        <div>
+                            <label>Shell Type</label>
+                            <select id="pen-shell-type" class="c3i-select w-full mt-1"></select>
+                        </div>
+                         <div>
+                            <label>Impact Angle: <span id="pen-angle-val">45</span>°</label>
+                            <input type="range" id="pen-angle" min="0" max="85" value="45" class="w-full">
+                        </div>
+                        <div>
+                            <label>Distance: <span id="pen-dist-val">500</span>m</label>
+                            <input type="range" id="pen-dist" min="100" max="7000" value="500" class="w-full">
+                        </div>
+                        <button id="run-pen-sim" class="c3i-button w-full">Run Simulation</button>
+                    </div>
+                    <div id="pen-results" class="mt-4 ui-box">
+                        <p class="text-gray-500">Awaiting simulation...</p>
+                    </div>
+                `;
+                
+                const armorSelect = document.getElementById('pen-armor-type');
+                Object.keys(c3iState.weaponSystems.armor).forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    armorSelect.appendChild(opt);
+                });
+
+                const shellSelect = document.getElementById('pen-shell-type');
+                c3iState.weaponSystems.ammo.forEach(ammo => {
+                     const opt = document.createElement('option');
+                    opt.value = ammo['Ammo Round Name'];
+                    opt.textContent = ammo['Ammo Round Name'];
+                    shellSelect.appendChild(opt);
+                });
+                
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(50, visualContainer.clientWidth / visualContainer.clientHeight, 0.1, 1000);
+                camera.position.set(1.5, 1.5, 4);
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(visualContainer.clientWidth, visualContainer.clientHeight);
+                visualContainer.appendChild(renderer.domElement);
+                armouryVisuals.push({ renderer, scene, camera, container: visualContainer });
+                
+                const controls = new OrbitControls(camera, renderer.domElement);
+                scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+                const light = new THREE.DirectionalLight(0xffffff, 0.8);
+                light.position.set(2, 2, 5);
+                scene.add(light);
+                
+                const armorPlate = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 0.2), new THREE.MeshStandardMaterial({color: 0xaaaaaa, metalness: 0.8, roughness: 0.3}));
+                scene.add(armorPlate);
+                
+                const projectile = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.4, 16), new THREE.MeshStandardMaterial({color: 0xff3c3c}));
+                projectile.rotation.x = Math.PI / 2;
+                
+                let animState = { running: false, time: 0, outcome: 'none' };
+                
+                document.getElementById('run-pen-sim').addEventListener('click', () => {
+                    scene.remove(projectile);
+                    const resultsEl = document.getElementById('pen-results');
+                    resultsEl.innerHTML = `<p>Calculating...</p>`;
+
+                    // --- Physics Calculation ---
+                    const angle = parseFloat(document.getElementById('pen-angle').value);
+                    const distance = parseFloat(document.getElementById('pen-dist').value);
+                    const blocks = parseFloat(document.getElementById('pen-blocks').value);
+                    const shellData = c3iState.weaponSystems.ammo.find(a => a['Ammo Round Name'] === shellSelect.value);
+                    const armorData = c3iState.weaponSystems.armor[armorSelect.value];
+                    
+                    const armorThickness = (armorData.plateCount / 150) * 300; // Normalize heavy armor (150 plates) to ~300mm RHA
+                    const totalThickness = armorThickness * blocks;
+                    const effectiveThickness = totalThickness / Math.cos(angle * Math.PI / 180);
+                    
+                    const velocity = Math.sqrt(parseFloat(shellData['Base Damage']) * 2); 
+                    const mass = parseFloat(shellData['Mass (kg)']);
+                    let penetrationPower = (0.001 * mass * Math.pow(velocity, 1.4));
+                    
+                    penetrationPower *= (1 - (distance / 10000));
+
+                    let outcomeText = '';
+                    if (penetrationPower > effectiveThickness) {
+                        animState.outcome = 'penetrate';
+                        outcomeText = `<p class="text-ok font-bold">Result: PENETRATION</p>`;
+                    } else if (angle > 70 && penetrationPower < effectiveThickness) {
+                        animState.outcome = 'ricochet';
+                        outcomeText = `<p class="text-warning font-bold">Result: RICOCHET</p>`;
+                    } else {
+                        animState.outcome = 'shatter';
+                        outcomeText = `<p class="text-primary font-bold">Result: NON-PENETRATION</p>`;
+                    }
+                    
+                    resultsEl.innerHTML = `
+                        ${outcomeText}
+                        <p class="text-xs mt-2">Armor: ${armorThickness.toFixed(0)}mm x ${blocks} = ${totalThickness.toFixed(0)}mm</p>
+                        <p class="text-xs">Effective Armor: <span class="text-info">${effectiveThickness.toFixed(1)}mm</span></p>
+                        <p class="text-xs">Penetration Power: <span class="text-info">${penetrationPower.toFixed(1)}mm</span></p>
+                    `;
+                    
+                    animState.running = true;
+                    animState.time = 0;
+                    projectile.position.set(0, 0, 3);
+                    projectile.rotation.y = 0;
+                    scene.add(projectile);
+                });
+                
+                document.getElementById('pen-angle').addEventListener('input', e => {
+                    document.getElementById('pen-angle-val').textContent = e.target.value;
+                    armorPlate.rotation.y = -e.target.value * Math.PI / 180;
+                });
+                 document.getElementById('pen-dist').addEventListener('input', e => {
+                    document.getElementById('pen-dist-val').textContent = e.target.value;
+                });
+                document.getElementById('pen-blocks').addEventListener('input', e => {
+                    document.getElementById('pen-blocks-val').textContent = e.target.value;
+                    armorPlate.scale.z = e.target.value;
+                });
+
+                let clock = new THREE.Clock();
+                function animate() {
+                    if (!document.body.contains(visualContainer)) {
+                        renderer.dispose();
+                        return;
+                    }
+                    if(animState.running) {
+                        const delta = clock.getDelta();
+                        animState.time += delta;
+                        
+                        const impactZ = (armorPlate.scale.z * 0.2) / 2;
+
+                        if (projectile.position.z > impactZ) {
+                            projectile.position.z -= 6 * delta;
+                        } else {
+                            switch(animState.outcome) {
+                                case 'penetrate':
+                                    projectile.position.z -= 6 * delta;
+                                    break;
+                                case 'shatter':
+                                    // Stop it at the plate
+                                    break;
+                                case 'ricochet':
+                                    projectile.position.z += 4 * delta;
+                                    projectile.position.y += 4 * delta;
+                                    projectile.rotation.y += 10 * delta;
+                                    break;
+                            }
+                        }
+
+                        if (animState.time > 2.5) {
+                            animState.running = false;
+                            scene.remove(projectile);
+                        }
+                    }
+                    controls.update();
+                    renderer.render(scene, camera);
+                    requestAnimationFrame(animate);
+                }
+                animate();
+            }
+
 
             // Initial calls
             renderAssetBrowser();
@@ -1967,6 +2395,9 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
                 if (faction.threat === 'Hostile') threatColor = 'var(--color-primary)';
                 if (faction.threat === 'Avoid') threatColor = 'var(--color-tertiary)';
                 if (faction.threat === 'Ally') threatColor = 'var(--color-ally)';
+                if (faction.threat === 'Caution') threatColor = 'var(--color-secondary)';
+                if (faction.threat === 'Neutral') threatColor = 'var(--color-warning)';
+
 
                 factionDetailView.innerHTML = `
                     <h3 class="text-2xl text-primary">${faction.name}</h3>
@@ -2008,6 +2439,8 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,HvarRocket,HvarRocketMagazine
                     if (faction.threat === 'Neutral') threatColorClass = 'border-l-neutral';
                     if (faction.threat === 'Avoid') threatColorClass = 'border-l-avoid';
                     if (faction.threat === 'Ally') threatColorClass = 'border-l-ally';
+                    if (faction.threat === 'Caution') threatColorClass = 'border-l-caution';
+
 
                     const card = document.createElement('div');
                     card.className = `data-nav-item ${threatColorClass}`;
