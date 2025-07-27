@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSW-OS [v28.02-CONFIGURED]</title>
+    <title>HSW-OS [v28.03-FIXED]</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -704,16 +704,16 @@
                 measurementId: "G-65W3XRX32Y"
             };
 
-            // Use provided App ID from the environment
-            if (typeof __app_id === 'undefined') {
-                console.error("App ID is missing from the environment.");
-                const offlineText = document.getElementById('stage-offline-text');
+            // Use the appId from the user-provided config
+            appId = firebaseConfig.appId;
+            if (!appId) {
+                console.error("App ID is missing from the Firebase config.");
+                 const offlineText = document.getElementById('stage-offline-text');
                 if(offlineText) {
-                    offlineText.innerHTML = `<h1>CRITICAL ERROR</h1><p>ENVIRONMENT APP ID MISSING</p>`;
+                    offlineText.innerHTML = `<h1>CRITICAL ERROR</h1><p>FIREBASE CONFIG APP ID MISSING</p>`;
                 }
                 return false;
             }
-            appId = __app_id;
 
             // Initialize Firebase
             const app = initializeApp(firebaseConfig);
@@ -758,7 +758,7 @@
         }
 
         async function seedInitialData() {
-            const seedFlagRef = doc(db, `artifacts/${appId}/public/data/`, 'seedStatus');
+            const seedFlagRef = doc(db, `artifacts/${appId}/public/data`, 'seedStatus');
             const seedFlagDoc = await getDoc(seedFlagRef);
 
             if (seedFlagDoc.exists() && seedFlagDoc.data().seeded_v2) {
