@@ -705,12 +705,12 @@
             };
 
             // Use the appId from the user-provided config
-            appId = firebaseConfig.appId;
+            appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
             if (!appId) {
-                console.error("App ID is missing from the Firebase config.");
+                console.error("App ID is missing.");
                  const offlineText = document.getElementById('stage-offline-text');
                 if(offlineText) {
-                    offlineText.innerHTML = `<h1>CRITICAL ERROR</h1><p>FIREBASE CONFIG APP ID MISSING</p>`;
+                    offlineText.innerHTML = `<h1>CRITICAL ERROR</h1><p>FIREBASE APP ID MISSING</p>`;
                 }
                 return false;
             }
@@ -723,10 +723,11 @@
 
             // Sign in the user
             try {
-                // When a custom firebaseConfig is provided, we must sign in anonymously
-                // to that specific project, rather than trying to use the environment's token,
-                // which would cause an auth/custom-token-mismatch error.
-                await signInAnonymously(auth);
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
             } catch (error) {
                 console.error("Firebase Authentication Failed:", error);
                 const offlineText = document.getElementById('stage-offline-text');
@@ -758,7 +759,7 @@
         }
 
         async function seedInitialData() {
-            const seedFlagRef = doc(db, `artifacts/${appId}/public/data`, 'seedStatus');
+            const seedFlagRef = doc(db, `artifacts/${appId}/public/data/metadata`, 'seedStatus');
             const seedFlagDoc = await getDoc(seedFlagRef);
 
             if (seedFlagDoc.exists() && seedFlagDoc.data().seeded_v2) {
