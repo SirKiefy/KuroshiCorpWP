@@ -1392,9 +1392,7 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,"127mm Hvar Rocket",HvarRocketMagazi
         }
 
         async function initializeC3IApp() {
-            // Load all necessary data from Firestore first
-            await loadDataFromFirestore();
-
+            // This function is now called AFTER data is loaded and user is authenticated.
             document.getElementById('user-callsign').textContent = c3iState.currentUserProfile.username;
             document.getElementById('user-clearance').textContent = `Lvl ${c3iState.currentUserProfile.clearance} - ${getClearanceName(c3iState.currentUserProfile.clearance)}`;
             document.getElementById('user-id').textContent = c3iState.currentUser.uid;
@@ -1545,15 +1543,14 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,"127mm Hvar Rocket",HvarRocketMagazi
                 }
             });
 
-            async function initializeApp() {
-                // This function now handles the entire startup flow
+            async function initializeConnection() {
                 if (!firebaseConfig) {
-                    console.warn("Firebase configuration not found. App will run in offline mode.");
                     const loginBtn = document.querySelector('.login-btn');
                     loginBtn.disabled = true;
                     loginBtn.textContent = 'OFFLINE';
                     bootState.loginError.textContent = 'COMMAND SERVER OFFLINE.';
                     bootState.loginError.style.display = 'block';
+                    console.warn("Firebase configuration not found.");
                     return;
                 }
 
@@ -1563,16 +1560,11 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,"127mm Hvar Rocket",HvarRocketMagazi
                     db = getFirestore(app);
                     console.log("Firebase initialized successfully.");
 
-                    await loadDataFromFirestore(); // Pre-load user data
-
-                    const loginBtn = document.querySelector('.login-btn');
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = 'AUTHORIZE';
+                    await loadDataFromFirestore(); 
 
                     onAuthStateChanged(auth, (user) => {
                         if (user && c3iState.currentUserProfile) {
                             c3iState.currentUser = user;
-                            logAction('AUTH_SUCCESS', `User ${user.uid} authenticated as ${c3iState.currentUserProfile.username}`);
                             showDesktop();
                         } else {
                             if (user) signOut(auth);
@@ -1585,6 +1577,11 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,"127mm Hvar Rocket",HvarRocketMagazi
                             }
                         }
                     });
+                    
+                    const loginBtn = document.querySelector('.login-btn');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'AUTHORIZE';
+                    console.log("System ready for authorization.");
 
                 } catch (error) {
                     console.error("Initialization failed:", error);
@@ -1603,7 +1600,15 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,"127mm Hvar Rocket",HvarRocketMagazi
                 const userProfile = c3iState.users[codename];
 
                 if (codename === 'rocketman') {
-                    // ... (lockdown logic as before) ...
+                    logAction('INTRUSION ATTEMPT', 'User: rocketman');
+                    if(bootState.soundInitialized) {
+                        const alarmSynth = new Tone.Synth({ oscillator: { type: 'sawtooth' } }).toDestination();
+                        const alarmLoop = new Tone.Loop(time => {
+                            alarmSynth.triggerAttackRelease("A5", "16n", time);
+                        }, "8n").start(0);
+                        Tone.Transport.start();
+                    }
+                    switchStage(5); // Lockdown stage
                     return;
                 }
 
@@ -1618,15 +1623,18 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,"127mm Hvar Rocket",HvarRocketMagazi
                                 await signInAnonymously(auth);
                             }
                         } else {
-                            // Already signed in, just need to trigger the state change
+                            // Manually trigger the handler if user is already signed in
                             onAuthStateChanged(auth, auth.currentUser);
                         }
-                    } catch (error) {
-                        console.error("Firebase sign-in failed:", error);
+                    } catch (firebaseError) {
+                        console.error("Firebase sign-in failed:", firebaseError);
+                        bootState.loginError.textContent = "SESSION FAILED. CANNOT CONNECT.";
+                        bootState.loginError.style.display = 'block';
                         c3iState.currentUserProfile = null;
                     }
                 } else {
                     if(bootState.soundInitialized) bootState.failSynth.triggerAttackRelease("G2", "1n");
+                    bootState.loginError.textContent = "AUTH FAILED: INVALID CREDENTIALS";
                     bootState.loginError.style.display = 'block';
                     setTimeout(() => { bootState.loginError.style.display = 'none'; }, 1500);
                 }
@@ -1635,7 +1643,7 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,"127mm Hvar Rocket",HvarRocketMagazi
 
             function startHandler() {
                 initSound();
-                runBootSequence().then(initializeApp); // Initialize Firebase after boot sequence
+                runBootSequence().then(initializeConnection); // Initialize Firebase after boot sequence
                 window.removeEventListener('keydown', startHandler);
                 window.removeEventListener('click', startHandler);
             }
