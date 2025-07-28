@@ -688,8 +688,8 @@
         };
         
         // --- Firebase State ---
-        let db, auth, userId, appId;
-        let unsubscribeListeners = []; // To store unsubscribe functions for cleanup
+        let db, auth, userId;
+        const appId = "helios-interface"; // Use the projectId directly as a stable ID
 
         // --- Firestore Initialization and Seeding ---
         async function initFirebase() {
@@ -703,17 +703,6 @@
                 appId: "1:1073548914126:web:ec04b501ba577b08584f9f",
                 measurementId: "G-65W3XRX32Y"
             };
-
-            // Use the projectId for database paths, as it's a valid segment.
-            appId = firebaseConfig.projectId;
-            if (!appId) {
-                console.error("Project ID is missing from the Firebase config.");
-                 const offlineText = document.getElementById('stage-offline-text');
-                if(offlineText) {
-                    offlineText.innerHTML = `<h1>CRITICAL ERROR</h1><p>FIREBASE PROJECT ID MISSING</p>`;
-                }
-                return false;
-            }
 
             // Initialize Firebase
             const app = initializeApp(firebaseConfig);
