@@ -704,13 +704,13 @@
                 measurementId: "G-65W3XRX32Y"
             };
 
-            // Use the appId from the user-provided config
+            // Use the projectId for database paths, as it's a valid segment.
             appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
             if (!appId) {
-                console.error("App ID is missing.");
+                console.error("App ID/Project ID is missing.");
                  const offlineText = document.getElementById('stage-offline-text');
                 if(offlineText) {
-                    offlineText.innerHTML = `<h1>CRITICAL ERROR</h1><p>FIREBASE APP ID MISSING</p>`;
+                    offlineText.innerHTML = `<h1>CRITICAL ERROR</h1><p>FIREBASE PROJECT ID MISSING</p>`;
                 }
                 return false;
             }
@@ -2017,14 +2017,15 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,"127mm Hvar Rocket",HvarRocketMagazi
                 window.removeEventListener('keydown', startHandler);
                 window.removeEventListener('click', startHandler);
                 
-                initSound();
-
                 // Initialize Firebase and load data before starting boot sequence
                 const firebaseReady = await initFirebase();
                 if (!firebaseReady) {
                     console.error("Halting boot due to Firebase initialization failure.");
                     return;
                 }
+                
+                // Initialize sound AFTER settings have been loaded from Firebase
+                initSound();
 
                 runBootSequence();
             }
