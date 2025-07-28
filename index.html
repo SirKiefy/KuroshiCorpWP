@@ -642,7 +642,7 @@
     <script type="module">
         // --- Firebase SDK Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, query, writeBatch, getDocs, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Three.js Imports ---
@@ -705,9 +705,9 @@
             };
 
             // Use the projectId for database paths, as it's a valid segment.
-            appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+            appId = firebaseConfig.projectId;
             if (!appId) {
-                console.error("App ID/Project ID is missing.");
+                console.error("Project ID is missing from the Firebase config.");
                  const offlineText = document.getElementById('stage-offline-text');
                 if(offlineText) {
                     offlineText.innerHTML = `<h1>CRITICAL ERROR</h1><p>FIREBASE PROJECT ID MISSING</p>`;
@@ -723,13 +723,9 @@
 
             // Sign in the user
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                await signInAnonymously(auth);
             } catch (error) {
-                console.error("Firebase Authentication Failed:", error);
+                console.error("Firebase Anonymous Authentication Failed:", error);
                 const offlineText = document.getElementById('stage-offline-text');
                  if(offlineText) {
                     offlineText.innerHTML = `<h1>AUTHENTICATION FAILED</h1><p>${error.message}</p>`;
