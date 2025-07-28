@@ -401,7 +401,7 @@
         <div id="stage-core-ignition" class="boot-stage"><div class="stage-title">SYSTEM CORE IGNITION</div><div class="canvas-container" id="core-ignition-canvas-container"><canvas id="core-ignition-canvas"></canvas></div></div>
         <div id="stage-bios" class="boot-stage"><div id="bios-container"><div class="ui-box self-start"><h1 class="text-base font-bold tracking-widest animated-title">WARSAT BIOS v28.1</h1></div><div id="bios-content"><div id="bios-lines-box" class="ui-box"><div id="bios-lines"></div></div><div id="bios-sidebar" class="flex flex-col gap-4"><div class="ui-box flex-grow"><div class="progress-label">QEC Integrity</div><div class="progress-bar-container"><div id="bar-qec" class="progress-bar"></div></div><div class="progress-label mt-2">Heatsink Calibration</div><div class="progress-bar-container"><div id="bar-heat" class="progress-bar"></div></div><div class="progress-label mt-2">Weapon Systems</div><div class="progress-bar-container"><div id="bar-wpn" class="progress-bar"></div></div><div class="progress-label mt-2">Telemetry Link</div><div class="progress-bar-container"><div id="bar-telemetry" class="progress-bar"></div></div><div class="progress-label mt-2">Shield Emitters</div><div class="progress-bar-container"><div id="bar-shield" class="progress-bar"></div></div><div class="progress-label mt-2">Sensor Array</div><div class="progress-bar-container"><div id="bar-sensor" class="progress-bar"></div></div><div class="circular-bars-container mt-4"><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-power" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Power</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-nav" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NAV</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-life" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">Life</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-cpu" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">CPU</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-mem" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">MEM</div></div><div class="circular-bar"><svg viewBox="0 0 100 100"><circle class="bar-bg" cx="50" cy="50" r="45"></circle><circle id="cbar-net" class="bar-fg" cx="50" cy="50" r="45"></circle></svg><div class="circular-bar-label">NET</div></div></div><div id="bios-sidebar-visual"></div></div></div></div></div></div>
         <div id="stage-threat-analysis" class="boot-stage"><div class="stage-title">THREAT ANALYSIS</div><div class="canvas-container" id="threat-analysis-canvas-container"><canvas id="threat-analysis-canvas"></canvas></div></div>
-        <div id="stage-auth" class="boot-stage"><div class="ui-box"><h1 id="auth-title" class="animated-title">[SYSTEM ONLINE]</h1><form id="login-form"><input type="text" id="username" class="input-field" placeholder="CODENAME" required autocomplete="off" value="architect"><input type="password" id="password" class="input-field" placeholder="PASSCODE" required autocomplete="off" value="R9x!Vt3Qw#Lp8J"><button type="submit" class="login-btn">AUTHORIZE</button><p id="login-error">AUTH FAILED: INVALID CREDENTIALS</p></form></div></div>
+        <div id="stage-auth" class="boot-stage"><div class="ui-box"><h1 id="auth-title" class="animated-title">[SYSTEM ONLINE]</h1><form id="login-form"><input type="text" id="username" class="input-field" placeholder="CODENAME" required autocomplete="off" value="architect"><input type="password" id="password" class="input-field" placeholder="PASSCODE" required autocomplete="off" value="R9x!Vt3Qw#Lp8J"><button type="submit" class="login-btn" disabled>CONNECTING...</button><p id="login-error">AUTH FAILED: INVALID CREDENTIALS</p></form></div></div>
         <div id="stage-lockdown" class="boot-stage"><div class="text-center"><h1 class="text-5xl text-primary font-bold">!!! INTRUSION DETECTED !!!</h1><p class="text-2xl mt-4 text-warning">ACCESS DENIED. USER FLAGGED AS TRAITOR.</p><p class="mt-8">SYSTEM LOCKDOWN INITIATED. AUTHORITIES HAVE BEEN NOTIFIED.</p></div></div>
     </div>
     
@@ -683,19 +683,6 @@
         let app, auth, db;
         let waypointUnsubscribe = null;
         let commsUnsubscribe = null;
-
-        if (firebaseConfig) {
-            try {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-            } catch (e) {
-                console.error("Firebase initialization failed:", e);
-                alert("Could not connect to the command server. Check console for details.");
-            }
-        } else {
-            console.warn("Firebase configuration not found. App will run in offline mode.");
-        }
 
         // --- DATA (data.js) ---
         const c3iState = {
@@ -1558,31 +1545,97 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,"127mm Hvar Rocket",HvarRocketMagazi
                 }
             });
 
-            // Handle Firebase Auth State
-            if (auth) {
-                onAuthStateChanged(auth, async (user) => {
-                    if (user && c3iState.currentUserProfile) { // User is signed in AND has a profile from the form
-                        c3iState.currentUser = user;
-                        logAction('AUTH_SUCCESS', `User ${user.uid} authenticated as ${c3iState.currentUserProfile.username}`);
-                        showDesktop();
-                    } else {
-                        // User is signed out, or logged in without a profile (invalid state)
-                        if (user) signOut(auth); // Force sign out if profile is missing
-                        c3iState.currentUser = null;
-                        c3iState.currentUserProfile = null;
-                        document.getElementById('boot-container').style.display = 'block';
-                        document.getElementById('desktop').style.display = 'none';
-                        if (bootState.currentStage > 4) {
-                            switchStage(4);
+            async function initializeApp() {
+                // This function now handles the entire startup flow
+                if (!firebaseConfig) {
+                    console.warn("Firebase configuration not found. App will run in offline mode.");
+                    const loginBtn = document.querySelector('.login-btn');
+                    loginBtn.disabled = true;
+                    loginBtn.textContent = 'OFFLINE';
+                    bootState.loginError.textContent = 'COMMAND SERVER OFFLINE.';
+                    bootState.loginError.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    console.log("Firebase initialized successfully.");
+
+                    await loadDataFromFirestore(); // Pre-load user data
+
+                    const loginBtn = document.querySelector('.login-btn');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'AUTHORIZE';
+
+                    onAuthStateChanged(auth, (user) => {
+                        if (user && c3iState.currentUserProfile) {
+                            c3iState.currentUser = user;
+                            logAction('AUTH_SUCCESS', `User ${user.uid} authenticated as ${c3iState.currentUserProfile.username}`);
+                            showDesktop();
+                        } else {
+                            if (user) signOut(auth);
+                            c3iState.currentUser = null;
+                            c3iState.currentUserProfile = null;
+                            document.getElementById('boot-container').style.display = 'block';
+                            document.getElementById('desktop').style.display = 'none';
+                            if (bootState.currentStage > 4) {
+                                switchStage(4);
+                            }
                         }
-                    }
-                });
+                    });
+
+                } catch (error) {
+                    console.error("Initialization failed:", error);
+                    const loginBtn = document.querySelector('.login-btn');
+                    loginBtn.disabled = true;
+                    loginBtn.textContent = 'CONNECTION FAILED';
+                    bootState.loginError.textContent = 'COMMAND SERVER OFFLINE. CHECK CONSOLE.';
+                    bootState.loginError.style.display = 'block';
+                }
             }
+
+            bootState.loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const codename = e.target.username.value.toLowerCase();
+                const password = e.target.password.value;
+                const userProfile = c3iState.users[codename];
+
+                if (codename === 'rocketman') {
+                    // ... (lockdown logic as before) ...
+                    return;
+                }
+
+                if (userProfile && userProfile.password === password) {
+                    c3iState.currentUserProfile = userProfile;
+                    try {
+                        if (!auth.currentUser) {
+                            const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                            if (initialToken) {
+                                await signInWithCustomToken(auth, initialToken);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        } else {
+                            // Already signed in, just need to trigger the state change
+                            onAuthStateChanged(auth, auth.currentUser);
+                        }
+                    } catch (error) {
+                        console.error("Firebase sign-in failed:", error);
+                        c3iState.currentUserProfile = null;
+                    }
+                } else {
+                    if(bootState.soundInitialized) bootState.failSynth.triggerAttackRelease("G2", "1n");
+                    bootState.loginError.style.display = 'block';
+                    setTimeout(() => { bootState.loginError.style.display = 'none'; }, 1500);
+                }
+            });
 
 
             function startHandler() {
                 initSound();
-                runBootSequence();
+                runBootSequence().then(initializeApp); // Initialize Firebase after boot sequence
                 window.removeEventListener('keydown', startHandler);
                 window.removeEventListener('click', startHandler);
             }
@@ -1603,48 +1656,6 @@ HVAR Rocket Launcher,30,10,3800,BlockWeapon,"127mm Hvar Rocket",HvarRocketMagazi
                             if (composer) composer.setSize(width, height);
                         }
                     }
-                }
-            });
-
-            bootState.loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!auth) {
-                    alert("Command server connection not established.");
-                    return;
-                }
-                const codename = e.target.username.value.toLowerCase();
-                const password = e.target.password.value;
-                
-                // First, load user data if it hasn't been loaded yet.
-                if (Object.keys(c3iState.users).length === 0) {
-                    await loadDataFromFirestore();
-                }
-
-                const userProfile = c3iState.users[codename];
-
-                if (codename === 'rocketman') {
-                    // ... (lockdown logic as before) ...
-                    return;
-                }
-
-                if (userProfile && userProfile.password === password) {
-                    // Credentials are correct. Set the profile and trigger Firebase sign-in.
-                    c3iState.currentUserProfile = userProfile;
-                    try {
-                        // We sign in to get a secure session UID, the profile is already validated.
-                        if (!auth.currentUser) {
-                            await signInAnonymously(auth);
-                        }
-                        // The onAuthStateChanged listener will now handle showing the desktop.
-                    } catch (error) {
-                        console.error("Firebase sign-in failed:", error);
-                        c3iState.currentUserProfile = null; // Clear profile on failure
-                    }
-                } else {
-                    // Credentials are wrong
-                    if(bootState.soundInitialized) bootState.failSynth.triggerAttackRelease("G2", "1n");
-                    bootState.loginError.style.display = 'block';
-                    setTimeout(() => { bootState.loginError.style.display = 'none'; }, 1500);
                 }
             });
 
